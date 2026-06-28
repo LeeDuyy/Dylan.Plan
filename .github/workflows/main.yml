@@ -48,20 +48,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare SSH
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Trust VPS host key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${VPS_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
 
       - name: Prepare VPS directory
         run: |
-          ssh -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+          ssh -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
       - name: Sync files to VPS
         run: |
           rsync -az --delete \
+            -e "ssh -o IdentitiesOnly=yes -p ${VPS_PORT}" \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.next' \
@@ -72,8 +76,4 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
-          ssh -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" <<'EOF'
-          set -e
-          cd {VPS_PATH}
-          docker compose up -d --build --remove-orphans
-          EOF
+          ssh -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && docker compose up -d --build --remove-orphans"
