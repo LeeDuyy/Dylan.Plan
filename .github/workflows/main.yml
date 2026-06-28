@@ -49,9 +49,28 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start ssh-agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_PASSPHRASE: ${{ secrets.VPS_SSH_PASSPHRASE }}
+        run: |
+          eval "$(ssh-agent -s)"
+          echo "SSH_AUTH_SOCK=${SSH_AUTH_SOCK}" >> "${GITHUB_ENV}"
+          echo "SSH_AGENT_PID=${SSH_AGENT_PID}" >> "${GITHUB_ENV}"
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          cat > ~/.ssh/askpass.sh <<'EOF'
+          #!/bin/sh
+          printf '%s\n' "$SSH_PASSPHRASE"
+          EOF
+          chmod +x ~/.ssh/askpass.sh
+
+          DISPLAY=:0 \
+          SSH_ASKPASS="$HOME/.ssh/askpass.sh" \
+          SSH_ASKPASS_REQUIRE=force \
+          setsid -w ssh-add ~/.ssh/id_ed25519 </dev/null
 
       - name: Trust VPS host key
         run: |
@@ -60,12 +79,12 @@ jobs:
 
       - name: Prepare VPS directory
         run: |
-          ssh -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
       - name: Sync files to VPS
         run: |
           rsync -az --delete \
-            -e "ssh -o IdentitiesOnly=yes -p ${VPS_PORT}" \
+            -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p ${VPS_PORT}" \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.next' \
@@ -76,4 +95,4 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
-          ssh -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && docker compose up -d --build --remove-orphans"
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && docker compose up -d --build --remove-orphans"
