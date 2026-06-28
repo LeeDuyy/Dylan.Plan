@@ -1,0 +1,9 @@
+.git
+.github
+.next
+node_modules
+next-dev.err.log
+next-dev.out.log
+*.log
+.env
+.env.*

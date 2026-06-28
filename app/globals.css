@@ -352,6 +352,24 @@ h3 {
   gap: 15px;
 }
 
+.targets,
+.service-grid,
+.module-grid,
+.product-roadmap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.service-grid {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 18px;
+}
+
+.product-roadmap {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .summary .value,
 .metric-card strong,
 .insight strong {
@@ -369,10 +387,71 @@ h3 {
 .rule p,
 .metric-card span,
 .focus-card p,
-.month-card p {
+.month-card p,
+.target-card span,
+.service-card p,
+.module-card p,
+.product-week li,
+.scenario-card p,
+.round span {
   margin: 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+.target-card,
+.service-card,
+.module-card,
+.product-week {
+  padding: 20px;
+}
+
+.target-card strong,
+.scenario-card strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 27px;
+  line-height: 1.1;
+}
+
+.service-card small,
+.module-card small,
+.product-week small,
+.round small {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.service-meta,
+.topic-list,
+.stack-list,
+.decision-list,
+.scenario-list,
+.income-breakdown {
+  display: grid;
+  gap: 10px;
+}
+
+.service-meta {
+  margin-top: 14px;
+}
+
+.service-meta span,
+.stack-row,
+.decision-item,
+.scenario-card,
+.round {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.product-week ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
 }
 
 .bar {
@@ -393,6 +472,13 @@ h3 {
 .two-col {
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
+  gap: 18px;
+}
+
+.freelance-strategy,
+.decision-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
   gap: 18px;
 }
 
@@ -471,6 +557,16 @@ h3 {
   gap: 11px;
 }
 
+.topic b {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
 .topic svg {
   width: 34px;
   height: 34px;
@@ -478,6 +574,134 @@ h3 {
   border-radius: 11px;
   background: var(--primary-soft);
   color: var(--primary);
+}
+
+.hybrid-ratio {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 8px;
+  height: 18px;
+  margin: 18px 0 12px;
+}
+
+.hybrid-ratio span,
+.income-track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.buy-build {
+  background: linear-gradient(90deg, var(--warning), #f6b94b);
+}
+
+.build-buy,
+.product-bar,
+.success-stick {
+  background: linear-gradient(90deg, var(--success), #57d49a);
+}
+
+.ratio-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ratio-labels strong {
+  display: block;
+  color: var(--text);
+}
+
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.flow-step {
+  padding: 18px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+.flow-step b {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.flow-step strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.flow-step span,
+.stack-row span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stack-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+}
+
+.accept {
+  color: var(--success);
+}
+
+.reject {
+  color: var(--danger);
+}
+
+.income-total {
+  margin: 8px 0;
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.income-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.income-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.salary-bar {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.freelance-bar {
+  background: linear-gradient(90deg, var(--warning), #f4bc5a);
+}
+
+.round-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.round strong {
+  display: block;
+  margin: 3px 0;
 }
 
 .schedule {
@@ -641,6 +865,89 @@ tfoot td {
   transition: width 0.2s ease;
 }
 
+.progress span.warning-progress {
+  background: linear-gradient(90deg, var(--warning), var(--accent));
+}
+
+.progress span.danger-progress {
+  background: linear-gradient(90deg, var(--danger), var(--accent));
+}
+
+.result {
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.result small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.quick-panel {
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+.quick-panel h3 {
+  margin: 6px 0 10px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.quick-result {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.quick-result strong {
+  color: var(--primary);
+}
+
+.transaction-list {
+  display: grid;
+  max-height: 210px;
+  gap: 8px;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.transaction {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.transaction small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.transaction b {
+  color: var(--primary);
+}
+
 .chart {
   display: flex;
   height: 220px;
@@ -719,17 +1026,27 @@ tfoot td {
 
 @media (max-width: 1000px) {
   .hero-grid,
-  .two-col {
+  .two-col,
+  .freelance-strategy,
+  .decision-grid {
     grid-template-columns: 1fr;
   }
 
   .summary-grid,
   .priority-grid,
   .metric-grid,
+  .targets,
+  .module-grid,
+  .product-roadmap,
   .deliverables,
   .focus-grid,
   .month-grid,
-  .insight-grid {
+  .insight-grid,
+  .flow-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .service-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -767,12 +1084,24 @@ tfoot td {
   .summary-grid,
   .priority-grid,
   .metric-grid,
+  .targets,
+  .service-grid,
+  .module-grid,
+  .product-roadmap,
+  .flow-grid,
+  .round-grid,
   .deliverables,
   .focus-grid,
   .month-grid,
   .insight-grid,
+  .quick-grid,
   .budget-tools,
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stack-row,
+  .income-row {
     grid-template-columns: 1fr;
   }
 

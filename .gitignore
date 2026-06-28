@@ -6,3 +6,4 @@ dist
 next-dev.*.log
 .env*
 !.env.example
+ssh
