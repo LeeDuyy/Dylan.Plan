@@ -1,11 +1,14 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: node:22-alpine
+    working_dir: /app
+    command: node server.js
     environment:
       NODE_ENV: production
       PORT: 3000
+      HOSTNAME: 0.0.0.0
+    volumes:
+      - ./app:/app:ro
     expose:
       - "3000"
     restart: unless-stopped

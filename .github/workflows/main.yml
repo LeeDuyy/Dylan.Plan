@@ -33,6 +33,23 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Prepare deploy artifact
+        run: |
+          mkdir -p deploy/app/.next deploy/nginx
+          cp -R .next/standalone/. deploy/app/
+          cp -R .next/static deploy/app/.next/static
+          cp -R public deploy/app/public
+          cp compose.yaml deploy/compose.yaml
+          cp nginx/default.conf deploy/nginx/default.conf
+
+      - name: Upload deploy artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dylan-plan-runtime
+          path: deploy/
+          if-no-files-found: error
+          include-hidden-files: true
+
   deploy:
     name: Deploy to VPS
     needs: build
@@ -42,11 +59,14 @@ jobs:
     env:
       VPS_HOST: 103.72.97.160
       VPS_PORT: 24700
-      VPS_PATH: /mnt/SourceCode/DylanSolution
+      VPS_PATH: /mnt/SourceCode/DylanPlan
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download deploy artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dylan-plan-runtime
+          path: deploy
 
       - name: Start ssh-agent
         env:
@@ -81,18 +101,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
-      - name: Sync files to VPS
+      - name: Sync runtime artifact to VPS
         run: |
           rsync -az --delete \
             -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p ${VPS_PORT}" \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.next' \
-            --exclude='node_modules' \
-            --exclude='.env' \
-            --exclude='.env.*' \
-            ./ "${{ secrets.VPS_USER }}@${VPS_HOST}:${VPS_PATH}/"
+            deploy/ "${{ secrets.VPS_USER }}@${VPS_HOST}:${VPS_PATH}/"
 
       - name: Deploy with Docker Compose
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && docker compose up -d --build --remove-orphans"
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && docker compose up -d --remove-orphans"
