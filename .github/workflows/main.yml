@@ -113,9 +113,27 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && HTTP_PORT=${HTTP_PORT} docker compose up -d --force-recreate --remove-orphans"
 
+      - name: Install host Nginx config
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" <<'EOF'
+          set -e
+          cd /mnt/SourceCode/DylanPlan
+
+          SUDO=""
+          if [ "$(id -u)" != "0" ]; then
+            SUDO="sudo"
+          fi
+
+          $SUDO install -m 0644 nginx/host-dylan.com.vn.conf /etc/nginx/sites-available/dylan.com.vn
+          $SUDO ln -sf /etc/nginx/sites-available/dylan.com.vn /etc/nginx/sites-enabled/dylan.com.vn
+          $SUDO nginx -t
+          $SUDO systemctl reload nginx
+          EOF
+
       - name: Smoke test deployed app
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:${HTTP_PORT}/ >/dev/null"
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:${HTTP_PORT}/ | grep -q 'Dylan Plan Dashboard'"
+          curl -k -fsS --retry 10 --retry-delay 3 https://dylan.com.vn/ | grep -q 'Dylan Plan Dashboard'
 
       - name: Show Docker Compose diagnostics
         if: failure()
