@@ -41,6 +41,7 @@ jobs:
           cp -R public deploy/app/public
           cp compose.yaml deploy/compose.yaml
           cp nginx/default.conf deploy/nginx/default.conf
+          cp nginx/host-dylan.com.vn.conf deploy/nginx/host-dylan.com.vn.conf
 
       - name: Upload deploy artifact
         uses: actions/upload-artifact@v4
