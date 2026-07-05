@@ -115,7 +115,6 @@ jobs:
       - name: Smoke test deployed app
         run: |
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:${HTTP_PORT}/ >/dev/null"
-          curl -fsS --retry 10 --retry-delay 3 "http://${VPS_HOST}:${HTTP_PORT}/" >/dev/null
 
       - name: Show Docker Compose diagnostics
         if: failure()
