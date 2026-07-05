@@ -6,7 +6,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      HOSTNAME: 0.0.0.0
+      HOSTNAME: 103.72.97.160
     volumes:
       - ./app:/app:ro
     expose:
