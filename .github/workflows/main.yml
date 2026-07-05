@@ -41,7 +41,6 @@ jobs:
           cp -R public deploy/app/public
           cp compose.yaml deploy/compose.yaml
           cp nginx/default.conf deploy/nginx/default.conf
-          cp nginx/host-dylan.com.vn.conf deploy/nginx/host-dylan.com.vn.conf
 
       - name: Upload deploy artifact
         uses: actions/upload-artifact@v4
@@ -61,7 +60,6 @@ jobs:
       VPS_HOST: 103.72.97.160
       VPS_PORT: 24700
       VPS_PATH: /mnt/SourceCode/DylanPlan
-      HTTP_PORT: 8080
 
     steps:
       - name: Download deploy artifact
@@ -111,10 +109,6 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "cd ${VPS_PATH} && HTTP_PORT=${HTTP_PORT} docker compose up -d --force-recreate --remove-orphans"
-
-      - name: Install host Nginx config
-        run: |
           ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" <<'EOF'
           set -e
           cd /mnt/SourceCode/DylanPlan
@@ -124,16 +118,36 @@ jobs:
             SUDO="sudo"
           fi
 
-          $SUDO install -m 0644 nginx/host-dylan.com.vn.conf /etc/nginx/sites-available/dylan.com.vn
-          $SUDO ln -sf /etc/nginx/sites-available/dylan.com.vn /etc/nginx/sites-enabled/dylan.com.vn
-          $SUDO nginx -t
-          $SUDO systemctl reload nginx
+          $SUDO mkdir -p /var/www/certbot
+          if $SUDO test -d /etc/nginx; then
+            $SUDO systemctl stop nginx || true
+          fi
+
+          docker compose up -d --force-recreate --remove-orphans
           EOF
 
       - name: Smoke test deployed app
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:${HTTP_PORT}/ | grep -q 'Dylan Plan Dashboard'"
-          curl -k -fsS --retry 10 --retry-delay 3 https://dylan.com.vn/ | grep -q 'Dylan Plan Dashboard'
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "bash -s" <<'EOF'
+          set -e
+          cd /mnt/SourceCode/DylanPlan
+
+          curl -k -fsS --retry 10 --retry-delay 3 -H 'Host: dylan.com.vn' https://127.0.0.1/ -o /tmp/dylan-plan-local.html
+          if ! grep -q 'Dylan Plan Dashboard' /tmp/dylan-plan-local.html; then
+            echo "Local Docker HTTPS endpoint did not return the app marker."
+            head -80 /tmp/dylan-plan-local.html
+            docker compose ps
+            docker compose logs --tail=100 app nginx
+            exit 1
+          fi
+          EOF
+
+          curl -k -fsS --retry 10 --retry-delay 3 https://dylan.com.vn/ -o /tmp/dylan-plan-public.html
+          if ! grep -q 'Dylan Plan Dashboard' /tmp/dylan-plan-public.html; then
+            echo "Public HTTPS endpoint did not return the app marker."
+            head -80 /tmp/dylan-plan-public.html
+            exit 1
+          fi
 
       - name: Show Docker Compose diagnostics
         if: failure()
