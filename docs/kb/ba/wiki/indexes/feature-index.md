@@ -1,0 +1,38 @@
+---
+status: Draft
+updated: 2026-08-14
+owner: ssr-ingest
+tags: [kb/ba/wiki/indexes]
+---
+
+# Wiki Feature Index
+
+> Chỉ liệt kê function đã có trang trong cấu trúc nested. 5 US khác (US-001, US-007, US-008, US-009, US-011) vẫn ở dạng phẳng — xem `docs/requirements-index.md`. `US-013` không có trang riêng — đã gộp vào `US-006` (`DEC-065`).
+>
+> Cập nhật gần nhất: `US-019` đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn epic `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). `US-020` đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088`. `US-018` đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — không thuộc luồng F# nào của Business Flow hiện có (`DEC-088`, `po-expert` xác nhận `Aligned`).
+
+## 1. Danh Sách Feature
+
+| Mã | Tên function | Trang feature | Trang PBI | Spec |
+| --- | --- | --- | --- | --- |
+| `US-002` | Route/module riêng cho Quản lý chi tiêu | [`../knowledge/feature/US-002-route-rieng-quan-ly-chi-tieu.md`](../knowledge/feature/US-002-route-rieng-quan-ly-chi-tieu.md) | [`../delivery/pbi/US-002-route-rieng-quan-ly-chi-tieu.md`](../delivery/pbi/US-002-route-rieng-quan-ly-chi-tieu.md) | [`docs/features/US-002-route-rieng-quan-ly-chi-tieu/spec.md`](../../../../features/US-002-route-rieng-quan-ly-chi-tieu/spec.md) — `Ready for DEV` |
+| `US-003` | Liên kết giao dịch theo danh mục bằng ID | [`../knowledge/feature/US-003-lien-ket-giao-dich-theo-id.md`](../knowledge/feature/US-003-lien-ket-giao-dich-theo-id.md) | [`../delivery/pbi/US-003-lien-ket-giao-dich-theo-id.md`](../delivery/pbi/US-003-lien-ket-giao-dich-theo-id.md) | [`docs/features/US-003-lien-ket-giao-dich-theo-id/spec.md`](../../../../features/US-003-lien-ket-giao-dich-theo-id/spec.md) — `Ready for DEV` |
+| `US-004` | Sửa/xóa từng giao dịch tại bảng chi tiết chi tiêu | [`../knowledge/feature/US-004-sua-xoa-tung-giao-dich.md`](../knowledge/feature/US-004-sua-xoa-tung-giao-dich.md) | [`../delivery/pbi/US-004-sua-xoa-tung-giao-dich.md`](../delivery/pbi/US-004-sua-xoa-tung-giao-dich.md) | [`docs/features/US-004-sua-xoa-tung-giao-dich/spec.md`](../../../../features/US-004-sua-xoa-tung-giao-dich/spec.md) — `Ready for DEV` |
+| `US-005` | Ràng buộc toàn vẹn danh mục + giao dịch không danh mục | [`../knowledge/feature/US-005-rang-buoc-toan-ven-danh-muc.md`](../knowledge/feature/US-005-rang-buoc-toan-ven-danh-muc.md) | [`../delivery/pbi/US-005-rang-buoc-toan-ven-danh-muc.md`](../delivery/pbi/US-005-rang-buoc-toan-ven-danh-muc.md) | [`docs/features/US-005-rang-buoc-toan-ven-danh-muc/spec.md`](../../../../features/US-005-rang-buoc-toan-ven-danh-muc/spec.md) — `Ready for DEV` |
+| `US-006` (+ `US-013` gộp) | Cảnh báo trùng tháng khi tạo tháng mới, đã gộp nội dung khu vực chọn tháng/Clone của US-013 | [`../knowledge/feature/US-006-canh-bao-trung-thang.md`](../knowledge/feature/US-006-canh-bao-trung-thang.md) | [`../delivery/pbi/US-006-canh-bao-trung-thang.md`](../delivery/pbi/US-006-canh-bao-trung-thang.md) | [`docs/features/US-006-canh-bao-trung-thang/spec.md`](../../../../features/US-006-canh-bao-trung-thang/spec.md) — `Ready for DEV` |
+| `US-010` | Chặn trùng tên danh mục | [`../knowledge/feature/US-010-chan-trung-ten-danh-muc.md`](../knowledge/feature/US-010-chan-trung-ten-danh-muc.md) | [`../delivery/pbi/US-010-chan-trung-ten-danh-muc.md`](../delivery/pbi/US-010-chan-trung-ten-danh-muc.md) | [`docs/features/US-010-chan-trung-ten-danh-muc/spec.md`](../../../../features/US-010-chan-trung-ten-danh-muc/spec.md) — `Ready for DEV` |
+| `US-012` | Sửa lỗi ghi nhận âm thầm thất bại khi tên danh mục bị đổi | [`../knowledge/feature/US-012-sua-loi-nhan-dien-danh-muc.md`](../knowledge/feature/US-012-sua-loi-nhan-dien-danh-muc.md) | [`../delivery/pbi/US-012-sua-loi-nhan-dien-danh-muc.md`](../delivery/pbi/US-012-sua-loi-nhan-dien-danh-muc.md) | [`docs/features/US-012-sua-loi-nhan-dien-danh-muc/spec.md`](../../../../features/US-012-sua-loi-nhan-dien-danh-muc/spec.md) — `Ready for DEV` |
+| `US-014` | Cập nhật "Chi tiêu khác" luôn nằm cuối bảng danh mục | [`../knowledge/feature/US-014-chi-tieu-khac-cuoi-bang.md`](../knowledge/feature/US-014-chi-tieu-khac-cuoi-bang.md) | [`../delivery/pbi/US-014-chi-tieu-khac-cuoi-bang.md`](../delivery/pbi/US-014-chi-tieu-khac-cuoi-bang.md) | [`docs/features/US-014-chi-tieu-khac-cuoi-bang/spec.md`](../../../../features/US-014-chi-tieu-khac-cuoi-bang/spec.md) — `Ready for DEV` |
+| `US-015` | Giới hạn khu vực "Lịch sử thu chi" chỉ hiển thị 3 thẻ tháng quick view | [`../knowledge/feature/US-015-quick-view-thang-lien-ke.md`](../knowledge/feature/US-015-quick-view-thang-lien-ke.md) | [`../delivery/pbi/US-015-quick-view-thang-lien-ke.md`](../delivery/pbi/US-015-quick-view-thang-lien-ke.md) | [`docs/features/US-015-quick-view-thang-lien-ke/spec.md`](../../../../features/US-015-quick-view-thang-lien-ke/spec.md) — `Ready for DEV` |
+| `US-016` | Chuẩn hóa "Loại" chi tiêu (danh mục) thành combobox cố định | [`../knowledge/feature/US-016-loai-chi-tieu-combobox.md`](../knowledge/feature/US-016-loai-chi-tieu-combobox.md) | [`../delivery/pbi/US-016-loai-chi-tieu-combobox.md`](../delivery/pbi/US-016-loai-chi-tieu-combobox.md) | [`docs/features/US-016-loai-chi-tieu-combobox/spec.md`](../../../../features/US-016-loai-chi-tieu-combobox/spec.md) — `Ready for DEV` |
+| `US-017` | Sắp xếp vị trí danh mục bằng kéo thả (drag-and-drop row reordering) | [`../knowledge/feature/US-017-sap-xep-danh-muc-keo-tha.md`](../knowledge/feature/US-017-sap-xep-danh-muc-keo-tha.md) | [`../delivery/pbi/US-017-sap-xep-danh-muc-keo-tha.md`](../delivery/pbi/US-017-sap-xep-danh-muc-keo-tha.md) | [`docs/features/US-017-sap-xep-danh-muc-keo-tha/spec.md`](../../../../features/US-017-sap-xep-danh-muc-keo-tha/spec.md) — `Ready for DEV` |
+| `US-018` | Bảng theo dõi CV ứng tuyển tại trang Roadmap | [`../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) | [`../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | [`docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md`](../../../../features/US-018-theo-doi-cv-ung-tuyen/spec.md) — `Ready for DEV` |
+| `US-019` | Danh sách items cần mua theo tháng tại bảng thu chi | [`../knowledge/feature/US-019-danh-sach-can-mua.md`](../knowledge/feature/US-019-danh-sach-can-mua.md) | [`../delivery/pbi/US-019-danh-sach-can-mua.md`](../delivery/pbi/US-019-danh-sach-can-mua.md) | [`docs/features/US-019-danh-sach-can-mua/spec.md`](../../../../features/US-019-danh-sach-can-mua/spec.md) — `Ready for DEV` |
+| `US-020` | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | [`../knowledge/feature/US-020-lich-su-trang-thai-job.md`](../knowledge/feature/US-020-lich-su-trang-thai-job.md) | [`../delivery/pbi/US-020-lich-su-trang-thai-job.md`](../delivery/pbi/US-020-lich-su-trang-thai-job.md) | [`docs/features/US-020-lich-su-trang-thai-job/spec.md`](../../../../features/US-020-lich-su-trang-thai-job/spec.md) — `Ready for DEV` |
+
+## 2. Feature Theo Trạng Thái
+
+| Trạng thái | Function |
+| --- | --- |
+| Draft | Không có (trong cấu trúc nested) |
+| Active | US-002, US-003, US-004, US-005, US-006, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020 |

@@ -7,3 +7,12 @@ next-dev.*.log
 .env*
 !.env.example
 ssh
+/generated/prisma
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/backups
+*.stackdump
+.claude/settings.local.json
+.claude/*.log
+.claude/ssr-pipeline-state.json
+**/.claude/ssr-artifact.log

@@ -1,0 +1,92 @@
+// Đồng bộ thủ công từ prisma/schema.prisma — không có generator DBML cài sẵn trong dự án.
+// Nguồn sự thật là prisma/schema.prisma. Không sửa ngược từ file này.
+// Cập nhật lần cuối: 2026-08-14 (US-019 — thêm bảng PurchaseItem, thêm quan hệ purchaseItems trên MonthBudget)
+
+Table MonthBudget {
+  id text [pk, note: 'Dạng YYYY-MM, client cung cấp']
+  label text [not null]
+  income integer [not null]
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+}
+
+Table Category {
+  id text [pk]
+  monthId text [not null, ref: > MonthBudget.id]
+  name text [not null]
+  type text [not null, note: 'Chỉ 1 trong 3 giá trị: "Cố định" | "Tích lũy" | "Khác" — ràng buộc ở tầng ứng dụng (BR-019, DEC-073), không phải CHECK constraint của DB']
+  budget integer [not null]
+  locked boolean [not null, default: false]
+  isFallback boolean [not null, default: false, note: '"Chi tiêu khác" khi true — khóa hoàn toàn, không cho sửa tên/loại/ngân sách (DEC-027, DEC-058)']
+  order integer [not null, default: 0, note: 'Vị trí hiển thị trong bảng danh mục — Dylan tự sắp xếp bằng kéo thả (US-017, BR-020). "Chi tiêu khác" (isFallback=true) vẫn có giá trị order như dòng khác nhưng tầng ứng dụng luôn hiển thị nó ở cuối bất kể giá trị này (BR-016), không phải CHECK constraint của DB']
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Chi thực tế không lưu ở đây — tính bằng aggregate trên Transaction (DEC-007)'
+
+  indexes {
+    (monthId, order)
+  }
+}
+
+Table Transaction {
+  id text [pk]
+  monthId text [not null, ref: > MonthBudget.id]
+  categoryId text [not null, ref: > Category.id]
+  text text [not null]
+  amount integer [not null]
+  createdAt timestamp [not null]
+}
+
+Table PurchaseItem {
+  id text [pk]
+  monthId text [not null, ref: > MonthBudget.id]
+  name text [not null]
+  price integer [note: 'Giá tham khảo, không bắt buộc — không cộng vào Ngân sách/Chi thực tế của MonthBudget (BR-022)']
+  status text [not null, default: 'Pending', note: 'Chỉ 1 trong 2 giá trị: Pending | Purchased — ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (BR-024)']
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Item cần mua — độc lập với Category/Transaction (BR-022); chỉ tháng hiện tại theo đồng hồ hệ thống mới ghi được (BR-024, DEC-107)'
+
+  indexes {
+    monthId
+  }
+}
+
+Table LegacyMigration {
+  id text [pk, note: 'Cố định "singleton" — single-user (DEC-004)']
+  status text [not null, default: 'Pending', note: 'Pending | InProgress | Completed | Failed']
+  startedAt timestamp
+  completedAt timestamp
+  errorMessage text
+
+  updatedAt timestamp [not null]
+}
+
+Table JobPlatform {
+  id text [pk]
+  name text [not null, note: 'Không ràng buộc trùng — Dylan tự thêm/xóa option (US-018)']
+  createdAt timestamp [not null]
+
+  note: '3 option mặc định ("ITViec", "LinkedIn", "VietNamWork") được tạo lười bởi tầng ứng dụng khi bảng rỗng, không phải seed migration (JDG-023)'
+}
+
+Table JobApplication {
+  id text [pk]
+  company text [not null]
+  deadline timestamp [not null]
+  platformId text [not null, ref: > JobPlatform.id]
+  link text [not null, note: 'Phải bắt đầu http:// hoặc https:// — ràng buộc ở tầng ứng dụng (DEC-086)']
+  status text [not null, default: 'Interested', note: 'Chỉ 1 trong 8 giá trị: Interested | Waiting | No Response | Response | Appointment | Cancel | Fail | Expired — ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (DEC-084, DEC-087, DEC-101, DEC-102)']
+  note text
+  submittedAt timestamp [note: '"Ngày nộp hồ sơ" — ghi khi chuyển Interested → Waiting, xoá khi chuyển ngược Waiting → Interested (BR-027, DEC-099, DEC-103); mốc để tính luật "quá 7 ngày → No Response" (BR-026)']
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Độc lập với MonthBudget/Category/Transaction — trang Roadmap, ngoài phạm vi Hệ Thống Quản Lý Chi Tiêu (DEC-088)'
+
+  indexes {
+    platformId
+  }
+}

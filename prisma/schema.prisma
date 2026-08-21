@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model MonthBudget {
+  id     String @id
+  label  String
+  income Int
+
+  categories    Category[]
+  transactions  Transaction[]
+  purchaseItems PurchaseItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id         String  @id @default(cuid())
+  monthId    String
+  name       String
+  type       String
+  budget     Int
+  locked     Boolean @default(false)
+  isFallback Boolean @default(false)
+  order      Int     @default(0)
+
+  month        MonthBudget   @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([monthId])
+  @@index([monthId, order])
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  monthId    String
+  categoryId String
+  text       String
+  amount     Int
+  createdAt  DateTime @default(now())
+
+  month    MonthBudget @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  category Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([monthId])
+  @@index([categoryId])
+}
+
+model PurchaseItem {
+  id      String @id @default(cuid())
+  monthId String
+  name    String
+  price   Int?
+  status  String @default("Pending")
+
+  month MonthBudget @relation(fields: [monthId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([monthId])
+}
+
+model LegacyMigration {
+  id           String    @id @default("singleton")
+  status       String    @default("Pending")
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+
+  updatedAt DateTime @updatedAt
+}
+
+model JobPlatform {
+  id   String @id @default(cuid())
+  name String
+
+  jobApplications JobApplication[]
+
+  createdAt DateTime @default(now())
+}
+
+model JobApplication {
+  id          String    @id @default(cuid())
+  company     String
+  deadline    DateTime
+  platformId  String
+  link        String
+  status      String    @default("Interested")
+  note        String?
+  submittedAt DateTime?
+
+  platform JobPlatform @relation(fields: [platformId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([platformId])
+}

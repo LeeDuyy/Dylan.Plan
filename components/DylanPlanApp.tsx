@@ -4,82 +4,35 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   CheckCircle2,
-  Copy,
-  Download,
-  Filter,
   Handshake,
-  LineChart,
   Moon,
   PanelsTopLeft,
-  PiggyBank,
-  Plus,
-  RefreshCcw,
   ShieldCheck,
   ShoppingBag,
   Sun,
   Target,
-  Trash2,
   WalletCards
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-type Tab = "overview" | "roadmap" | "freelance" | "product" | "budget";
+import { JobTrackerBoard } from "@/components/JobTrackerBoard";
+import { TargetGrid } from "@/components/shared/TargetGrid";
+import { DEFAULT_INCOME } from "@/lib/budget-defaults";
+import type { JobTrackerSnapshot } from "@/server/job-tracker/actions";
 
-type BudgetCategory = {
-  id: string;
-  name: string;
-  type: string;
-  budget: number;
-  actual: number;
-  locked?: boolean;
-};
-
-type Transaction = {
-  id: string;
-  text: string;
-  amount: number;
-  category: string;
-  createdAt: string;
-};
-
-type MonthBudget = {
-  id: string;
-  label: string;
-  income: number;
-  transactions: Transaction[];
-  categories: BudgetCategory[];
-};
+type Tab = "overview" | "roadmap" | "freelance" | "product";
 
 const STORAGE_KEY = "dylan-plan-next-dashboard-v2";
-const DEFAULT_INCOME = 35000000;
 const FIXED_COSTS = 22500000;
+const EMPTY_JOB_TRACKER: JobTrackerSnapshot = { jobs: [], platforms: [] };
 
-const defaultCategories: BudgetCategory[] = [
-  { id: "rent", name: "Tiền nhà", type: "Cố định", budget: 7500000, actual: 7500000, locked: true },
-  { id: "fixed", name: "Chi phí cố định khác", type: "Cố định", budget: 15000000, actual: 15000000, locked: true },
-  { id: "food", name: "Ăn uống", type: "Linh hoạt", budget: 4000000, actual: 0 },
-  { id: "transport", name: "Di chuyển", type: "Linh hoạt", budget: 1500000, actual: 0 },
-  { id: "coffee", name: "Giải trí / cafe", type: "Linh hoạt", budget: 1500000, actual: 0 },
-  { id: "health", name: "Sức khỏe / cá nhân", type: "Linh hoạt", budget: 1000000, actual: 0 },
-  { id: "saving", name: "Tiết kiệm / đầu tư", type: "Tích lũy", budget: 5000000, actual: 5000000 },
-  { id: "backup", name: "Dự phòng", type: "Tích lũy", budget: 500000, actual: 0 }
-];
-
-const quickRules = [
-  { category: "Tiền nhà", keywords: ["tiền nhà", "thuê nhà", "rent", "phòng trọ", "nhà"] },
-  {
-    category: "Chi phí cố định khác",
-    keywords: ["điện", "nước", "internet", "wifi", "điện thoại", "bảo hiểm", "subscription", "cloud", "server"]
-  },
-  {
-    category: "Ăn uống",
-    keywords: ["ăn", "cơm", "bún", "phở", "mì", "trưa", "tối", "sáng", "đồ ăn", "food", "grocery", "siêu thị"]
-  },
-  { category: "Di chuyển", keywords: ["grab", "taxi", "xăng", "xe", "bus", "vé xe", "parking", "gửi xe", "be", "gojek"] },
-  { category: "Giải trí / cafe", keywords: ["cafe", "cà phê", "trà sữa", "xem phim", "game", "coffee", "movie", "nhậu"] },
-  { category: "Sức khỏe / cá nhân", keywords: ["thuốc", "khám", "bệnh viện", "skincare", "mỹ phẩm", "cắt tóc", "gym"] },
-  { category: "Tiết kiệm / đầu tư", keywords: ["tiết kiệm", "đầu tư", "vàng", "stock", "crypto", "quỹ", "saving"] },
-  { category: "Dự phòng", keywords: ["dự phòng", "khẩn cấp", "emergency", "backup"] }
+const navItems: [Tab, string, typeof PanelsTopLeft, string][] = [
+  ["overview", "Tổng quan", PanelsTopLeft, "/"],
+  ["roadmap", "Roadmap", BriefcaseBusiness, "/roadmap"],
+  ["freelance", "Freelance", Handshake, "/freelance"],
+  ["product", "Sản phẩm", ShoppingBag, "/product"]
 ];
 
 const roadmapPhases = [
@@ -193,102 +146,29 @@ const weekRows = [
   ["Sau 21:30", "Dừng học", "Dừng học", "Dừng học", "Dừng học", "Nghỉ", "Dừng làm việc", "Nghỉ sớm"]
 ];
 
-function createMonth(id: string, categories = defaultCategories, ratio?: number): MonthBudget {
-  return {
-    id,
-    label: formatMonthLabel(id),
-    income: DEFAULT_INCOME,
-    transactions: [],
-    categories: categories.map((item) => ({
-      ...item,
-      actual: ratio ? Math.round((item.budget * ratio) / 100000) * 100000 : item.actual
-    }))
-  };
-}
-
-function formatMonthLabel(id: string) {
-  const [year, month] = id.split("-");
-  return `Tháng ${Number(month)}/${year}`;
-}
-
-function formatMoney(value: number) {
-  if (!Number.isFinite(value)) return "0đ";
-  return value.toLocaleString("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 });
-}
-
 function shortMoney(value: number) {
   return `${Math.round(value / 100000) / 10}M`;
 }
 
-function safeNumber(value: string | number) {
-  if (typeof value === "number") return Number.isFinite(value) ? Math.max(0, value) : 0;
-  const raw = value.toLowerCase().trim();
-  if (!raw) return 0;
-  let normalized = raw.replace(/vnđ|vnd|đ|₫|\s/g, "");
-  let multiplier = 1;
-  if (/tr|m|mil|triệu/.test(normalized)) {
-    multiplier = 1000000;
-    normalized = normalized.replace(/triệu|tr|mil|m/g, "");
-  } else if (/k|nghìn|ngàn/.test(normalized)) {
-    multiplier = 1000;
-    normalized = normalized.replace(/nghìn|ngàn|k/g, "");
-  }
-  normalized = normalized.replace(/,/g, "");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * multiplier)) : 0;
-}
-
-function extractAmount(text: string) {
-  const match = text
-    .toLowerCase()
-    .match(/(\d+(?:[.,]\d+)?\s*(?:tr|triệu|m|mil|k|nghìn|ngàn)?|\d{1,3}(?:[,.]\d{3})+)/i);
-  return match ? safeNumber(match[0]) : 0;
-}
-
-function normalizeMonth(month: Partial<MonthBudget>, fallbackId = "2026-06"): MonthBudget {
-  const id = month.id ?? fallbackId;
-  return {
-    id,
-    label: month.label ?? formatMonthLabel(id),
-    income: safeNumber(month.income ?? DEFAULT_INCOME) || DEFAULT_INCOME,
-    transactions: Array.isArray(month.transactions) ? month.transactions : [],
-    categories: Array.isArray(month.categories)
-      ? month.categories.map((item, index) => ({
-          id: item.id ?? `cat-${index}`,
-          name: item.name ?? "Danh mục",
-          type: item.type ?? "Linh hoạt",
-          budget: safeNumber(item.budget),
-          actual: safeNumber(item.actual),
-          locked: item.locked
-        }))
-      : defaultCategories.map((item) => ({ ...item }))
-  };
-}
-
-export function DylanPlanApp() {
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+export function DylanPlanApp({
+  activeTab,
+  initialJobTracker = EMPTY_JOB_TRACKER
+}: {
+  activeTab: Tab;
+  initialJobTracker?: JobTrackerSnapshot;
+}) {
+  const pathname = usePathname();
   const [dark, setDark] = useState(false);
-  const [months, setMonths] = useState<MonthBudget[]>([
-    createMonth("2026-04", defaultCategories, 0.92),
-    createMonth("2026-05", defaultCategories, 1.03),
-    createMonth("2026-06")
-  ]);
-  const [selectedMonthId, setSelectedMonthId] = useState("2026-06");
-  const [newMonth, setNewMonth] = useState("2026-07");
-  const [quickText, setQuickText] = useState("");
-  const [quickCategory, setQuickCategory] = useState(defaultCategories[2].name);
   const [hydrated, setHydrated] = useState(false);
 
+  // Chỉ đọc/ghi `dark` từ localStorage — độc lập với hiệu ứng tương tự ở /budget
+  // (BudgetApp), dùng chung khoá `dylan-plan-next-dashboard-v2` nhưng không chia sẻ
+  // React state qua route.
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        const parsed = JSON.parse(stored) as { months?: Partial<MonthBudget>[]; selectedMonthId?: string; dark?: boolean };
-        if (parsed.months?.length) {
-          const normalized = parsed.months.map((month) => normalizeMonth(month));
-          setMonths(normalized);
-          setSelectedMonthId(parsed.selectedMonthId ?? normalized.at(-1)?.id ?? normalized[0].id);
-        }
+        const parsed = JSON.parse(stored) as { dark?: boolean };
         setDark(Boolean(parsed.dark));
       } catch {
         window.localStorage.removeItem(STORAGE_KEY);
@@ -300,167 +180,40 @@ export function DylanPlanApp() {
   useEffect(() => {
     document.body.classList.toggle("dark", dark);
     if (hydrated) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ months, selectedMonthId, dark }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ dark }));
     }
-  }, [dark, hydrated, months, selectedMonthId]);
-
-  const selectedMonth = useMemo(
-    () => months.find((month) => month.id === selectedMonthId) ?? months[0],
-    [months, selectedMonthId]
-  );
-
-  const totals = useMemo(() => {
-    const totalBudget = selectedMonth.categories.reduce((sum, item) => sum + item.budget, 0);
-    const totalActual = selectedMonth.categories.reduce((sum, item) => sum + item.actual, 0);
-    const remaining = selectedMonth.income - totalActual;
-    const plannedRemaining = selectedMonth.income - totalBudget;
-    const ratio = selectedMonth.income ? totalActual / selectedMonth.income : 0;
-    const saving = selectedMonth.categories
-      .filter((item) => /tiết|đầu tư|dự phòng|tích/i.test(`${item.name} ${item.type}`))
-      .reduce((sum, item) => sum + item.actual, 0);
-    const flexible = selectedMonth.categories
-      .filter((item) => /linh/i.test(item.type))
-      .reduce((sum, item) => sum + item.actual, 0);
-    const topCategory = [...selectedMonth.categories].sort((a, b) => b.actual - a.actual)[0];
-    return { totalBudget, totalActual, remaining, plannedRemaining, ratio, saving, flexible, topCategory };
-  }, [selectedMonth]);
-
-  const inferredQuickCategory = useMemo(() => {
-    const normalized = quickText.toLowerCase();
-    const matched = quickRules.find((rule) => rule.keywords.some((keyword) => normalized.includes(keyword)));
-    return matched?.category ?? quickCategory;
-  }, [quickCategory, quickText]);
-
-  const quickAmount = useMemo(() => extractAmount(quickText), [quickText]);
-
-  const updateCategory = (id: string, patch: Partial<BudgetCategory>) => {
-    setMonths((current) =>
-      current.map((month) =>
-        month.id === selectedMonth.id
-          ? {
-              ...month,
-              categories: month.categories.map((item) => (item.id === id ? { ...item, ...patch } : item))
-            }
-          : month
-      )
-    );
-  };
-
-  const addQuickExpense = () => {
-    const text = quickText.trim();
-    const amount = extractAmount(text);
-    if (!text || !amount) return;
-    const categoryName = inferredQuickCategory;
-    setMonths((current) =>
-      current.map((month) => {
-        if (month.id !== selectedMonth.id) return month;
-        const categories = month.categories.map((item) =>
-          item.name === categoryName ? { ...item, actual: item.actual + amount } : item
-        );
-        return {
-          ...month,
-          categories,
-          transactions: [
-            { id: `tx-${Date.now()}`, text, amount, category: categoryName, createdAt: new Date().toISOString() },
-            ...month.transactions
-          ]
-        };
-      })
-    );
-    setQuickText("");
-  };
-
-  const addCategory = () => {
-    const id = `cat-${Date.now()}`;
-    setMonths((current) =>
-      current.map((month) =>
-        month.id === selectedMonth.id
-          ? {
-              ...month,
-              categories: [...month.categories, { id, name: "Danh mục mới", type: "Linh hoạt", budget: 0, actual: 0 }]
-            }
-          : month
-      )
-    );
-  };
-
-  const removeCategory = (id: string) => {
-    setMonths((current) =>
-      current.map((month) =>
-        month.id === selectedMonth.id
-          ? { ...month, categories: month.categories.filter((item) => item.id !== id || item.locked) }
-          : month
-      )
-    );
-  };
-
-  const resetActual = () => {
-    setMonths((current) =>
-      current.map((month) =>
-        month.id === selectedMonth.id
-          ? { ...month, transactions: [], categories: month.categories.map((item) => ({ ...item, actual: 0 })) }
-          : month
-      )
-    );
-  };
-
-  const createNewMonth = (cloneCurrent: boolean) => {
-    if (!newMonth || months.some((month) => month.id === newMonth)) return;
-    const categories = selectedMonth.categories.map((item) => ({ ...item, actual: cloneCurrent ? item.actual : 0 }));
-    setMonths((current) => [...current, createMonth(newMonth, categories)].sort((a, b) => a.id.localeCompare(b.id)));
-    setSelectedMonthId(newMonth);
-  };
-
-  const exportData = () => {
-    const blob = new Blob([JSON.stringify({ months, selectedMonthId }, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "dylan-plan-budget.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const resetAll = () => {
-    const initial = [createMonth("2026-04", defaultCategories, 0.92), createMonth("2026-05", defaultCategories, 1.03), createMonth("2026-06")];
-    setMonths(initial);
-    setSelectedMonthId(initial.at(-1)?.id ?? initial[0].id);
-  };
+  }, [dark, hydrated]);
 
   const summaryCards = [
     ["Mục tiêu offer", "40M net", "Tập trung 15/08-15/09/2026", Target],
     ["Thu nhập hiện tại", shortMoney(DEFAULT_INCOME), "Base để tính ngân sách tháng", WalletCards],
-    ["Chi phí cố định", shortMoney(FIXED_COSTS), "Tiền nhà 7.5M + cố định khác 15M", ShieldCheck],
-    ["Còn lại tháng này", formatMoney(totals.remaining), totals.ratio >= 0.9 ? "Cảnh báo đã dùng hơn 90%" : "Dòng tiền vẫn trong vùng kiểm soát", PiggyBank]
+    ["Chi phí cố định", shortMoney(FIXED_COSTS), "Tiền nhà 7.5M + cố định khác 15M", ShieldCheck]
   ] as const;
 
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="container nav">
-          <a className="brand" href="#top" onClick={() => setActiveTab("overview")}>
+          <Link className="brand" href="/">
             <span className="logo">D</span>
             <span>Dylan Plan Dashboard</span>
-          </a>
+          </Link>
           <div className="nav-actions">
             <nav className="nav-tabs" aria-label="Chuyển khu vực">
-              {[
-                ["overview", "Tổng quan", PanelsTopLeft],
-                ["roadmap", "Roadmap", BriefcaseBusiness],
-                ["freelance", "Freelance", Handshake],
-                ["product", "Sản phẩm", ShoppingBag],
-                ["budget", "Thu chi", WalletCards]
-              ].map(([tab, label, Icon]) => (
-                <button
-                  className={`tab-button ${activeTab === tab ? "active" : ""}`}
-                  key={tab as string}
-                  onClick={() => setActiveTab(tab as Tab)}
-                  type="button"
+              {navItems.map(([tab, label, Icon, href]) => (
+                <Link
+                  className={`tab-button ${pathname === href ? "active" : ""}`}
+                  href={href}
+                  key={tab}
                 >
                   <Icon size={16} />
-                  {label as string}
-                </button>
+                  {label}
+                </Link>
               ))}
+              <Link className={`tab-button ${pathname === "/budget" ? "active" : ""}`} href="/budget">
+                <WalletCards size={16} />
+                Thu chi
+              </Link>
             </nav>
             <button className="icon-button" onClick={() => setDark((value) => !value)} title="Đổi giao diện" type="button">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
@@ -482,14 +235,14 @@ export function DylanPlanApp() {
                 budget planner thu nhập 35M/tháng có nhập nhanh chi tiêu.
               </p>
               <div className="hero-actions">
-                <button className="btn primary" onClick={() => setActiveTab("roadmap")} type="button">
+                <Link className="btn primary" href="/roadmap">
                   <CalendarDays size={18} />
                   Xem roadmap
-                </button>
-                <button className="btn" onClick={() => setActiveTab("budget")} type="button">
+                </Link>
+                <Link className="btn" href="/budget">
                   <WalletCards size={18} />
                   Nhập thu chi
-                </button>
+                </Link>
               </div>
             </article>
 
@@ -518,7 +271,7 @@ export function DylanPlanApp() {
           </div>
         </section>
 
-        {(activeTab === "overview" || activeTab === "budget") && (
+        {activeTab === "overview" && (
           <section className="section" id="overview">
             <div className="container">
               <div className="section-head">
@@ -542,34 +295,15 @@ export function DylanPlanApp() {
           </section>
         )}
 
-        {(activeTab === "overview" || activeTab === "roadmap") && <RoadmapSections />}
-        {(activeTab === "overview" || activeTab === "freelance") && <FreelanceSections />}
-        {(activeTab === "overview" || activeTab === "product") && <ProductSections />}
-        {(activeTab === "overview" || activeTab === "budget") && (
-          <BudgetSections
-            addCategory={addCategory}
-            addQuickExpense={addQuickExpense}
-            createNewMonth={createNewMonth}
-            exportData={exportData}
-            inferredQuickCategory={inferredQuickCategory}
-            months={months}
-            newMonth={newMonth}
-            quickAmount={quickAmount}
-            quickCategory={quickCategory}
-            quickText={quickText}
-            removeCategory={removeCategory}
-            resetActual={resetActual}
-            resetAll={resetAll}
-            selectedMonth={selectedMonth}
-            selectedMonthId={selectedMonthId}
-            setNewMonth={setNewMonth}
-            setQuickCategory={setQuickCategory}
-            setQuickText={setQuickText}
-            setSelectedMonthId={setSelectedMonthId}
-            totals={totals}
-            updateCategory={updateCategory}
-          />
+        {activeTab === "overview" && (
+          <>
+            <PrioritySection />
+            <LongTermSections />
+          </>
         )}
+        {activeTab === "roadmap" && <RoadmapSections initialJobTracker={initialJobTracker} />}
+        {activeTab === "freelance" && <FreelanceSections />}
+        {activeTab === "product" && <ProductSections />}
       </main>
 
       <footer className="footer">
@@ -579,34 +313,38 @@ export function DylanPlanApp() {
   );
 }
 
-function RoadmapSections() {
+function PrioritySection() {
+  return (
+    <section className="section" id="strategy">
+      <div className="container">
+        <div className="section-head">
+          <div>
+            <span className="eyebrow">Ưu tiên</span>
+            <h2>Ưu tiên hiện tại</h2>
+          </div>
+          <p>Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio.</p>
+        </div>
+        <div className="priority-grid">
+          {priorities.map(([title, percent, desc, width], index) => (
+            <article className="card priority" key={title}>
+              <span className="eyebrow">Ưu tiên {index + 1}</span>
+              <div className="percent">{percent}</div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
+              <div className="bar">
+                <i style={{ width: `${width}%` }} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerSnapshot }) {
   return (
     <>
-      <section className="section" id="strategy">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Ưu tiên</span>
-              <h2>Ưu tiên hiện tại</h2>
-            </div>
-            <p>Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio.</p>
-          </div>
-          <div className="priority-grid">
-            {priorities.map(([title, percent, desc, width], index) => (
-              <article className="card priority" key={title}>
-                <span className="eyebrow">Ưu tiên {index + 1}</span>
-                <div className="percent">{percent}</div>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-                <div className="bar">
-                  <i style={{ width: `${width}%` }} />
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section" id="roadmap">
         <div className="container">
           <div className="section-head">
@@ -640,6 +378,8 @@ function RoadmapSections() {
           </div>
         </div>
       </section>
+
+      <JobTrackerBoard initialJobs={initialJobTracker.jobs} initialPlatforms={initialJobTracker.platforms} />
 
       <TargetGrid
         eyebrow="Tuần đầu"
@@ -891,7 +631,6 @@ function ProductSections() {
           ["≤ 5h", "Thời gian build mỗi tuần trước offer"]
         ]}
       />
-      <LongTermSections />
     </>
   );
 }
@@ -1065,416 +804,6 @@ function EnglishInterviewSections() {
         ]}
       />
     </>
-  );
-}
-
-type BudgetProps = {
-  addCategory: () => void;
-  addQuickExpense: () => void;
-  createNewMonth: (cloneCurrent: boolean) => void;
-  exportData: () => void;
-  inferredQuickCategory: string;
-  months: MonthBudget[];
-  newMonth: string;
-  quickAmount: number;
-  quickCategory: string;
-  quickText: string;
-  removeCategory: (id: string) => void;
-  resetActual: () => void;
-  resetAll: () => void;
-  selectedMonth: MonthBudget;
-  selectedMonthId: string;
-  setNewMonth: (value: string) => void;
-  setQuickCategory: (value: string) => void;
-  setQuickText: (value: string) => void;
-  setSelectedMonthId: (value: string) => void;
-  totals: {
-    totalBudget: number;
-    totalActual: number;
-    remaining: number;
-    plannedRemaining: number;
-    ratio: number;
-    saving: number;
-    flexible: number;
-    topCategory: BudgetCategory;
-  };
-  updateCategory: (id: string, patch: Partial<BudgetCategory>) => void;
-};
-
-function BudgetSections({
-  addCategory,
-  addQuickExpense,
-  createNewMonth,
-  exportData,
-  inferredQuickCategory,
-  months,
-  newMonth,
-  quickAmount,
-  quickCategory,
-  quickText,
-  removeCategory,
-  resetActual,
-  resetAll,
-  selectedMonth,
-  selectedMonthId,
-  setNewMonth,
-  setQuickCategory,
-  setQuickText,
-  setSelectedMonthId,
-  totals,
-  updateCategory
-}: BudgetProps) {
-  const maxCategory = Math.max(...selectedMonth.categories.map((item) => item.actual), 1);
-  const maxMonth = Math.max(...months.map((month) => month.categories.reduce((sum, item) => sum + item.actual, 0)), 1);
-
-  return (
-    <>
-      <section className="section" id="monthly">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Theo tháng</span>
-              <h2>Lịch sử thu chi</h2>
-            </div>
-            <p>Mỗi tháng có dữ liệu riêng. Tạo tháng mới sẽ sao chép kế hoạch ngân sách và reset chi thực tế về 0.</p>
-          </div>
-          <div className="two-col">
-            <article className="card panel">
-              <span className="eyebrow">Tháng đang xem</span>
-              <h3>{selectedMonth.label}</h3>
-              <div className="budget-tools">
-                <label>
-                  Chọn tháng
-                  <select value={selectedMonthId} onChange={(event) => setSelectedMonthId(event.target.value)}>
-                    {[...months].reverse().map((month) => (
-                      <option key={month.id} value={month.id}>
-                        {month.id}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Tạo tháng mới
-                  <input type="month" value={newMonth} onChange={(event) => setNewMonth(event.target.value)} />
-                </label>
-              </div>
-              <div className="actions">
-                <button className="btn primary" onClick={() => createNewMonth(false)} type="button">
-                  <Plus size={18} />
-                  Tạo tháng
-                </button>
-                <button className="btn" onClick={() => createNewMonth(true)} type="button">
-                  <Copy size={18} />
-                  Clone tháng hiện tại
-                </button>
-              </div>
-            </article>
-
-            <article className="card panel">
-              <span className="eyebrow">Tiến độ</span>
-              <h3>Mức sử dụng thu nhập</h3>
-              <div className="progress">
-                <span className={totals.ratio >= 0.9 ? "danger-progress" : totals.ratio >= 0.8 ? "warning-progress" : ""} style={{ width: `${Math.min(totals.ratio * 100, 100)}%` }} />
-              </div>
-              <div className={`result ${totals.remaining >= 0 ? "positive" : "negative"}`}>
-                {totals.remaining >= 0 ? `Còn lại ${formatMoney(totals.remaining)}` : `Vượt thu nhập ${formatMoney(Math.abs(totals.remaining))}`}
-                <small>{totals.ratio >= 0.9 ? "Cảnh báo: đã dùng hơn 90% thu nhập." : "Tình trạng vẫn trong vùng kiểm soát."}</small>
-              </div>
-            </article>
-          </div>
-
-          <div className="month-grid" style={{ marginTop: 16 }}>
-            {[...months].reverse().map((month) => {
-              const actual = month.categories.reduce((sum, item) => sum + item.actual, 0);
-              const percent = month.income ? (actual / month.income) * 100 : 0;
-              return (
-                <article
-                  className={`card month-card ${month.id === selectedMonthId ? "active" : ""}`}
-                  key={month.id}
-                  onClick={() => setSelectedMonthId(month.id)}
-                >
-                  <span className="eyebrow">{month.id}</span>
-                  <h3>{formatMoney(month.income - actual)} còn lại</h3>
-                  <p>
-                    Chi {formatMoney(actual)} · {percent.toFixed(1)}% thu nhập
-                  </p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="section" id="control">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Kiểm soát</span>
-              <h2>Bảng ngân sách và nhập nhanh</h2>
-            </div>
-            <p>Gõ tự nhiên như "cafe 45k", "grab 80k", "ăn trưa 65000"; app tự nhận diện số tiền và danh mục.</p>
-          </div>
-          <article className="card panel">
-            <div className="quick-panel">
-              <span className="eyebrow">Quick input</span>
-              <h3>Nhập nhanh chi tiêu</h3>
-              <div className="quick-grid">
-                <label>
-                  Nội dung chi tiêu
-                  <input
-                    type="text"
-                    placeholder="VD: ăn trưa 65k, grab 80k, tiền điện 500k"
-                    value={quickText}
-                    onChange={(event) => {
-                      setQuickText(event.target.value);
-                      const normalized = event.target.value.toLowerCase();
-                      const matched = quickRules.find((rule) => rule.keywords.some((keyword) => normalized.includes(keyword)));
-                      if (matched) setQuickCategory(matched.category);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") addQuickExpense();
-                    }}
-                  />
-                </label>
-                <label>
-                  Danh mục nhận diện
-                  <select value={quickCategory} onChange={(event) => setQuickCategory(event.target.value)}>
-                    {selectedMonth.categories.map((item) => (
-                      <option key={item.id} value={item.name}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button className="btn primary" disabled={!quickText.trim() || !quickAmount} onClick={addQuickExpense} type="button">
-                  <Plus size={18} />
-                  Ghi nhận
-                </button>
-              </div>
-              <div className="quick-result">
-                {quickText.trim()
-                  ? quickAmount
-                    ? (
-                        <>
-                          Tự nhận diện: <strong>{formatMoney(quickAmount)}</strong> → <strong>{inferredQuickCategory}</strong>.
-                        </>
-                      )
-                    : "Chưa tìm thấy số tiền. Hãy nhập ví dụ: cafe 45k hoặc grab 80,000."
-                  : "Nhập nội dung để hệ thống gợi ý danh mục và số tiền."}
-              </div>
-              <div className="transaction-list">
-                {selectedMonth.transactions.slice(0, 8).length ? (
-                  selectedMonth.transactions.slice(0, 8).map((item) => (
-                    <div className="transaction" key={item.id}>
-                      <div>
-                        <strong>{item.text}</strong>
-                        <small>
-                          <b>{item.category}</b> · {new Date(item.createdAt).toLocaleString("vi-VN")}
-                        </small>
-                      </div>
-                      <span className="money negative">-{formatMoney(item.amount)}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="muted small">Chưa có giao dịch nhập nhanh trong tháng này.</div>
-                )}
-              </div>
-            </div>
-
-            <div className="budget-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Danh mục</th>
-                    <th>Loại</th>
-                    <th>Ngân sách</th>
-                    <th>Chi thực tế</th>
-                    <th>Chênh lệch</th>
-                    <th>Tỷ trọng</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedMonth.categories.map((item) => {
-                    const diff = item.budget - item.actual;
-                    const ratio = selectedMonth.income ? item.actual / selectedMonth.income : 0;
-                    return (
-                      <tr key={item.id}>
-                        <td>
-                          <input value={item.name} onChange={(event) => updateCategory(item.id, { name: event.target.value })} />
-                        </td>
-                        <td>
-                          <input value={item.type} onChange={(event) => updateCategory(item.id, { type: event.target.value })} />
-                        </td>
-                        <td>
-                          <input
-                            inputMode="numeric"
-                            value={item.budget.toLocaleString("en-US")}
-                            onChange={(event) => updateCategory(item.id, { budget: safeNumber(event.target.value) })}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            inputMode="numeric"
-                            value={item.actual.toLocaleString("en-US")}
-                            onChange={(event) => updateCategory(item.id, { actual: safeNumber(event.target.value) })}
-                          />
-                        </td>
-                        <td className={`money ${diff >= 0 ? "positive" : "negative"}`}>{formatMoney(diff)}</td>
-                        <td>{(ratio * 100).toFixed(1)}%</td>
-                        <td>
-                          {!item.locked && (
-                            <button className="icon-button" onClick={() => removeCategory(item.id)} title="Xóa danh mục" type="button">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={2}>Tổng cộng</td>
-                    <td className="money">{formatMoney(totals.totalBudget)}</td>
-                    <td className="money">{formatMoney(totals.totalActual)}</td>
-                    <td className={`money ${totals.totalBudget - totals.totalActual >= 0 ? "positive" : "negative"}`}>
-                      {formatMoney(totals.totalBudget - totals.totalActual)}
-                    </td>
-                    <td>{(totals.ratio * 100).toFixed(1)}%</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div className="actions">
-              <button className="btn" onClick={addCategory} type="button">
-                <Plus size={18} />
-                Thêm danh mục
-              </button>
-              <button className="btn" onClick={resetActual} type="button">
-                <RefreshCcw size={18} />
-                Reset chi tháng này
-              </button>
-              <button className="btn" onClick={exportData} type="button">
-                <Download size={18} />
-                Xuất JSON
-              </button>
-              <button className="btn danger" onClick={resetAll} type="button">
-                <RefreshCcw size={18} />
-                Reset dữ liệu
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="section" id="insight">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Phân tích</span>
-              <h2>Insight tài chính</h2>
-            </div>
-            <p>Nhìn nhanh danh mục chi nhiều nhất, khả năng tiết kiệm và xu hướng qua các tháng.</p>
-          </div>
-          <div className="insight-grid">
-            {[
-              ["Chi nhiều nhất", totals.topCategory?.name ?? "-", formatMoney(totals.topCategory?.actual ?? 0), LineChart],
-              ["Tiết kiệm / tích lũy", formatMoney(totals.saving), `${((totals.saving / selectedMonth.income) * 100).toFixed(1)}% thu nhập`, PiggyBank],
-              ["Chi linh hoạt", formatMoney(totals.flexible), "Mục tiêu nên giữ quanh 7.5M", Filter]
-            ].map(([title, value, desc, Icon]) => (
-              <article className="card insight" key={title as string}>
-                <Icon size={21} />
-                <span className="eyebrow">{title as string}</span>
-                <strong>{value as string}</strong>
-                <span>{desc as string}</span>
-              </article>
-            ))}
-          </div>
-
-          <div className="two-col" style={{ marginTop: 16 }}>
-            <article className="card panel">
-              <span className="eyebrow">Cơ cấu chi tiêu</span>
-              <h3>Chi thực tế theo danh mục</h3>
-              <div className="chart">
-                {selectedMonth.categories.map((item) => (
-                  <div className="col" key={item.id}>
-                    <div className="stick" style={{ height: `${Math.max(4, (item.actual / maxCategory) * 170)}px` }} />
-                    <small>{item.name.split(" ")[0]}</small>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            <article className="card panel">
-              <span className="eyebrow">Xu hướng</span>
-              <h3>Tổng chi qua các tháng</h3>
-              <div className="chart">
-                {months.map((month) => {
-                  const actual = month.categories.reduce((sum, item) => sum + item.actual, 0);
-                  return (
-                    <div className="col" key={month.id}>
-                      <div className="stick success-stick" style={{ height: `${Math.max(4, (actual / maxMonth) * 170)}px` }} />
-                      <small>{month.id.slice(5)}</small>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="legend">
-                <span style={{ "--legend-color": "var(--success)" } as React.CSSProperties}>Mục tiêu: tổng chi ≤ 30M</span>
-                <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Cảnh báo nếu vượt 90%</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <TargetGrid
-        eyebrow="Nguyên tắc"
-        title="Quy tắc kiểm soát"
-        items={[
-          ["01", "Trả tiền cho bản thân trước: tách tối thiểu 5M vào tiết kiệm hoặc đầu tư trước khi chi linh hoạt."],
-          ["02", "Giữ quỹ linh hoạt 7.5M sau tiền nhà, chi phí cố định và tiết kiệm."],
-          ["03", "Cảnh báo ở mốc 90%: khi tổng chi vượt 31.5M cần dừng chi không cần thiết."],
-          ["04", "Review mỗi Chủ nhật: cập nhật chi thực tế và điều chỉnh danh mục trước tuần mới."]
-        ]}
-      />
-    </>
-  );
-}
-
-function TargetGrid({
-  eyebrow,
-  title,
-  desc,
-  items
-}: {
-  eyebrow: string;
-  title: string;
-  desc?: string;
-  items: string[][];
-}) {
-  return (
-    <section className="section">
-      <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">{eyebrow}</span>
-            <h2>{title}</h2>
-          </div>
-          {desc && <p>{desc}</p>}
-        </div>
-        <div className="targets">
-          {items.map(([value, label]) => (
-            <article className="card target-card" key={`${value}-${label}`}>
-              <strong>{value}</strong>
-              <span>{label}</span>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
