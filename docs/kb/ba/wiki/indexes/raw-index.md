@@ -1,13 +1,13 @@
 ---
 status: Draft
-updated: 2026-08-14
+updated: 2026-08-22
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
 
 # Wiki Raw Index
 
-> Manifest các nguồn raw đã được `ssr-ingest` biên soạn thành wiki dạng nested. Raw file gốc vẫn nằm ở `docs/kb/ba/raw/` — bảng này chỉ trỏ tới, không sao chép nội dung. US-002, US-003, US-004, US-005, US-006, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019 và US-020 đã ingest vào cấu trúc nested; 5 US khác vẫn ở dạng phẳng, xem ghi chú mục 2. `US-013` đã gộp vào `US-006` (`DEC-065`), không có source record riêng.
+> Manifest các nguồn raw đã được `ssr-ingest` biên soạn thành wiki dạng nested. Raw file gốc vẫn nằm ở `docs/kb/ba/raw/` — bảng này chỉ trỏ tới, không sao chép nội dung. US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-009, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019 và US-020 đã ingest vào cấu trúc nested; 2 US khác vẫn ở dạng phẳng, xem ghi chú mục 2. `US-013` đã gộp vào `US-006` (`DEC-065`), không có source record riêng.
 
 ## 1. Danh Sách Nguồn Raw
 
@@ -18,6 +18,9 @@ tags: [kb/ba/wiki/indexes]
 | `US-004` | [`../../../raw/US-004-sua-xoa-tung-giao-dich.md`](../../../raw/US-004-sua-xoa-tung-giao-dich.md) | [`../ingestion/source-record/US-004-sua-xoa-tung-giao-dich.md`](../ingestion/source-record/US-004-sua-xoa-tung-giao-dich.md) | 2026-08-05 |
 | `US-005` | [`../../../raw/US-005-rang-buoc-toan-ven-danh-muc.md`](../../../raw/US-005-rang-buoc-toan-ven-danh-muc.md) | [`../ingestion/source-record/US-005-rang-buoc-toan-ven-danh-muc.md`](../ingestion/source-record/US-005-rang-buoc-toan-ven-danh-muc.md) | 2026-08-06 |
 | `US-006` | [`../../../raw/US-006-canh-bao-trung-thang.md`](../../../raw/US-006-canh-bao-trung-thang.md) | [`../ingestion/source-record/US-006-canh-bao-trung-thang.md`](../ingestion/source-record/US-006-canh-bao-trung-thang.md) | 2026-08-10 |
+| `US-007` | [`../../../raw/US-007-phan-tich-xu-huong-lich-su.md`](../../../raw/US-007-phan-tich-xu-huong-lich-su.md) | [`../ingestion/source-record/US-007-phan-tich-xu-huong-lich-su.md`](../ingestion/source-record/US-007-phan-tich-xu-huong-lich-su.md) | 2026-08-21 |
+| `US-008` | [`../../../raw/US-008-xuat-du-lieu-ben-vung.md`](../../../raw/US-008-xuat-du-lieu-ben-vung.md) | [`../ingestion/source-record/US-008-xuat-du-lieu-ben-vung.md`](../ingestion/source-record/US-008-xuat-du-lieu-ben-vung.md) | 2026-08-21 |
+| `US-009` | [`../../../raw/US-009-cau-hinh-nguong-ngan-sach.md`](../../../raw/US-009-cau-hinh-nguong-ngan-sach.md) | [`../ingestion/source-record/US-009-cau-hinh-nguong-ngan-sach.md`](../ingestion/source-record/US-009-cau-hinh-nguong-ngan-sach.md) | 2026-08-22 |
 | `US-010` | [`../../../raw/US-010-chan-trung-ten-danh-muc.md`](../../../raw/US-010-chan-trung-ten-danh-muc.md) | [`../ingestion/source-record/US-010-chan-trung-ten-danh-muc.md`](../ingestion/source-record/US-010-chan-trung-ten-danh-muc.md) | 2026-08-10 |
 | `US-012` | [`../../../raw/US-012-sua-loi-nhan-dien-danh-muc.md`](../../../raw/US-012-sua-loi-nhan-dien-danh-muc.md) | [`../ingestion/source-record/US-012-sua-loi-nhan-dien-danh-muc.md`](../ingestion/source-record/US-012-sua-loi-nhan-dien-danh-muc.md) | 2026-08-06 |
 | `US-013` (gộp vào `US-006`) | [`../../../raw/US-013-khu-vuc-chon-thang-clone.md`](../../../raw/US-013-khu-vuc-chon-thang-clone.md) | Dùng chung [`../ingestion/source-record/US-006-canh-bao-trung-thang.md`](../ingestion/source-record/US-006-canh-bao-trung-thang.md) | 2026-08-10 |
@@ -38,6 +41,9 @@ tags: [kb/ba/wiki/indexes]
 | `US-004` | Đã ingest | Cấu trúc nested đầy đủ |
 | `US-005` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (6 AC), đã sync |
 | `US-006` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (7 AC — gồm 2 AC gộp từ US-013), đã sync |
+| `US-007` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (4 AC), đã sync — gắn `EPC-004` (F4, epic mới cho luồng F4), rule mới `BR-028` thu hẹp đúng phạm vi biểu đồ "Xu hướng" (`DEC-109`, `DEC-110`) |
+| `US-008` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (4 AC), đã sync — gắn `EPC-004` (F4), rule mới `BR-029`; `po-expert` Aligned ngay lượt đầu |
+| `US-009` | Đã ingest | Cấu trúc nested đầy đủ, spec chưa viết (`ssr-ba` chưa chạy) — gắn `EPC-002` (F2), rule mới `BR-030`; còn 1 điểm `Cần user xác nhận` (quy tắc kế thừa ngưỡng khi Clone tháng từ tháng nguồn không phải tháng gần nhất) |
 | `US-010` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (7 AC), đã sync |
 | `US-012` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (5 AC), đã sync |
 | `US-013` | Gộp vào US-006 (`DEC-065`) | Không có trang nested riêng — nội dung nằm trong bộ trang của `US-006` |
@@ -48,4 +54,4 @@ tags: [kb/ba/wiki/indexes]
 | `US-018` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (11 AC), đã sync — không thuộc luồng F# nào của Business Flow hiện có, xác nhận qua `DEC-088` (trang Roadmap, ngoài phạm vi Hệ Thống Quản Lý Chi Tiêu) |
 | `US-019` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (10 AC), đã sync — gắn `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`), `po-expert` xác nhận `Aligned` sau 2 lượt |
 | `US-020` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (9 AC), đã sync — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088` |
-| US-001, US-007, US-008, US-009, US-011 | Chưa ingest (dạng nested) | Có raw + trang wiki phẳng tại `docs/kb/ba/wiki/US-###-*.md`, chưa qua `ssr-ingest` cấu trúc nested — không chặn triển khai (US-001 đã Delivered dùng quy trình cũ), chỉ là nợ migrate |
+| US-001, US-011 | Chưa ingest (dạng nested) | Có raw + trang wiki phẳng tại `docs/kb/ba/wiki/US-###-*.md`, chưa qua `ssr-ingest` cấu trúc nested — không chặn triển khai (US-001 đã Delivered dùng quy trình cũ), chỉ là nợ migrate |

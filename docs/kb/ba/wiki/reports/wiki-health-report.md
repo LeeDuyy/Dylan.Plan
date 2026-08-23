@@ -1,6 +1,6 @@
 ---
 status: Active
-updated: 2026-08-14
+updated: 2026-08-21
 owner: ssr-ingest
 tags: [kb/ba/wiki/reports]
 ---
@@ -14,13 +14,13 @@ tags: [kb/ba/wiki/reports]
 
 | Loại trang | Số lượng |
 | --- | --- |
-| Feature (nested) | 14 (tất cả `Active` gồm `US-018`, `US-019`, `US-020`; `US-013` gộp vào `US-006`, không tính riêng) |
-| Epic | 3 (US-018, US-020 không gắn epic nào — xem mục 2; US-019 chính thức gắn `EPC-003`, `DEC-105`) |
+| Feature (nested) | 17 (16 `Active` gồm `US-007`, `US-008`, `US-018`, `US-019`, `US-020`; `US-009` mới `Draft`, spec chưa viết; `US-013` gộp vào `US-006`, không tính riêng) |
+| Epic | 4 (US-018, US-020 không gắn epic nào — xem mục 2; US-019 chính thức gắn `EPC-003`, `DEC-105`; `EPC-004` (F4) có 2 function: `US-007`, `US-008` — cả hai `Active`; `EPC-002` (F2) nay có thêm `US-009` `Draft`) |
 | Concept | 0 |
-| Business rule | 27 (mới: `BR-025`, `BR-026`, `BR-027`) |
+| Business rule | 30 (mới: `BR-030`) |
 | Workflow | 0 |
 | Entity | 6 (`ENT-004-job-ung-tuyen` mở rộng cho `US-020`: thêm mốc "Ngày nộp hồ sơ", trạng thái "Expired") |
-| PBI | 14 đã đồng bộ (US-002 5 AC, US-003 3 AC, US-004 11 AC, US-005 6 AC, US-006 7 AC — gồm 2 AC gộp từ US-013, US-010 7 AC, US-012 5 AC, US-014 5 AC, US-015 6 AC, US-016 8 AC, US-017 8 AC, US-018 11 AC, US-019 10 AC, US-020 9 AC) |
+| PBI | 15 đã đồng bộ (US-002 5 AC, US-003 3 AC, US-004 11 AC, US-005 6 AC, US-006 7 AC — gồm 2 AC gộp từ US-013, US-007 4 AC, US-010 7 AC, US-012 5 AC, US-014 5 AC, US-015 6 AC, US-016 8 AC, US-017 8 AC, US-018 11 AC, US-019 10 AC, US-020 9 AC) |
 
 ## 2. Trang Thiếu Nguồn
 
@@ -67,7 +67,12 @@ Không có.
 | 2026-08-14 | `US-020` | ingest | 8 (feature `Draft`, feature-summary, pbi rỗng, source-record, business rule mới `BR-025`, `BR-026`, `BR-027`, `ENT-004-job-ung-tuyen` cập nhật — thêm mốc "Ngày nộp hồ sơ" và trạng thái "Expired") — không tạo epic mới, không gắn epic (cùng lý do/tiền lệ `US-018`/`DEC-088` — mở rộng trực tiếp entity và trang Roadmap của `US-018`, ngoài phạm vi Business Flow "Hệ Thống Quản Lý Chi Tiêu"); requirement do user yêu cầu trực tiếp qua `ssr-pipeline` → `ssr-raw` (4 câu hỏi mở chốt qua dialog: `DEC-099`..`DEC-102`); `openItemsCount=0` (raw không còn dòng nào `Cần user xác nhận` — 2 câu còn lại của raw là `Giả định hợp lý`, không chặn) |
 | 2026-08-14 | `US-020` | sync | 5 (feature → Active, pbi → 9 AC, feature-summary, source-record, mục 9 feature ghi rõ `po-expert` xác nhận `Aligned`) — spec đạt `Ready for DEV` sau 1 lượt dialog trong `ssr-ba` (`DEC-103`, `DEC-104` chốt 2 điểm mờ phát sinh khi viết spec, ngoài 4 điểm đã chốt sẵn ở `ssr-raw`); `ba-expert` bổ sung `AC-09` (ngoại lệ job Waiting chưa từng có mốc "Ngày nộp hồ sơ" — lỗ hổng tiêu chí chấp nhận trước đó) và sửa 2 điểm số liệu (đếm spec đã rà, đếm DEC theo đúng ssr-raw/ssr-ba); `po-expert` xác nhận `Aligned` ngay lượt đầu (áp dụng hợp lý tiền lệ `DEC-088` vì US-020 mở rộng cùng entity/cùng trang, không mở phạm vi mới); `spec-quality.mjs --strict` 0 lỗi (1 cảnh báo advisory Small — 9 AC vượt ngưỡng khuyến nghị 8, không bắt buộc tách) |
 | 2026-08-14 | `US-019` | sync | 9 (feature → Active + gắn epic chính thức, pbi → 10 AC, feature-summary, source-record, `BR-023` xóa nhãn `Cần user xác nhận`, `BR-024` bổ sung định nghĩa "sửa" = inline, `EPC-003` mục 4 → Active, indexes) — spec đạt `Ready for DEV` sau nhiều lượt: (1) dialog trong `ssr-ba` chốt `BR-023` (cả hai nút "Tạo tháng"/"Clone tháng đang xem" đều mang item Pending — `DEC-098`); (2) `po-expert` lần 1 `Blocked` vì US-019 ngoài phạm vi Business Flow → user chọn "mở rộng Business Flow" (khác tiền lệ `DEC-088` của US-018) → chuyển `ssr-po mode=business-flow` thêm mục tiêu mới `M3`, gắn `US-019` vào F3 (`DEC-105`); (3) `ba-expert` phát hiện mâu thuẫn nội bộ (các trang kia dùng chữ "sửa" nhưng spec chưa có luồng sửa) → dialog bổ sung khả năng sửa tên/giá inline (`DEC-106`), AC tăng từ 8 lên 10; `po-expert` gọi lại lần 2 xác nhận `Aligned`; `spec-quality.mjs --strict` 0 lỗi (1 cảnh báo advisory Small — 10 AC vượt ngưỡng khuyến nghị 8, không bắt buộc tách) |
+| 2026-08-21 | `US-007` | ingest | 6 (feature `Draft`, feature-summary, pbi rỗng, source-record, epic mới `EPC-004` cho F4 — lần đầu F4 có epic trong cấu trúc nested, business rule mới `BR-028`) — migrate từ trang phẳng cũ, gọi bởi `ssr-ba` trong `ssr-pipeline US-007`; `openItemsCount=1` (Q1 gốc từ raw: có cần giới hạn số tháng khi tính "toàn bộ lịch sử" vì lý do hiệu năng không — cần `ssr-ba` gom vào dialog) |
+| 2026-08-21 | `US-007` | sync | 6 (feature → Active + thu hẹp đúng phạm vi, pbi → 4 AC, feature-summary, source-record, `BR-028` thu hẹp nội dung, `EPC-004` → Active) — spec đạt `Ready for DEV` sau 2 lượt dialog: (1) chốt không giới hạn số tháng (`DEC-109`); (2) `ba-expert` phát hiện `BR-028`/wiki feature bản ingest ban đầu mô tả phạm vi rộng hơn spec (gồm cả thẻ insight và biểu đồ "Cơ cấu chi tiêu") → dialog xác nhận thu hẹp chỉ đúng biểu đồ "Xu hướng" (`DEC-110`); `ba-expert` cũng bổ sung `AC-04` (ngoại lệ chưa có dữ liệu) và làm rõ Given/Then của `AC-03`; `po-expert` xác nhận `Aligned` ngay lượt đầu (đúng M1, F4, không mâu thuẫn DEC nào Active); `spec-quality.mjs --strict` 0 lỗi |
+| 2026-08-21 | `US-008` | ingest | 4 (feature `Draft`, feature-summary, pbi rỗng, source-record, business rule mới `BR-029`) — không tạo epic mới, gắn vào `EPC-004` (F4) đã có sẵn từ `US-007`; migrate từ trang phẳng cũ, gọi bởi `ssr-ba` trong `ssr-pipeline US-008`; `openItemsCount=0` (raw không còn câu hỏi mở nào chặn spec) |
+| 2026-08-21 | `US-008` | sync | 5 (feature → Active, pbi → 4 AC, feature-summary, source-record, `EPC-004` mục 4 → Active) — spec đạt `Ready for DEV` ngay lượt đầu, không cần dialog (0 câu hỏi `Cần user xác nhận` — raw đã tự trả lời đủ); `po-expert` xác nhận `Aligned` ngay lượt đầu (đúng M1, F4, không mâu thuẫn DEC nào Active); `ba-expert` chỉ bổ sung AC-03 làm rõ item cần mua ở tháng khác cũng phải xuất đầy đủ, không phát sinh đề xuất cần user quyết; `spec-quality.mjs --strict` 0 lỗi |
+| 2026-08-22 | `US-009` | ingest | 4 (feature `Draft`, feature-summary, pbi rỗng, source-record, business rule mới `BR-030`) — không tạo epic mới, gắn vào `EPC-002` (F2) đã có sẵn; migrate từ trang phẳng cũ, gọi bởi `ssr-ba` trong `ssr-pipeline US-009`; `openItemsCount=1` (quy tắc kế thừa ngưỡng khi Clone tháng từ tháng nguồn không phải tháng gần nhất — cần `ssr-ba` gom vào dialog) |
 
 ## 5. Nợ Kỹ Thuật (Ghi Chú Ngoài Template Chuẩn)
 
-5 US khác (US-001, US-007, US-008, US-009, US-011) vẫn ở dạng trang phẳng `docs/kb/ba/wiki/US-###-*.md`, chưa migrate sang cấu trúc nested này. `.ssr-kit.env` của dự án thiếu các biến `SSR_BA_WIKI_INGESTION`/`SSR_BA_WIKI_KNOWLEDGE`/`SSR_BA_WIKI_DELIVERY`/`SSR_BA_WIKI_GOVERNANCE`/`SSR_BACKLOG` mà bản kit 2.6.0 kỳ vọng. Không chặn triển khai (US-001 đã Delivered qua quy trình cũ trước khi hook `SSR-E010` được siết chặt), nhưng nên được user quyết định: (a) cập nhật `.ssr-kit.env` và migrate toàn bộ, hoặc (b) giữ nguyên trạng và chỉ dùng cấu trúc nested cho US mới từ nay. Xem `docs/memory/judgement-log.md#jdg-005`.
+2 US khác (US-001, US-011) vẫn ở dạng trang phẳng `docs/kb/ba/wiki/US-###-*.md`, chưa migrate sang cấu trúc nested này. `.ssr-kit.env` của dự án thiếu các biến `SSR_BA_WIKI_INGESTION`/`SSR_BA_WIKI_KNOWLEDGE`/`SSR_BA_WIKI_DELIVERY`/`SSR_BA_WIKI_GOVERNANCE`/`SSR_BACKLOG` mà bản kit 2.6.0 kỳ vọng. Không chặn triển khai (US-001 đã Delivered qua quy trình cũ trước khi hook `SSR-E010` được siết chặt), nhưng nên được user quyết định: (a) cập nhật `.ssr-kit.env` và migrate toàn bộ, hoặc (b) giữ nguyên trạng và chỉ dùng cấu trúc nested cho US mới từ nay. Xem `docs/memory/judgement-log.md#jdg-005`.

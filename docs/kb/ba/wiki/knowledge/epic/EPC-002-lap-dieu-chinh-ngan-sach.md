@@ -37,3 +37,4 @@ Cho Dylan xem và điều chỉnh ngân sách theo từng danh mục (thêm, s�
 | `US-014` | Cập nhật "Chi tiêu khác" luôn nằm cuối bảng danh mục | Draft | [`../feature/US-014-chi-tieu-khac-cuoi-bang.md`](../feature/US-014-chi-tieu-khac-cuoi-bang.md) |
 | `US-016` | Chuẩn hóa "Loại" chi tiêu (danh mục) thành combobox cố định | Active | [`../feature/US-016-loai-chi-tieu-combobox.md`](../feature/US-016-loai-chi-tieu-combobox.md) |
 | `US-017` | Sắp xếp vị trí danh mục bằng kéo thả (drag-and-drop row reordering) | Active | [`../feature/US-017-sap-xep-danh-muc-keo-tha.md`](../feature/US-017-sap-xep-danh-muc-keo-tha.md) |
+| `US-009` | Cấu hình ngưỡng ngân sách | Draft | [`../feature/US-009-cau-hinh-nguong-ngan-sach.md`](../feature/US-009-cau-hinh-nguong-ngan-sach.md) |

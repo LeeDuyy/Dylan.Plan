@@ -319,6 +319,28 @@ Khác `decisions.md`: nhận định **có thể sai**. Một nhận định đ�
 - Hệ quả nếu đúng: Task đầu tiên của US-001 phải cài `prisma` + `@prisma/client` trước khi chạy bất kỳ lệnh `SSR_CMD_PRISMA_*` nào; lệnh `SSR_CMD_TEST` sẽ thất bại "command not found" cho tới khi có task riêng cài đặt framework test — không tự ý cài thêm ngoài phạm vi được giao, ghi nhận là gap đã biết trong `report.md` thay vì che giấu.
 - Cái gì sẽ chứng minh nó sai: Nếu một lần chạy `rtk pnpm install` sau đó cho thấy `prisma`/`vitest` đã có sẵn trong `node_modules` (vd do lockfile chưa đồng bộ với `package.json`), nhận định này cần thu hẹp lại.
 
+### JDG-030 — Gap gốc của US-007 (xu hướng chỉ tính trên state trình duyệt) đã tự động được giải quyết bởi US-001, không cần code mới
+
+- Ngày: 2026-08-21
+- Status: Confirmed (2026-08-21) — kiểm chứng thật ở `TB-01`/`TB-02`: `curl` thật tới `/budget` trả đúng 9 cột biểu đồ "Xu hướng", khớp 1:1 với 9 dòng `MonthBudget` truy vấn trực tiếp `prisma/dev.db`; không có `.slice(`/`take:`/`LIMIT` nào trong toàn bộ chuỗi entry → persistence
+- Độ tin cậy: Đã xác nhận từ knowledge (khảo sát source trực tiếp ở `ssr-plan`)
+- Feature liên quan: US-007
+- Bằng chứng: `server/budget/infrastructure/repositories/month-budget-prisma-repository.ts` — `findAll()` gọi `prisma.monthBudget.findMany()` không `where`/`take`; `server/budget/domain/services/budget-snapshot-service.ts` gộp toàn bộ tháng vào `BudgetSnapshot` không lọc; `components/BudgetApp.tsx` state `months` khởi tạo trực tiếp từ `initialBudget.months` (prop từ `getBudgetSnapshot()`), biểu đồ "Xu hướng" (dòng ~1116-1134) lặp qua toàn bộ `months` không cắt bớt.
+- Lập luận: Raw `US-007` được ghi trước khi `US-001` triển khai, mô tả đúng thực trạng lúc đó (`localStorage`). Sau khi `US-001` chuyển `MonthBudget` sang Prisma/SQLite và `app/budget/page.tsx` (US-002) luôn gọi lại `getBudgetSnapshot()` từ server mỗi lần render (không đọc `localStorage`), toàn bộ chuỗi entry → persistence của biểu đồ "Xu hướng" đã tự động thỏa đúng yêu cầu "toàn bộ lịch sử đã lưu" như một hệ quả kiến trúc, không phải một tính năng cần code riêng.
+- Hệ quả nếu đúng: `ssr-breaker`/`ssr-dev` của US-007 chỉ cần một task verification (xác nhận + khóa hành vi bằng bằng chứng), không cần task sửa code nào; các requirement khác có gap tương tự (mô tả hành vi trước `US-001`) nên được `ssr-plan` khảo sát kỹ source hiện tại trước khi giả định cần code mới — không nên máy móc suy ra "có US = có code phải viết".
+- Cái gì sẽ chứng minh nó sai: Nếu `ssr-dev`/`ssr-review` phát hiện một đường dẫn khác (vd một bản build/cache tĩnh, một biến môi trường giới hạn số tháng) khiến biểu đồ "Xu hướng" thực tế bị giới hạn dù code không thể hiện điều đó, nhận định này cần thu hẹp lại và bổ sung code sửa.
+
+### JDG-031 — Gap gốc của US-008 (xuất JSON từ state trình duyệt) cũng đã tự động được giải quyết bởi US-001, cùng dạng với US-007
+
+- Ngày: 2026-08-21
+- Status: Confirmed (2026-08-21) — kiểm chứng thật ở `TB-01`/`TB-02`: DB có 2 `PurchaseItem` ở tháng khác tháng hiện tại (`2026-09`, `2026-10`); `curl` payload HTML thật từ `/budget` chứa đủ cả 2 id lẫn tên, xác nhận `initialBudget`/state `months` không lọc theo tháng đang xem
+- Độ tin cậy: Đã xác nhận từ knowledge (khảo sát source trực tiếp ở `ssr-plan`)
+- Feature liên quan: US-008
+- Bằng chứng: `components/BudgetApp.tsx` — `exportData()` (dòng 558-566) đóng gói `JSON.stringify({ months, selectedMonthId })`; `type MonthBudget = MonthBudgetSnapshot` (dòng 44) xác nhận state client dùng thẳng type server, không rút gọn field; `months` khởi tạo từ `initialBudget.months` (dòng 251), chính là `BudgetSnapshot.months` từ `getBudgetSnapshot()` — đã xác nhận không giới hạn ở `US-007`/`JDG-030`.
+- Lập luận: Cùng nguyên nhân với `JDG-030` — raw `US-008` được ghi trước `US-001`. Sau khi `US-001`/`US-002` triển khai, `exportData()` không có bước đọc `localStorage` nào; nó đọc thẳng state đã DB-backed từ đầu. Vì `MonthBudget = MonthBudgetSnapshot` (không phải type rút gọn riêng cho UI), export tự động bao gồm đủ `categories`/`transactions`/`purchaseItems` cho mọi tháng, không riêng tháng đang xem.
+- Hệ quả nếu đúng: `ssr-breaker`/`ssr-dev` của US-008 chỉ cần task verification, không cần task sửa code. Cùng với `JDG-030`, đây là mẫu hình thứ hai xác nhận: nhiều gap trong `docs/kb/ba/backlog.md` được ghi từ trước `US-001` có thể đã tự động được giải quyết — `ssr-plan` của các US còn lại thuộc diện này (đặc biệt US-011) nên khảo sát source kỹ trước khi giả định cần code mới.
+- Cái gì sẽ chứng minh nó sai: Nếu `ssr-dev`/`ssr-review` phát hiện `exportData()` thực tế bỏ sót field nào đó (vd `purchaseItems` của tháng khác tháng hiện tại không được đưa vào JSON dù có trong state), nhận định này cần thu hẹp lại.
+
 ### JDG-001 — "Chi thực tế" của danh mục là số độc lập, không tự tính lại từ danh sách giao dịch
 
 - Ngày: 2026-07-28

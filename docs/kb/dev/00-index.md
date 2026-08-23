@@ -1,10 +1,12 @@
 # DEV index
 
-Updated: 2026-08-19 (US-019 Implemented — đủ 10 AC qua thao tác thật)
+Updated: 2026-08-21 (US-008 plan Ready for task-breakdown — không đổi source)
 
 | Mã | Tên | File |
 | --- | --- | --- |
 | US-001 | Lưu trữ chi tiêu bền vững và liên kết giao dịch theo danh mục cố định | `docs/kb/dev/wiki/US-001-luu-tru-chi-tieu-ben-vung.md` |
+| US-007 | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | `docs/kb/dev/wiki/US-007-phan-tich-xu-huong-lich-su.md` |
+| US-008 | Xuất dữ liệu từ nguồn lưu trữ bền vững | `docs/kb/dev/wiki/US-008-xuat-du-lieu-ben-vung.md` |
 | US-010 | Chặn trùng tên danh mục | `docs/kb/dev/wiki/US-010-chan-trung-ten-danh-muc.md` |
 | US-002 | Route/module riêng cho Quản lý chi tiêu | `docs/kb/dev/wiki/US-002-route-rieng-quan-ly-chi-tieu.md` |
 | US-003 | Liên kết giao dịch theo danh mục bằng ID | `docs/kb/dev/wiki/US-003-lien-ket-giao-dich-theo-id.md` |

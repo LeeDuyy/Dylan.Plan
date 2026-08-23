@@ -1,15 +1,15 @@
 ---
 status: Draft
-updated: 2026-08-14
+updated: 2026-08-21
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
 
 # Wiki Feature Index
 
-> Chỉ liệt kê function đã có trang trong cấu trúc nested. 5 US khác (US-001, US-007, US-008, US-009, US-011) vẫn ở dạng phẳng — xem `docs/requirements-index.md`. `US-013` không có trang riêng — đã gộp vào `US-006` (`DEC-065`).
+> Chỉ liệt kê function đã có trang trong cấu trúc nested. 2 US khác (US-001, US-011) vẫn ở dạng phẳng — xem `docs/requirements-index.md`. `US-013` không có trang riêng — đã gộp vào `US-006` (`DEC-065`).
 >
-> Cập nhật gần nhất: `US-019` đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn epic `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). `US-020` đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088`. `US-018` đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — không thuộc luồng F# nào của Business Flow hiện có (`DEC-088`, `po-expert` xác nhận `Aligned`).
+> Cập nhật gần nhất: `US-008` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn `EPC-004` (F4, đã có sẵn từ `US-007`), rule mới `BR-029`, `po-expert` xác nhận `Aligned` ngay lượt đầu, `ba-expert` chỉ làm rõ AC-03 (item cần mua ở tháng khác), không cần dialog. `US-007` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn epic mới `EPC-004` (F4, luồng đầu tiên ingest cho F4), rule mới `BR-028` (thu hẹp đúng phạm vi biểu đồ "Xu hướng", `DEC-109`, `DEC-110`), `po-expert` xác nhận `Aligned` ngay lượt đầu. `US-019` đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn epic `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). `US-020` đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088`. `US-018` đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — không thuộc luồng F# nào của Business Flow hiện có (`DEC-088`, `po-expert` xác nhận `Aligned`).
 
 ## 1. Danh Sách Feature
 
@@ -20,6 +20,9 @@ tags: [kb/ba/wiki/indexes]
 | `US-004` | Sửa/xóa từng giao dịch tại bảng chi tiết chi tiêu | [`../knowledge/feature/US-004-sua-xoa-tung-giao-dich.md`](../knowledge/feature/US-004-sua-xoa-tung-giao-dich.md) | [`../delivery/pbi/US-004-sua-xoa-tung-giao-dich.md`](../delivery/pbi/US-004-sua-xoa-tung-giao-dich.md) | [`docs/features/US-004-sua-xoa-tung-giao-dich/spec.md`](../../../../features/US-004-sua-xoa-tung-giao-dich/spec.md) — `Ready for DEV` |
 | `US-005` | Ràng buộc toàn vẹn danh mục + giao dịch không danh mục | [`../knowledge/feature/US-005-rang-buoc-toan-ven-danh-muc.md`](../knowledge/feature/US-005-rang-buoc-toan-ven-danh-muc.md) | [`../delivery/pbi/US-005-rang-buoc-toan-ven-danh-muc.md`](../delivery/pbi/US-005-rang-buoc-toan-ven-danh-muc.md) | [`docs/features/US-005-rang-buoc-toan-ven-danh-muc/spec.md`](../../../../features/US-005-rang-buoc-toan-ven-danh-muc/spec.md) — `Ready for DEV` |
 | `US-006` (+ `US-013` gộp) | Cảnh báo trùng tháng khi tạo tháng mới, đã gộp nội dung khu vực chọn tháng/Clone của US-013 | [`../knowledge/feature/US-006-canh-bao-trung-thang.md`](../knowledge/feature/US-006-canh-bao-trung-thang.md) | [`../delivery/pbi/US-006-canh-bao-trung-thang.md`](../delivery/pbi/US-006-canh-bao-trung-thang.md) | [`docs/features/US-006-canh-bao-trung-thang/spec.md`](../../../../features/US-006-canh-bao-trung-thang/spec.md) — `Ready for DEV` |
+| `US-007` | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | [`../knowledge/feature/US-007-phan-tich-xu-huong-lich-su.md`](../knowledge/feature/US-007-phan-tich-xu-huong-lich-su.md) | [`../delivery/pbi/US-007-phan-tich-xu-huong-lich-su.md`](../delivery/pbi/US-007-phan-tich-xu-huong-lich-su.md) | [`docs/features/US-007-phan-tich-xu-huong-lich-su/spec.md`](../../../../features/US-007-phan-tich-xu-huong-lich-su/spec.md) — `Ready for DEV` |
+| `US-008` | Xuất dữ liệu từ nguồn lưu trữ bền vững | [`../knowledge/feature/US-008-xuat-du-lieu-ben-vung.md`](../knowledge/feature/US-008-xuat-du-lieu-ben-vung.md) | [`../delivery/pbi/US-008-xuat-du-lieu-ben-vung.md`](../delivery/pbi/US-008-xuat-du-lieu-ben-vung.md) | [`docs/features/US-008-xuat-du-lieu-ben-vung/spec.md`](../../../../features/US-008-xuat-du-lieu-ben-vung/spec.md) — `Ready for DEV` |
+| `US-009` | Cấu hình ngưỡng ngân sách | [`../knowledge/feature/US-009-cau-hinh-nguong-ngan-sach.md`](../knowledge/feature/US-009-cau-hinh-nguong-ngan-sach.md) | [`../delivery/pbi/US-009-cau-hinh-nguong-ngan-sach.md`](../delivery/pbi/US-009-cau-hinh-nguong-ngan-sach.md) | Chưa có — chờ `ssr-ba` |
 | `US-010` | Chặn trùng tên danh mục | [`../knowledge/feature/US-010-chan-trung-ten-danh-muc.md`](../knowledge/feature/US-010-chan-trung-ten-danh-muc.md) | [`../delivery/pbi/US-010-chan-trung-ten-danh-muc.md`](../delivery/pbi/US-010-chan-trung-ten-danh-muc.md) | [`docs/features/US-010-chan-trung-ten-danh-muc/spec.md`](../../../../features/US-010-chan-trung-ten-danh-muc/spec.md) — `Ready for DEV` |
 | `US-012` | Sửa lỗi ghi nhận âm thầm thất bại khi tên danh mục bị đổi | [`../knowledge/feature/US-012-sua-loi-nhan-dien-danh-muc.md`](../knowledge/feature/US-012-sua-loi-nhan-dien-danh-muc.md) | [`../delivery/pbi/US-012-sua-loi-nhan-dien-danh-muc.md`](../delivery/pbi/US-012-sua-loi-nhan-dien-danh-muc.md) | [`docs/features/US-012-sua-loi-nhan-dien-danh-muc/spec.md`](../../../../features/US-012-sua-loi-nhan-dien-danh-muc/spec.md) — `Ready for DEV` |
 | `US-014` | Cập nhật "Chi tiêu khác" luôn nằm cuối bảng danh mục | [`../knowledge/feature/US-014-chi-tieu-khac-cuoi-bang.md`](../knowledge/feature/US-014-chi-tieu-khac-cuoi-bang.md) | [`../delivery/pbi/US-014-chi-tieu-khac-cuoi-bang.md`](../delivery/pbi/US-014-chi-tieu-khac-cuoi-bang.md) | [`docs/features/US-014-chi-tieu-khac-cuoi-bang/spec.md`](../../../../features/US-014-chi-tieu-khac-cuoi-bang/spec.md) — `Ready for DEV` |
@@ -34,5 +37,5 @@ tags: [kb/ba/wiki/indexes]
 
 | Trạng thái | Function |
 | --- | --- |
-| Draft | Không có (trong cấu trúc nested) |
-| Active | US-002, US-003, US-004, US-005, US-006, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020 |
+| Draft | US-009 |
+| Active | US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020 |

@@ -1296,3 +1296,27 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 - Phương án đã loại: "Tự động chuyển lại Interested khi hạn mới ở tương lai" — không chọn vì thêm một luật tự động nữa ngoài phạm vi ví dụ raw đã nêu, tăng độ phức tạp không cần thiết.
 - Hệ quả: `BR-025` không cần thêm điều kiện phục hồi; spec `US-020` không cần AC riêng cho việc gia hạn tin, chỉ cần nêu rõ đây là hành vi không làm (ngoài phạm vi).
 - Bằng chứng: `docs/kb/ba/raw/US-020-lich-su-trang-thai-job.md` mục 4 (Q7, ban đầu ghi "Giả định hợp lý", nay chốt qua dialog `ssr-ba`)
+
+### DEC-109 — US-007: Không giới hạn số tháng khi tính xu hướng chi tiêu trên toàn bộ lịch sử đã lưu
+
+- Ngày: 2026-08-21
+- Status: Active
+- Feature liên quan: US-007
+- Bối cảnh: Raw để mở câu hỏi có cần giới hạn số tháng tối đa khi tính "toàn bộ lịch sử" hay không, vì lý do hiệu năng khi dữ liệu tăng dần theo thời gian (`docs/kb/ba/raw/US-007-phan-tich-xu-huong-lich-su.md` mục 4, Q1).
+- Quyết định: Không giới hạn số tháng — luôn tính xu hướng chi tiêu từ toàn bộ dữ liệu đã lưu bền vững, quét hết mọi tháng đã tạo.
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-ba` (2026-08-21).
+- Phương án đã loại: "Giới hạn 24 tháng gần nhất" và "Giới hạn 36 tháng gần nhất" — không chọn, vì dữ liệu hiện tại còn nhỏ (chưa tới 1 năm, vài chục danh mục/tháng), thêm giới hạn tạo phức tạp không cần thiết ở giai đoạn này; nếu dữ liệu lớn lên nhiều, có thể bổ sung giới hạn ở một US riêng sau này.
+- Hệ quả: Spec `US-007` không cần AC hay Screen Element nào cho việc cắt bớt dữ liệu theo thời gian; `ssr-plan` xác nhận nguồn dữ liệu hiện có (`monthBudgetRepository.findAll()`) đã không giới hạn, không cần đổi.
+- Bằng chứng: `docs/kb/ba/raw/US-007-phan-tich-xu-huong-lich-su.md` mục 4 (Q1)
+
+### DEC-110 — US-007: Chỉ thu hẹp phạm vi đúng biểu đồ "Xu hướng", không mở rộng sang thẻ insight và biểu đồ "Cơ cấu chi tiêu"
+
+- Ngày: 2026-08-21
+- Status: Active
+- Feature liên quan: US-007
+- Bối cảnh: Raw nói chung chung "tính insight/biểu đồ xu hướng từ dữ liệu bền vững (DB)"; rule `BR-028` và trang wiki feature `US-007` (bản ingest ban đầu) mô tả phạm vi rộng hơn spec — gồm cả thẻ insight (danh mục chi nhiều nhất, tiết kiệm, chi linh hoạt) và biểu đồ "Cơ cấu chi tiêu". `ba-expert` phát hiện mâu thuẫn này khi rà spec và đề xuất cần user xác nhận việc thu hẹp, vì hai nhóm màn hình đó chỉ mô tả đúng một tháng Dylan đang xem, không có khái niệm "lịch sử nhiều tháng" để mở rộng.
+- Quyết định: Đồng ý thu hẹp phạm vi US-007 chỉ đúng biểu đồ "Xu hướng" (tổng chi qua các tháng). Các thẻ insight và biểu đồ "Cơ cấu chi tiêu" giữ nguyên không đổi, không cần AC hay Screen Element riêng.
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-ba` (2026-08-21), sau đề xuất của `ba-expert`.
+- Phương án đã loại: "Mở rộng: cả thẻ insight và biểu đồ Cơ cấu chi tiêu cũng phải xác nhận rõ nguồn dữ liệu" — không chọn, vì hai thành phần này vốn luôn chỉ xem đúng một tháng đang chọn (dù đọc từ DB hay không), không có rủi ro "chỉ còn trong bộ nhớ tạm" như biểu đồ Xu hướng (vốn cần dữ liệu nhiều tháng cùng lúc); mở rộng sẽ làm spec rườm rà không thêm giá trị thực chất.
+- Hệ quả: `spec.md` giữ nguyên phạm vi hiện tại (chỉ `EL-01` — biểu đồ Xu hướng). `BR-028` và trang wiki feature `US-007` cần đồng bộ lại đúng phạm vi này khi `ssr-ingest mode=sync` chạy sau khi spec đạt `Ready for DEV`.
+- Bằng chứng: `docs/features/US-007-phan-tich-xu-huong-lich-su/spec.md` mục 14 (A2, trước khi chốt)

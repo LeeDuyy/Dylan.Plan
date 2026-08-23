@@ -1,6 +1,6 @@
 # BA index
 
-Updated: 2026-08-14 (US-019 spec Ready for DEV, gắn F3/M3 qua DEC-105)
+Updated: 2026-08-21 (US-008 spec Ready for DEV, gắn EPC-004/F4)
 
 | Mã | Tên | File |
 | --- | --- | --- |
@@ -12,8 +12,8 @@ Updated: 2026-08-14 (US-019 spec Ready for DEV, gắn F3/M3 qua DEC-105)
 | US-004 | Sửa/xóa từng giao dịch tại bảng chi tiết chi tiêu | `docs/kb/ba/wiki/US-004-sua-xoa-tung-giao-dich.md` |
 | US-005 | Ràng buộc toàn vẹn danh mục + giao dịch không danh mục | `docs/kb/ba/wiki/knowledge/feature/US-005-rang-buoc-toan-ven-danh-muc.md` (nested — spec `Ready for DEV`) |
 | US-006 | Cảnh báo trùng tháng khi tạo tháng mới (đã gộp US-013) | `docs/kb/ba/wiki/knowledge/feature/US-006-canh-bao-trung-thang.md` (nested — spec `Ready for DEV`, đã gộp nội dung US-013) |
-| US-007 | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | `docs/kb/ba/wiki/US-007-phan-tich-xu-huong-lich-su.md` |
-| US-008 | Xuất dữ liệu từ nguồn lưu trữ bền vững | `docs/kb/ba/wiki/US-008-xuat-du-lieu-ben-vung.md` |
+| US-007 | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | [`docs/kb/ba/wiki/knowledge/feature/US-007-phan-tich-xu-huong-lich-su.md`](wiki/knowledge/feature/US-007-phan-tich-xu-huong-lich-su.md) (nested — spec `Ready for DEV`, 4 AC, gắn `EPC-004`/`F4`) |
+| US-008 | Xuất dữ liệu từ nguồn lưu trữ bền vững | [`docs/kb/ba/wiki/knowledge/feature/US-008-xuat-du-lieu-ben-vung.md`](wiki/knowledge/feature/US-008-xuat-du-lieu-ben-vung.md) (nested — spec `Ready for DEV`, 4 AC, gắn `EPC-004`/`F4`) |
 | US-009 | Cấu hình ngưỡng ngân sách | `docs/kb/ba/wiki/US-009-cau-hinh-nguong-ngan-sach.md` |
 | US-010 | Chặn trùng tên danh mục | `docs/kb/ba/wiki/knowledge/feature/US-010-chan-trung-ten-danh-muc.md` (nested — spec `Ready for DEV`) |
 | US-011 | Mini dashboard 3/6/9/12 tháng gần đây | `docs/kb/ba/wiki/US-011-mini-dashboard-nhieu-thang.md` |
