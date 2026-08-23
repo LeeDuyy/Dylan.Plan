@@ -35,12 +35,24 @@ jobs:
 
       - name: Prepare deploy artifact
         run: |
-          mkdir -p deploy/app/.next deploy/nginx
+          mkdir -p deploy/app/.next deploy/nginx deploy/migrate/prisma
           cp -R .next/standalone/. deploy/app/
           cp -R .next/static deploy/app/.next/static
           cp -R public deploy/app/public
           cp compose.yaml deploy/compose.yaml
           cp nginx/default.conf deploy/nginx/default.conf
+          cp prisma/schema.prisma deploy/migrate/prisma/schema.prisma
+          cp -R prisma/migrations deploy/migrate/prisma/migrations
+          cp prisma.config.ts deploy/migrate/prisma.config.ts
+          cat > deploy/migrate/package.json <<'JSON'
+          {
+            "name": "dylan-plan-migrate",
+            "private": true,
+            "dependencies": {
+              "prisma": "7.9.1"
+            }
+          }
+          JSON
 
       - name: Upload deploy artifact
         uses: actions/upload-artifact@v4
@@ -99,13 +111,31 @@ jobs:
 
       - name: Prepare VPS directory
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" \
+            "mkdir -p ${VPS_PATH} /mnt/SourceCode/DylanPlan-data"
 
       - name: Sync runtime artifact to VPS
         run: |
           rsync -az --delete \
             -e "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p ${VPS_PORT}" \
             deploy/ "${{ secrets.VPS_USER }}@${VPS_HOST}:${VPS_PATH}/"
+
+      - name: Run database migrations
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -p "${VPS_PORT}" "${{ secrets.VPS_USER }}@${VPS_HOST}" "bash -s" <<EOF
+          set -e
+          SUDO=""
+          if [ "\$(id -u)" != "0" ]; then
+            SUDO="sudo"
+          fi
+          \$SUDO docker run --rm \
+            -v ${VPS_PATH}/migrate:/migrate \
+            -v /mnt/SourceCode/DylanPlan-data:/data \
+            -w /migrate \
+            -e DATABASE_URL=file:/data/dylan-plan.db \
+            node:22-bookworm-slim \
+            sh -c "npm install --omit=dev --no-audit --no-fund >/dev/null && npx prisma migrate deploy"
+          EOF
 
       - name: Deploy with Docker Compose
         run: |
@@ -140,6 +170,15 @@ jobs:
             docker compose logs --tail=100 app nginx
             exit 1
           fi
+
+          for route in budget roadmap; do
+            if ! curl -k -fsS --retry 5 --retry-delay 3 -H 'Host: dylan.com.vn' "https://127.0.0.1/${route}" -o /tmp/dylan-plan-local-${route}.html; then
+              echo "Local Docker HTTPS endpoint for /${route} did not return 2xx."
+              docker compose ps
+              docker compose logs --tail=100 app nginx
+              exit 1
+            fi
+          done
           EOF
 
           curl -k -fsS --retry 10 --retry-delay 3 https://dylan.com.vn/ -o /tmp/dylan-plan-public.html
@@ -148,6 +187,13 @@ jobs:
             head -80 /tmp/dylan-plan-public.html
             exit 1
           fi
+
+          for route in budget roadmap; do
+            if ! curl -k -fsS --retry 5 --retry-delay 3 "https://dylan.com.vn/${route}" -o "/tmp/dylan-plan-public-${route}.html"; then
+              echo "Public HTTPS endpoint for /${route} did not return 2xx."
+              exit 1
+            fi
+          done
 
       - name: Show Docker Compose diagnostics
         if: failure()
