@@ -8,6 +8,8 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
       DATABASE_URL: file:/data/dylan-plan.db
+    env_file:
+      - /mnt/SourceCode/DylanPlan-data/app.env
     volumes:
       - ./app:/app:ro
       - /mnt/SourceCode/DylanPlan-data:/data

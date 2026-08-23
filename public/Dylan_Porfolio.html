@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lê Duy — Backend / Full-stack Engineer · Engineering Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d0f; --bg-soft:#141416; --ink:#f4f4f2;
+    --muted:#8f8f96; --faint:#5a5a62; --line:#232327;
+    --accent:#c8ff00; --accent-dim:#4a5c00; --accent-ink:#0d0d0f;
+  }
+  [data-theme="light"]{
+    --bg:#f6f6f2; --bg-soft:#ffffff; --ink:#161618;
+    --muted:#5f5f68; --faint:#a3a3ac; --line:#e3e3dd;
+    --accent:#5b53ff; --accent-dim:#c9c6ff; --accent-ink:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:'Inter',sans-serif;font-weight:300;line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    transition:background .5s ease,color .5s ease;
+  }
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 32px}
+
+  .glow{
+    position:fixed;width:520px;height:520px;border-radius:50%;
+    background:radial-gradient(circle,color-mix(in srgb,var(--accent) 8%,transparent),transparent 65%);
+    pointer-events:none;transform:translate(-50%,-50%);z-index:0;
+  }
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;
+    backdrop-filter:blur(12px);background:color-mix(in srgb,var(--bg) 65%,transparent);
+    border-bottom:1px solid transparent;transition:border-color .3s,background .5s;}
+  nav.scrolled{border-color:var(--line)}
+  .nav-inner{max-width:960px;margin:0 auto;padding:14px 32px;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;}
+  .nav-logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px}
+  .nav-logo b{color:var(--accent)}
+  .nav-right{display:flex;align-items:center;gap:24px}
+  .nav-links{display:flex;gap:24px}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:13px;
+    font-family:'JetBrains Mono',monospace;letter-spacing:.5px;transition:color .25s;position:relative;}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a::after{content:"";position:absolute;left:0;bottom:-4px;height:1px;width:0;background:var(--accent);transition:width .25s}
+  .nav-links a:hover::after{width:100%}
+  @media(max-width:720px){.nav-links{display:none}}
+
+  .ctrl{display:flex;align-items:center;gap:8px}
+  .toggle{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    background:var(--bg-soft);border:1px solid var(--line);color:var(--muted);
+    padding:6px 12px;border-radius:20px;cursor:pointer;
+    display:flex;align-items:center;gap:7px;transition:border-color .25s,color .25s;
+  }
+  .toggle:hover{border-color:var(--accent);color:var(--ink)}
+  .toggle svg{width:14px;height:14px}
+  .lang-btn b{color:var(--accent);font-weight:600}
+
+  /* HERO */
+  header{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+    position:relative;z-index:1;padding:120px 0 80px;}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;
+    display:flex;align-items:center;gap:12px;}
+  .eyebrow::before{content:"";width:32px;height:1px;background:var(--accent)}
+  h1.hero{font-family:'Space Grotesk',sans-serif;font-weight:500;
+    font-size:clamp(48px,9.5vw,112px);line-height:.92;letter-spacing:-2px;}
+  h1.hero em{font-style:normal;color:var(--faint)}
+  .hero-role{margin-top:28px;font-size:clamp(18px,2.4vw,25px);font-weight:300;
+    color:var(--muted);max-width:640px;}
+  .hero-role b{color:var(--ink);font-weight:500}
+  .hero-role .tag{display:inline-block;background:var(--accent);color:var(--accent-ink);
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+    padding:2px 9px;border-radius:3px;letter-spacing:.5px;vertical-align:middle;margin-left:4px;}
+  .apply-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+  .apply-tags .tag{display:inline-flex;align-items:center;gap:6px;
+    background:var(--accent);color:var(--accent-ink);
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    padding:6px 14px;border-radius:20px;letter-spacing:.3px;}
+  .apply-tags .tag::before{content:"●";font-size:8px}
+  .apply-tags .tag-alt{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+  .hero-meta{display:flex;gap:36px;flex-wrap:wrap;margin-top:52px}
+  .hero-meta .stat .n{font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:600;letter-spacing:-1px;line-height:1}
+  .hero-meta .stat .n .plus{color:var(--accent)}
+  .hero-meta .stat .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);
+    letter-spacing:1px;text-transform:uppercase;margin-top:8px;}
+  .hero-contact{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:44px}
+  .hero-contact a{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);
+    transition:color .25s;}
+  .hero-contact a:hover{color:var(--accent)}
+  .hero-contact a svg{width:16px;height:16px;flex:none;color:var(--accent);transition:transform .25s}
+  .hero-contact a:hover svg{transform:translateY(-2px)}
+  .scroll-cue{position:absolute;bottom:36px;right:34px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:2px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .scroll-cue .txt{writing-mode:vertical-rl}
+  .scroll-cue .bar{width:1px;height:32px;background:linear-gradient(var(--faint),transparent);animation:drop 1.8s ease-in-out infinite}
+  @media(max-height:720px),(max-width:900px){.scroll-cue{display:none}}
+
+  section{position:relative;z-index:1;padding:88px 0;border-top:1px solid var(--line)}
+  .sec-label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;
+    color:var(--faint);text-transform:uppercase;margin-bottom:44px;
+    display:flex;align-items:center;gap:14px;}
+  .sec-label .idx{color:var(--accent)}
+  .sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  .about-txt{font-size:clamp(21px,2.9vw,30px);font-weight:300;line-height:1.5;letter-spacing:-.3px;max-width:820px}
+  .about-txt b{color:var(--ink);font-weight:500}
+  .about-txt .hl{color:var(--accent);font-weight:400}
+
+  .tl-item{display:grid;grid-template-columns:180px 1fr;gap:40px;padding:36px 0;border-top:1px solid var(--line)}
+  .tl-item:first-child{border-top:none}
+  .tl-when{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+  .tl-when .co{display:block;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;font-size:15px;margin-top:8px;letter-spacing:0}
+  .tl-when .badge{display:inline-block;margin-top:12px;background:var(--accent);color:var(--accent-ink);
+    font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;letter-spacing:.5px;font-family:'JetBrains Mono',monospace;}
+  .tl-role{font-family:'Space Grotesk',sans-serif;font-size:23px;font-weight:600;letter-spacing:-.5px;margin-bottom:6px}
+  .tl-role .arrow{color:var(--accent)}
+  .tl-summary{color:var(--muted);font-size:15px;margin-bottom:18px;max-width:600px}
+  .tl-summary b{color:var(--ink);font-weight:500}
+  .metric{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.92em}
+
+  .proj-block{margin-top:22px}
+  .proj-row{padding:16px 0;border-top:1px solid var(--line);display:grid;
+    grid-template-columns:1fr auto;gap:6px 16px;align-items:start;transition:padding-left .3s}
+  .proj-row:hover{padding-left:8px}
+  .proj-head{display:flex;align-items:center;gap:10px}
+  .proj-row .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;flex:none}
+  .proj-row .pn{font-weight:500;font-size:15px}
+  .proj-row .pd{color:var(--faint);font-size:13.5px;grid-column:1/-1;line-height:1.55;max-width:640px}
+  .proj-row .team{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;padding-top:2px}
+  .impact{grid-column:1/-1;margin-top:10px;display:flex;flex-direction:column;gap:7px;max-width:660px}
+  .impact li{list-style:none;position:relative;padding-left:20px;font-size:13.5px;color:var(--muted);line-height:1.5}
+  .impact li::before{content:"▸";position:absolute;left:0;top:0;color:var(--accent);font-size:12px;line-height:1.5}
+  .impact li b{color:var(--ink);font-weight:500}
+  .metrics{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .metric-chip{display:flex;flex-direction:column;gap:2px;padding:8px 14px;
+    background:color-mix(in srgb,var(--accent) 8%,transparent);
+    border:1px solid var(--accent-dim);border-radius:10px;min-width:96px}
+  .metric-chip .mv{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:600;
+    color:var(--accent);line-height:1;letter-spacing:-.5px}
+  [data-theme="light"] .metric-chip .mv{color:var(--accent)}
+  .metric-chip .ml{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
+    letter-spacing:.3px;text-transform:uppercase}
+  @media(max-width:520px){.proj-row{grid-template-columns:1fr}.proj-row .team{grid-row:1;justify-self:start}}
+  .ptech{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .ptech span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);padding:3px 9px;border-radius:20px;transition:border-color .25s,color .25s}
+  .proj-block:hover .ptech span{border-color:var(--accent-dim)}
+  @media(max-width:680px){.tl-item{grid-template-columns:1fr;gap:14px}}
+
+  /* personal project cards */
+  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+  .pcard{background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:24px;
+    transition:transform .3s cubic-bezier(.16,1,.3,1),border-color .3s;position:relative;overflow:hidden}
+  .pcard::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,transparent),transparent 50%);opacity:0;transition:opacity .3s}
+  .pcard:hover{transform:translateY(-5px);border-color:var(--accent-dim)}
+  .pcard:hover::before{opacity:1}
+  .pcard .idx{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:1px}
+  .pcard h4{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:600;margin:10px 0 8px;letter-spacing:-.3px;position:relative}
+  .pcard p{font-size:14px;color:var(--muted);margin-bottom:16px;position:relative}
+  .pcard .ptech{margin-top:0;position:relative}
+
+  .skill-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px}
+  .skill-cat{border-top:1px solid var(--line);padding-top:18px}
+  .skill-cat h4{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-weight:500}
+  .skill-cat .list{display:flex;flex-wrap:wrap;gap:8px}
+  .skill-cat .list span{font-size:14px;color:var(--ink);font-weight:400;background:var(--bg-soft);
+    border:1px solid var(--line);padding:6px 13px;border-radius:6px;transition:transform .2s,border-color .2s,color .2s}
+  .skill-cat .list span:hover{transform:translateY(-3px);border-color:var(--accent);color:var(--accent)}
+
+  footer{padding:100px 0 60px;position:relative;z-index:1;border-top:1px solid var(--line)}
+  .cta{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(34px,6.5vw,80px);line-height:1;letter-spacing:-2px}
+  .cta a{color:var(--ink);text-decoration:none;transition:color .3s}
+  .cta a:hover{color:var(--accent)}
+  .foot-row{display:flex;gap:36px;flex-wrap:wrap;margin-top:48px}
+  .foot-row a,.foot-row span{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);text-decoration:none;transition:color .25s}
+  .foot-row a:hover{color:var(--accent)}
+  .foot-bottom{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--faint)}
+
+  @keyframes drop{0%,100%{transform:translateY(0);opacity:.3}50%{transform:translateY(6px);opacity:1}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:background .3s,color .3s,border-color .3s!important}.reveal{opacity:1;transform:none}}
+  /* view switch */
+  .view-switch{display:flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:20px;padding:2px}
+  .vs-btn{font-family:'JetBrains Mono',monospace;font-size:12px;border:none;background:transparent;
+    color:var(--muted);padding:5px 13px;border-radius:16px;cursor:pointer;transition:all .25s;white-space:nowrap}
+  .vs-btn.active{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  @media(max-width:720px){.vs-btn{padding:5px 10px;font-size:11px}}
+
+  /* ============ RÉSUMÉ VIEW ============ */
+  #view-resume{padding:88px 20px 56px;position:relative;z-index:1;min-height:100vh}
+  .resume-actions{max-width:820px;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .cv-switch{display:flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:20px;padding:2px}
+  .cv-btn{font-family:'JetBrains Mono',monospace;font-size:11.5px;border:none;background:transparent;
+    color:var(--muted);padding:6px 14px;border-radius:16px;cursor:pointer;transition:all .25s;white-space:nowrap}
+  .cv-btn.active{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  @media(max-width:640px){.cv-btn{padding:5px 10px;font-size:10.5px}}
+
+  .cv-frame-wrap{max-width:860px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.55)}
+  .cv-frame{width:100%;border:none;display:block;background:#fff}
+  .cv-frame[hidden]{display:none}
+
+  @media print{
+    nav,.glow,.scroll-cue,.resume-actions{display:none!important}
+    html,body{background:#fff!important;margin:0!important;padding:0!important}
+    #view-resume{padding:0!important;min-height:0!important}
+    .cv-frame-wrap{box-shadow:none;max-width:none;border-radius:0}
+  }
+</style>
+</head>
+<body data-theme="dark">
+<div class="glow" id="glow"></div>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">LÊ<b>.</b>DUY</div>
+    <div class="nav-right">
+      <div class="nav-links" id="portfolioLinks">
+        <a href="#about" data-i18n="nav_about">about</a>
+        <a href="#work" data-i18n="nav_work">work</a>
+        <a href="#projects" data-i18n="nav_projects">projects</a>
+        <a href="#skills" data-i18n="nav_skills">skills</a>
+        <a href="#contact" data-i18n="nav_contact">contact</a>
+      </div>
+      <div class="ctrl">
+        <div class="view-switch" id="viewSwitch">
+          <button class="vs-btn active" data-view="portfolio" data-i18n="view_portfolio">Portfolio</button>
+          <button class="vs-btn" data-view="resume" data-i18n="view_resume">Résumé</button>
+        </div>
+        <button class="toggle lang-btn" id="langBtn"><b id="langCur">EN</b>&nbsp;/&nbsp;VI</button>
+        <button class="toggle" id="themeBtn">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ PORTFOLIO VIEW ============ -->
+<div id="view-portfolio">
+<!-- HERO -->
+<header>
+  <div class="wrap">
+    <div class="eyebrow" data-i18n="hero_eyebrow">Backend · Full-stack Engineer · Engineering Manager</div>
+    <h1 class="hero" data-i18n-html="hero_title">Building systems<br>that <em>scale.</em></h1>
+    <p class="hero-role" data-i18n-html="hero_role">I build <b>scalable backend architectures</b> and ship <b>full-stack</b> when needed — microservices, event-driven pipelines, and domain-driven systems from database to UI.</p>
+    <div class="apply-tags">
+      <span class="tag" data-i18n="tag_backend">Applying: Senior Backend Engineer</span>
+      <span class="tag tag-alt" data-i18n="tag_lead">Applying: Tech Lead / Engineering Manager</span>
+    </div>
+    <div class="hero-meta">
+      <div class="stat"><div class="n">6<span class="plus">+</span></div><div class="lbl" data-i18n="stat_years">Years experience</div></div>
+      <div class="stat"><div class="n">4<span class="plus">+</span></div><div class="lbl" data-i18n="stat_backend">Years backend</div></div>
+      <div class="stat"><div class="n">13<span class="plus">+</span></div><div class="lbl" data-i18n="stat_systems">Systems shipped</div></div>
+      <div class="stat"><div class="n">EM</div><div class="lbl" data-i18n="stat_core">Leading a team</div></div>
+    </div>
+    <div class="hero-contact">
+      <a href="tel:0384793266">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.81.36 1.6.7 2.34a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.74-1.74a2 2 0 0 1 2.11-.45c.74.34 1.53.57 2.34.7A2 2 0 0 1 22 16.92z"/></svg>
+        038.479.3266</a>
+      <a href="mailto:leduy221200@gmail.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        leduy221200@gmail.com</a>
+      <a href="https://www.linkedin.com/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        LinkedIn</a>
+      <a href="https://leeduys-docs.gitbook.io/tong-hop-kien-thuc-lap-trinh" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        GitBook</a>
+    </div>
+  </div>
+  <div class="scroll-cue"><span class="txt">SCROLL</span><div class="bar"></div></div>
+</header>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-label reveal"><span class="idx">01</span> <span data-i18n="sec_profile">Profile</span></div>
+    <p class="about-txt reveal" data-i18n-html="about_body">
+      <b>6 years</b> in web development, with <b>4+ years</b> deep in backend systems — grounded in
+      data structures, algorithms, software architecture, and database design. I build maintainable,
+      domain-centric systems with <span class="hl">OOP &amp; Domain-Driven Design</span>, and work
+      comfortably <span class="hl">full-stack</span> from PostgreSQL to Angular &amp; Next.js. Now leading a
+      team as <span class="hl">Engineering Manager</span>, building <span class="hl">AI-driven development
+      tooling</span> to automate how we ship.
+    </p>
+  </div>
+</section>
+
+<!-- WORK -->
+<section id="work">
+  <div class="wrap">
+    <div class="sec-label reveal"><span class="idx">02</span> <span data-i18n="sec_experience">Experience</span></div>
+
+    <!-- Present role -->
+    <div class="tl-item reveal">
+      <div class="tl-when">03/2026 — <span data-i18n="present">Present</span>
+        <span class="co">Viet Nang Knowledge Resources JSC</span>
+        <span class="badge" data-i18n="badge_current">Current</span>
+      </div>
+      <div>
+        <div class="tl-role"><span data-i18n="role_em">Engineering Manager</span> <span class="arrow">↗</span></div>
+        <p class="tl-summary" data-i18n-html="job_em" style="margin-bottom:20px">
+          Stepped up to <b>Engineering Manager</b>, leading a cross-functional engineering team —
+          owning technical direction, delivery, and code-quality standards, running planning and
+          reviews, aligning product and engineering priorities, and mentoring developers while
+          driving reliability across high-load production systems.
+        </p>
+        <ul class="impact" style="margin-bottom:14px;max-width:660px">
+          <li data-i18n-html="job_em_i1">Built an <b>AIDD (AI-Driven Development) plugin suite</b> to automate the product &amp; team workflow.</li>
+          <li data-i18n-html="job_em_i2"><b>BaKit</b> — automates business analysis, producing documentation <b>~30% faster and more accurately</b>.</li>
+          <li data-i18n-html="job_em_i3"><b>DevKit</b> — accelerates coding with correct syntax and business logic, boosting output by <b>~70%</b>.</li>
+          <li data-i18n-html="job_em_i4"><b>QcKit</b> — automates <b>~50% of test cases</b> and generates more reliable QC reports.</li>
+        </ul>
+        <div class="metrics" style="margin-bottom:22px">
+          <div class="metric-chip"><span class="mv">+30%</span><span class="ml" data-i18n="m_bakit">BaKit · docs speed</span></div>
+          <div class="metric-chip"><span class="mv">+70%</span><span class="ml" data-i18n="m_devkit">DevKit · dev output</span></div>
+          <div class="metric-chip"><span class="mv">~50%</span><span class="ml" data-i18n="m_qckit">QcKit · tests automated</span></div>
+        </div>
+        <div class="ptech" style="margin-bottom:26px"><span>Leadership</span><span>AIDD</span><span>Plugin Dev</span><span>Automation</span><span>Architecture</span><span>Clean Architecture</span><span>Microservice</span><span>Kafka</span><span>Agile</span></div>
+
+        <div class="tl-role" style="font-size:19px;color:var(--muted)"><span data-i18n="role_senior_prev">Senior Developer</span> <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--faint)">07/2025 — 03/2026</span></div>
+        <div class="proj-block">
+          <p class="tl-summary" data-i18n-html="job_vnkr" style="margin-bottom:10px">
+            <b>Human Resource Management System</b> — a multi-module HR platform.
+          </p>
+          <ul class="impact" style="margin-bottom:14px">
+            <li data-i18n-html="job_vnkr_i1"><b>Led a mini team</b> to design and build the Objectives &amp; Evaluation modules.</li>
+            <li data-i18n-html="job_vnkr_i2">Synchronized HR data from <b>third-party systems</b> reliably.</li>
+            <li data-i18n-html="job_vnkr_i3">Contributed a <b>centralized notification system</b> — configurable email templates, distributed across channels and business domains without cross-channel bottlenecks.</li>
+            <li data-i18n-html="job_vnkr_i4">Built a <b>No-code / Low-code</b> configuration mechanism for faster, more flexible partner deployment.</li>
+          </ul>
+          <div class="ptech"><span>C#</span><span>Angular</span><span>Clean Architecture</span><span>Microservice</span><span>Redis</span><span>Kafka</span><span>PostgreSQL</span><span>SignalR</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TMT Senior -->
+    <div class="tl-item reveal">
+      <div class="tl-when">01/2023 — 06/2025<span class="co">Truong Minh Thinh JSC</span></div>
+      <div>
+        <div class="tl-role" data-i18n="role_senior">Senior Developer</div>
+
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_order">Order Management System</span></span>
+            <span class="pd" data-i18n-html="p_order_d">Centralized order processing &amp; status management, syncing high order volumes from partner platforms.</span>
+            <span class="team">team&nbsp;4</span>
+            <div class="metrics">
+              <div class="metric-chip"><span class="mv">~1,000<span style="font-size:13px">/s</span></span><span class="ml" data-i18n="m_orders">Orders processed</span></div>
+              <div class="metric-chip"><span class="mv">~40%<span style="font-size:13px"> ↓</span></span><span class="ml" data-i18n="m_latency">Latency reduced</span></div>
+              <div class="metric-chip"><span class="mv">Real-time</span><span class="ml" data-i18n="m_intake">Order intake</span></div>
+            </div>
+            <ul class="impact">
+              <li data-i18n-html="p_order_i1">Handled <b>~1,000 orders/second</b> from partner platforms with real-time intake.</li>
+              <li data-i18n-html="p_order_i2">Cut average latency <b>~40%</b> by redesigning the message-queuing pipeline.</li>
+              <li data-i18n-html="p_order_i3">Built <b>webhook forwarding with auto-retry</b> for resilient partner delivery.</li>
+            </ul></div>
+          <div class="ptech"><span>C#</span><span>ABP</span><span>Microservice</span><span>PostgreSQL</span><span>Redis</span><span>Kafka</span><span>Webhook</span><span>gRPC</span></div>
+        </div>
+
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_promo">Promotion Management System</span></span>
+            <span class="pd" data-i18n-html="p_promo_d">Manage promotion programs with concurrent validation of promotions applied per order.</span>
+            <span class="team">team&nbsp;10</span>
+            <div class="metrics">
+              <div class="metric-chip"><span class="mv">&lt;500<span style="font-size:13px">ms</span></span><span class="ml" data-i18n="m_valid">Validation time</span></div>
+              <div class="metric-chip"><span class="mv">2×<span style="font-size:13px"> faster</span></span><span class="ml" data-i18n="m_from">Down from 1s</span></div>
+            </div>
+            <ul class="impact">
+              <li data-i18n-html="p_promo_i1">Designed <b>atomic quota validation</b> to prevent over-application under high concurrency.</li>
+              <li data-i18n-html="p_promo_i2">Reduced validation time from <b>1s to under 500ms</b>.</li>
+            </ul></div>
+          <div class="ptech"><span>C#</span><span>ABP</span><span>Microservice</span><span>PostgreSQL</span><span>Redis</span><span>Kafka</span><span>gRPC</span></div>
+        </div>
+
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_loyal">Loyalty Management System</span></span>
+            <span class="pd" data-i18n-html="p_loyal_d">Accrue reward points for orders synced from partners or placed by end-users.</span>
+            <span class="team">team&nbsp;10</span>
+            <ul class="impact">
+              <li data-i18n-html="p_loyal_i1">Delivered <b>near-instant point accrual</b> for end-users across channels.</li>
+              <li data-i18n-html="p_loyal_i2">Enabled reward redemption via <b>product or QR-code scan</b>.</li>
+            </ul></div>
+          <div class="ptech"><span>C#</span><span>ABP</span><span>Microservice</span><span>PostgreSQL</span><span>Redis</span><span>Kafka</span><span>Webhook</span><span>gRPC</span></div>
+        </div>
+
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_dist">Product Distribution System</span></span>
+            <span class="pd" data-i18n-html="p_dist_d">Managing and distributing products to branches; full-stack ownership including operations.</span>
+            <span class="team">team&nbsp;10</span>
+            <ul class="impact">
+              <li data-i18n-html="p_dist_i1">Owned the stack <b>end-to-end</b> — backend, Angular frontend, and dev-ops.</li>
+              <li data-i18n-html="p_dist_i2">Routed traffic through a <b>YARP API gateway</b> across microservices.</li>
+            </ul></div>
+          <div class="ptech"><span>C#</span><span>ABP</span><span>Angular</span><span>TypeScript</span><span>PostgreSQL</span><span>Redis</span><span>Kafka</span><span>Firebase</span><span>MongoDB</span><span>YARP Gateway</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Junior -->
+    <div class="tl-item reveal">
+      <div class="tl-when">01/2021 — 12/2022<span class="co" data-i18n="junior">Junior Developer</span></div>
+      <div>
+        <div class="tl-role" data-i18n="role_junior">Junior Developer</div>
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_msgup">Centralized Messaging (Upgrade)</span></span>
+            <span class="pd" data-i18n-html="p_msgup_d">Upgraded codebase, improved performance and efficiency.</span>
+            <span class="team">team&nbsp;4</span></div>
+          <div class="ptech"><span>Python</span><span>FastAPI</span><span>MongoDB</span><span>Angular</span><span>TypeScript</span></div>
+        </div>
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_collect">Product Management &amp; Collection</span></span>
+            <span class="pd" data-i18n-html="p_collect_d">Scrapes product data from domestic &amp; international e-commerce platforms.</span>
+            <span class="team">team&nbsp;5</span></div>
+          <div class="ptech"><span>Python</span><span>FastAPI</span><span>MongoDB</span><span>Angular</span><span>Selenium</span><span>Socket.IO</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Internship -->
+    <div class="tl-item reveal">
+      <div class="tl-when">07/2020 — 12/2020<span class="co" data-i18n="internship">Internship</span></div>
+      <div>
+        <div class="tl-role" data-i18n="role_intern">Intern</div>
+        <div class="proj-block">
+          <div class="proj-row"><span class="proj-head"><span class="dot"></span><span class="pn" data-i18n="p_msg">Centralized Messaging System</span></span>
+            <span class="pd" data-i18n-html="p_msg_d">Aggregates messages from various social media platforms.</span>
+            <span class="team">team&nbsp;5</span></div>
+          <div class="ptech"><span>Python</span><span>Flask</span><span>Angular</span><span>TypeScript</span><span>MySQL</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONAL PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-label reveal"><span class="idx">03</span> <span data-i18n="sec_personal">Personal Projects</span></div>
+    <div class="pcards">
+      <div class="pcard reveal">
+        <div class="idx">/ 01</div>
+        <h4 data-i18n="pp_sim">SIM Management System</h4>
+        <p data-i18n="pp_sim_d">Centralized SIM management and control system.</p>
+        <div class="ptech"><span>Python</span><span>FastAPI</span><span>Flask</span><span>MongoDB</span><span>Linux</span><span>Next.js</span><span>TypeScript</span><span>Prisma</span><span>GSM</span><span>Redis</span></div>
+      </div>
+      <div class="pcard reveal">
+        <div class="idx">/ 02</div>
+        <h4 data-i18n="pp_home">Household Electrical Appliances</h4>
+        <p data-i18n="pp_home_d">Manages products, orders, and household electrical appliances.</p>
+        <div class="ptech"><span>Next.js</span><span>TypeScript</span><span>SQL Server</span><span>IIS</span><span>Prisma</span><span>SSR</span></div>
+      </div>
+      <div class="pcard reveal">
+        <div class="idx">/ 03</div>
+        <h4 data-i18n="pp_steel">Steel Materials Website</h4>
+        <p data-i18n="pp_steel_d">Manages products, orders, and steel materials.</p>
+        <div class="ptech"><span>Next.js</span><span>TypeScript</span><span>SQL Server</span><span>IIS</span><span>Prisma</span><span>SSR</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-label reveal"><span class="idx">04</span> <span data-i18n="sec_toolbox">Toolbox</span></div>
+    <div class="skill-grid">
+      <div class="skill-cat reveal"><h4 data-i18n="sk_lang">Languages</h4><div class="list"><span>C#</span><span>Python</span><span>JavaScript</span><span>TypeScript</span><span>Java</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_api">Backend / API</h4><div class="list"><span>ABP.NET</span><span>FastAPI</span><span>Flask</span><span>Spring</span><span>Node.js</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_web">Frontend</h4><div class="list"><span>Next.js</span><span>Angular</span><span>Spring</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_data">Data</h4><div class="list"><span>SQL Server</span><span>PostgreSQL</span><span>MongoDB</span><span>Redis</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_msg">Messaging / Realtime</h4><div class="list"><span>Kafka</span><span>SignalR</span><span>Socket.IO</span><span>Firebase</span><span>gRPC</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_infra">Infra & Practice</h4><div class="list"><span>Docker</span><span>Git</span><span>Microservices</span><span>DDD</span><span>Agile</span></div></div>
+      <div class="skill-cat reveal"><h4 data-i18n="sk_lead">Leadership & AIDD</h4><div class="list"><span>Team Management</span><span>Mentoring</span><span>AIDD Tooling</span><span>BaKit</span><span>DevKit</span><span>QcKit</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="sec-label reveal"><span class="idx">05</span> <span data-i18n="sec_talk">Let's talk</span></div>
+    <div class="cta reveal"><a href="mailto:leduy221200@gmail.com" data-i18n-html="cta_text">Let's build<br>something solid.</a></div>
+    <div class="foot-row reveal">
+      <a href="mailto:leduy221200@gmail.com">leduy221200@gmail.com</a>
+      <a href="tel:0384793266">038.479.3266</a>
+      <a href="https://leeduys-docs.gitbook.io/tong-hop-kien-thuc-lap-trinh" target="_blank">GitBook ↗</a>
+      <span data-i18n="loc">Hanh Thong Tay, Ho Chi Minh City</span>
+    </div>
+  </div>
+</footer>
+</div><!-- /view-portfolio -->
+
+<!-- ============ RÉSUMÉ VIEW ============ -->
+<div id="view-resume" hidden>
+  <div class="resume-actions">
+    <div class="cv-switch" id="cvSwitch">
+      <button class="cv-btn active" data-cv="backend" data-i18n="cv_tab_backend">Senior Backend Engineer</button>
+      <button class="cv-btn" data-cv="lead" data-i18n="cv_tab_lead">Tech Lead / EM</button>
+    </div>
+  </div>
+  <div class="cv-frame-wrap">
+    <iframe id="frame-backend" class="cv-frame" title="Senior Backend Engineer CV"></iframe>
+    <iframe id="frame-lead" class="cv-frame" title="Tech Lead / Engineering Manager CV" hidden></iframe>
+  </div>
+</div><!-- /view-resume -->
+
+<script>
+const CV_BACKEND_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lê Duy — Senior Backend Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --sub:#2f2f2f;
+    --body:#43433f;
+    --muted:#6b6b64;
+    --band-bg:#efefe9;    /* subtle section wash, no borders */
+    --page:#f4f3ef;
+    --paper:#ffffff;
+    --accent:#1B5E20;
+    --rule:#e2e2da;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--page); }
+  body{
+    font-family:"Nunito Sans","Calibri",Arial,sans-serif;
+    color:var(--body);
+    font-size:13.5px;
+    line-height:1.55;
+    display:flex;
+    justify-content:center;
+    padding:36px 16px;
+  }
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-width:800px;
+    padding:40px 54px 44px;
+    box-shadow:0 18px 50px -20px rgba(0,0,0,.25);
+  }
+
+  /* ===== HEADER ===== */
+  .head{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    padding-bottom:14px;
+  }
+  .avatar{
+    width:84px; height:84px; border-radius:50%;
+    flex:none;
+    background: linear-gradient(135deg,#1B5E20,#2E7D32);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:"Playfair Display",Georgia,serif; font-weight:700; font-size:28px;
+    letter-spacing:1px;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,.15);
+  }
+  .head-text h1{
+    margin:0;
+    font-family:"Playfair Display",Georgia,serif;
+    font-size:30px;
+    letter-spacing:.5px;
+    color:var(--ink);
+    font-weight:800;
+  }
+  .head-text .role{
+    margin:4px 0 7px;
+    font-size:13.5px;
+    font-weight:600;
+    font-style:italic;
+    color:var(--sub);
+    font-family:"Nunito Sans",sans-serif;
+  }
+  .head-contact{
+    font-size:11.3px;
+    color:var(--muted);
+    letter-spacing:.2px;
+  }
+  .head-contact a{ color:var(--muted); text-decoration:none; }
+  .head-contact a:hover{ color:var(--accent); }
+  .head-contact .sep{ color:#c7c7bd; margin:0 7px; }
+
+  /* ===== SECTION LABEL — no borders, soft wash + letterspacing does the work ===== */
+  h2.band{
+    background:var(--band-bg);
+    margin:18px 0 10px;
+    padding:6px 13px;
+    border-radius:3px;
+    font-family:"Nunito Sans",sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--ink);
+    font-weight:700;
+  }
+
+  .section-body{ padding:0 2px; }
+
+  p.summary{ margin:0 0 4px; color:var(--body); font-size:13px; }
+
+  /* ===== EXPERIENCE ===== */
+  .job{ margin-bottom:12px; }
+  .job:last-child{ margin-bottom:0; }
+  .job-row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  }
+  .job-title{ font-weight:700; color:var(--ink); font-size:13.5px; letter-spacing:.2px; }
+  .job-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .job-co{ font-size:12px; color:var(--accent); font-weight:700; margin:1px 0 5px; }
+  ul.job-list{ margin:3px 0 0; padding-left:16px; }
+  ul.job-list li{ margin-bottom:3px; font-size:12.8px; }
+  ul.job-list li::marker{ color:var(--accent); }
+  .proj-name{ font-weight:700; color:var(--sub); }
+  .stack-line{ font-size:11.2px; color:var(--muted); margin-top:2px; display:inline-block; }
+  .stack-line b{ color:var(--sub); }
+
+  /* ===== EDUCATION ===== */
+  .edu{ margin-bottom:8px; }
+  .edu:last-child{ margin-bottom:0; }
+  .edu-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .edu-title{ font-weight:700; color:var(--ink); font-size:13.5px; }
+  .edu-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .edu-sub{ font-size:12px; color:var(--body); margin:2px 0 3px; font-style:italic; }
+  ul.edu-list{ margin:2px 0 0; padding-left:16px; }
+  ul.edu-list li::marker{ color:var(--accent); }
+
+  /* ===== SKILLS (3-col like the mock) ===== */
+  .skills-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:3px 20px;
+  }
+  .skills-grid .col ul{ margin:0; padding-left:16px; }
+  .skills-grid .col li{ margin-bottom:3px; font-size:12.5px; }
+  .skills-grid .col li::marker{ color:var(--accent); }
+  .skills-grid .col h4{
+    margin:0 0 5px; font-size:11px; color:var(--ink); font-weight:700;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+
+  @media (max-width:600px){
+    .sheet{ padding:28px 22px 36px; }
+    .head{ flex-direction:column; text-align:center; }
+    .head-contact{ text-align:center; }
+    .skills-grid{ grid-template-columns:1fr 1fr; }
+  }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheet{ box-shadow:none; max-width:100%; padding:14mm 16mm; }
+    .job, .edu{ break-inside:avoid; }
+    h2.band{ break-after:avoid; }
+  }
+  @page{ size:A4; margin:10mm; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- HEADER -->
+  <div class="head">
+    <div class="avatar">LD</div>
+    <div class="head-text">
+      <h1>LÊ DUY</h1>
+      <div class="role">Senior Backend Engineer · Distributed Systems &amp; Microservices</div>
+      <div class="head-contact">
+        leduy221200@gmail.com <span class="sep">|</span>
+        038.479.3266 <span class="sep">|</span>
+        Ho Chi Minh City, Vietnam <span class="sep">|</span>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener"><b>LinkedIn</b></a> <span class="sep">|</span>
+        <a href="https://leeduys-docs.gitbook.io/tong-hop-kien-thuc-lap-trinh" target="_blank" rel="noopener"><b>Portfolio / GitBook</b></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <h2 class="band">Summary</h2>
+  <div class="section-body">
+    <p class="summary">
+      Senior Backend Engineer with <b>6+ years</b> in web development, including <b>4+ years</b> focused
+      specifically on backend architecture for high-load, distributed systems. Proven track record designing
+      systems that process <b>~1,000 transactions/second</b>, cutting latency by <b>~40%</b> through
+      message-queue redesign, and reducing validation time from 1s to <b>under 500ms</b> under high
+      concurrency. Deep hands-on expertise in <b>C#, ASP.NET Core, ABP Framework, PostgreSQL, Kafka, Redis,
+      and gRPC</b>, applying OOP, Domain-Driven Design, and Clean Architecture to build maintainable,
+      domain-centric microservices. Comfortable owning a system end-to-end — from database design to
+      API gateway — and now also leading a small engineering team as Engineering Manager.
+    </p>
+  </div>
+
+  <!-- KEY SKILLS — moved up: recruiters & ATS scan keywords early -->
+  <h2 class="band">Key Skills</h2>
+  <div class="section-body">
+    <div class="skills-grid">
+      <div class="col">
+        <h4>Backend</h4>
+        <ul>
+          <li>C#, ASP.NET Core, ABP Framework</li>
+          <li>EF Core, REST, gRPC</li>
+          <li>FastAPI, Flask, Node.js, Spring</li>
+        </ul>
+        <h4 style="margin-top:10px;">Architecture</h4>
+        <ul>
+          <li>Microservices, DDD</li>
+          <li>Clean Architecture</li>
+          <li>Event-Driven Design</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Data &amp; Messaging</h4>
+        <ul>
+          <li>PostgreSQL, SQL Server, MongoDB</li>
+          <li>Redis, Kafka, SignalR, Socket.IO</li>
+        </ul>
+        <h4 style="margin-top:10px;">Languages</h4>
+        <ul>
+          <li>C#, SQL, TypeScript</li>
+          <li>Python, Java</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Frontend</h4>
+        <ul>
+          <li>Angular, Next.js, React</li>
+        </ul>
+        <h4 style="margin-top:10px;">Practices</h4>
+        <ul>
+          <li>Docker, Git, Agile/Scrum</li>
+          <li>Team Mentoring</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK EXPERIENCE -->
+  <h2 class="band">Work Experience</h2>
+  <div class="section-body">
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Engineering Manager</span>
+        <span class="job-date">Mar 2026 – Present</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li>Promoted to Engineering Manager after 8 months as Senior Developer; continue hands-on involvement in architecture decisions and code reviews across the HRM platform.</li>
+        <li>Directed the technical design of an in-house <span class="proj-name">AIDD (AI-Driven Development) plugin suite</span> — <b>BaKit</b> (business analysis automation, <b>~30% faster</b> docs), <b>DevKit</b> (code generation, <b>~70%</b> more dev output), <b>QcKit</b> (<b>~50%</b> of test cases automated).</li>
+        <li>Own reliability and performance standards for high-load production systems.</li>
+      </ul>
+      <div class="stack-line"><b>Focus:</b> Architecture, Clean Architecture, Microservice, Kafka, System Design, Agile</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Backend Developer</span>
+        <span class="job-date">Jul 2025 – Mar 2026</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Human Resource Management System</span> — a multi-module HR platform built for a <b>20-person</b> cross-functional team.</li>
+        <li>Led a mini team of <b>4 engineers</b> to design and build the Objectives &amp; Evaluation modules, synchronizing HR data from third-party systems reliably.</li>
+        <li>Contributed a centralized notification system with configurable email templates, distributed across <b>multiple channels</b> and business domains without cross-channel bottlenecks.</li>
+        <li>Built a No-code / Low-code configuration mechanism that cut partner deployment time and increased configuration flexibility for non-technical staff.</li>
+      </ul>
+      <div class="stack-line"><b>Tech:</b> C#, Angular, Clean Architecture, Microservice, Redis, Kafka, PostgreSQL, SignalR</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Backend Developer</span>
+        <span class="job-date">Jan 2023 – Jun 2025</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Order Management System</span> — handled <b>~1,000 orders/second</b> from partner platforms with real-time intake; cut average latency <b>~40%</b> by redesigning the message-queuing pipeline; built webhook forwarding with auto-retry for resilient partner delivery. Team of 4; role: Backend Developer, Database Designer, Analyst. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Promotion Management System</span> — designed atomic quota validation to prevent over-application under high concurrency across a <b>10-person</b> team, reducing validation time from <b>1s to under 500ms (~2x faster)</b>. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, gRPC</span></li>
+        <li><span class="proj-name">Loyalty Management System</span> — delivered near-instant (sub-second) point accrual for end-users across channels; enabled reward redemption via product or QR-code scan. Team of 10. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Product Distribution System</span> — owned the stack end-to-end (backend, Angular frontend, dev-ops) for a <b>10-person</b> team; routed traffic through a YARP API gateway across microservices. <span class="stack-line"><b>Tech:</b> C#, ABP, Angular, TypeScript, PostgreSQL, Redis, Kafka, Firebase, MongoDB, YARP Gateway</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Junior Developer</span>
+        <span class="job-date">Jan 2021 – Dec 2022</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging (Upgrade)</span> — upgraded the codebase, improved system performance and efficiency. Team of 4. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, TypeScript</span></li>
+        <li><span class="proj-name">Product Management &amp; Collection System</span> — scraped and collected product information from domestic and international e-commerce platforms. Team of 5. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, Selenium, Socket.IO</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Intern</span>
+        <span class="job-date">Jul 2020 – Dec 2020</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging Management System</span> — aggregated messages from various social media platforms. <span class="stack-line"><b>Tech:</b> Python, Flask, Angular, TypeScript, MySQL</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- PERSONAL PROJECTS -->
+  <h2 class="band">Personal Projects</h2>
+  <div class="section-body">
+    <div class="job">
+      <ul class="job-list">
+        <li><span class="proj-name">SIM Management System</span> — centralized SIM management and control system integrating GSM hardware with a web dashboard. <span class="stack-line"><b>Tech:</b> Python, FastAPI, Flask, MongoDB, Linux, Next.js, TypeScript, Prisma, GSM, Redis</span></li>
+        <li><span class="proj-name">Household Electrical Appliances Website</span> — manages products, orders, and household electrical appliances. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+        <li><span class="proj-name">Steel Materials Website</span> — manages products, orders, and steel materials. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <h2 class="band">Education</h2>
+  <div class="section-body">
+    <div class="edu">
+      <div class="edu-row">
+        <span class="edu-title">FPT Polytechnic College, Da Nang</span>
+        <span class="edu-date">Aug 2018 – Dec 2020</span>
+      </div>
+      <div class="edu-sub">Software Applications</div>
+      <ul class="edu-list">
+        <li>GPA: 8.9 / 10</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LANGUAGE -->
+  <h2 class="band">Language</h2>
+  <div class="section-body">
+    <p class="summary">English: Intermediate (TOEIC in progress) &nbsp;·&nbsp; Vietnamese: Native</p>
+  </div>
+
+</div>
+</body>
+</html>
+`;
+const CV_LEAD_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lê Duy — Tech Lead / Backend &amp; Full-stack Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --sub:#2f2f2f;
+    --body:#43433f;
+    --muted:#6b6b64;
+    --band-bg:#efefe9;    /* subtle section wash, no borders */
+    --page:#f4f3ef;
+    --paper:#ffffff;
+    --accent:#1B5E20;
+    --rule:#e2e2da;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--page); }
+  body{
+    font-family:"Nunito Sans","Calibri",Arial,sans-serif;
+    color:var(--body);
+    font-size:13.5px;
+    line-height:1.55;
+    display:flex;
+    justify-content:center;
+    padding:36px 16px;
+  }
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-width:800px;
+    padding:40px 54px 44px;
+    box-shadow:0 18px 50px -20px rgba(0,0,0,.25);
+  }
+
+  /* ===== HEADER ===== */
+  .head{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    padding-bottom:14px;
+  }
+  .avatar{
+    width:84px; height:84px; border-radius:50%;
+    flex:none;
+    background: linear-gradient(135deg,#1B5E20,#2E7D32);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:"Playfair Display",Georgia,serif; font-weight:700; font-size:28px;
+    letter-spacing:1px;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,.15);
+  }
+  .head-text h1{
+    margin:0;
+    font-family:"Playfair Display",Georgia,serif;
+    font-size:30px;
+    letter-spacing:.5px;
+    color:var(--ink);
+    font-weight:800;
+  }
+  .head-text .role{
+    margin:4px 0 7px;
+    font-size:13.5px;
+    font-weight:600;
+    font-style:italic;
+    color:var(--sub);
+    font-family:"Nunito Sans",sans-serif;
+  }
+  .head-contact{
+    font-size:11.3px;
+    color:var(--muted);
+    letter-spacing:.2px;
+  }
+  .head-contact a{ color:var(--muted); text-decoration:none; }
+  .head-contact a:hover{ color:var(--accent); }
+  .head-contact .sep{ color:#c7c7bd; margin:0 7px; }
+
+  /* ===== SECTION LABEL — no borders, soft wash + letterspacing does the work ===== */
+  h2.band{
+    background:var(--band-bg);
+    margin:18px 0 10px;
+    padding:6px 13px;
+    border-radius:3px;
+    font-family:"Nunito Sans",sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--ink);
+    font-weight:700;
+  }
+
+  .section-body{ padding:0 2px; }
+
+  p.summary{ margin:0 0 4px; color:var(--body); font-size:13px; }
+
+  /* ===== EXPERIENCE ===== */
+  .job{ margin-bottom:12px; }
+  .job:last-child{ margin-bottom:0; }
+  .job-row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  }
+  .job-title{ font-weight:700; color:var(--ink); font-size:13.5px; letter-spacing:.2px; }
+  .job-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .job-co{ font-size:12px; color:var(--accent); font-weight:700; margin:1px 0 5px; }
+  ul.job-list{ margin:3px 0 0; padding-left:16px; }
+  ul.job-list li{ margin-bottom:3px; font-size:12.8px; }
+  ul.job-list li::marker{ color:var(--accent); }
+  .proj-name{ font-weight:700; color:var(--sub); }
+  .stack-line{ font-size:11.2px; color:var(--muted); margin-top:2px; display:inline-block; }
+  .stack-line b{ color:var(--sub); }
+
+  /* ===== EDUCATION ===== */
+  .edu{ margin-bottom:8px; }
+  .edu:last-child{ margin-bottom:0; }
+  .edu-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .edu-title{ font-weight:700; color:var(--ink); font-size:13.5px; }
+  .edu-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .edu-sub{ font-size:12px; color:var(--body); margin:2px 0 3px; font-style:italic; }
+  ul.edu-list{ margin:2px 0 0; padding-left:16px; }
+  ul.edu-list li::marker{ color:var(--accent); }
+
+  /* ===== SKILLS (3-col like the mock) ===== */
+  .skills-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:3px 20px;
+  }
+  .skills-grid .col ul{ margin:0; padding-left:16px; }
+  .skills-grid .col li{ margin-bottom:3px; font-size:12.5px; }
+  .skills-grid .col li::marker{ color:var(--accent); }
+  .skills-grid .col h4{
+    margin:0 0 5px; font-size:11px; color:var(--ink); font-weight:700;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+
+  @media (max-width:600px){
+    .sheet{ padding:28px 22px 36px; }
+    .head{ flex-direction:column; text-align:center; }
+    .head-contact{ text-align:center; }
+    .skills-grid{ grid-template-columns:1fr 1fr; }
+  }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheet{ box-shadow:none; max-width:100%; padding:14mm 16mm; }
+    .job, .edu{ break-inside:avoid; }
+    h2.band{ break-after:avoid; }
+  }
+  @page{ size:A4; margin:10mm; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- HEADER -->
+  <div class="head">
+    <div class="avatar">LD</div>
+    <div class="head-text">
+      <h1>LÊ DUY</h1>
+      <div class="role">Tech Lead · Backend Architecture &amp; Engineering Leadership</div>
+      <div class="head-contact">
+        leduy221200@gmail.com <span class="sep">|</span>
+        038.479.3266 <span class="sep">|</span>
+        Ho Chi Minh City, Vietnam <span class="sep">|</span>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener"><b>LinkedIn</b></a> <span class="sep">|</span>
+        <a href="https://leeduys-docs.gitbook.io/tong-hop-kien-thuc-lap-trinh" target="_blank" rel="noopener"><b>Portfolio / GitBook</b></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <h2 class="band">Summary</h2>
+  <div class="section-body">
+    <p class="summary">
+      Tech Lead with <b>6+ years</b> in software development, including <b>4+ years</b> owning backend
+      architecture for high-load, distributed systems. Currently direct technical decisions for a
+      <b>6-engineer team</b>, having designed systems that process <b>~1,000 transactions/second</b>,
+      cut latency by <b>~40%</b>, and reduced validation time from 1s to <b>under 500ms</b> under high
+      concurrency. Led the design and rollout of an in-house <b>AI-Driven Development (AIDD)</b> toolkit
+      that lifted developer output by up to <b>~70%</b> and automated <b>~50%</b> of test cases across the
+      team. Strong technical foundation in C#, ASP.NET Core, ABP Framework, Microservices, and Clean
+      Architecture, paired with hands-on mentoring, code review standards, and cross-functional delivery.
+    </p>
+  </div>
+
+  <!-- KEY SKILLS — moved up: recruiters & ATS scan keywords early -->
+  <h2 class="band">Key Skills</h2>
+  <div class="section-body">
+    <div class="skills-grid">
+      <div class="col">
+        <h4>Architecture</h4>
+        <ul>
+          <li>Microservices, DDD</li>
+          <li>Clean Architecture</li>
+          <li>Event-Driven Design, System Design</li>
+        </ul>
+        <h4 style="margin-top:10px;">Leadership &amp; Practices</h4>
+        <ul>
+          <li>Team Leadership, Mentoring</li>
+          <li>Code Review Standards</li>
+          <li>AIDD Tooling (BaKit, DevKit, QcKit)</li>
+          <li>Agile/Scrum, Delivery Planning</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Backend</h4>
+        <ul>
+          <li>C#, ASP.NET Core, ABP Framework</li>
+          <li>EF Core, REST, gRPC</li>
+          <li>FastAPI, Flask, Node.js, Spring</li>
+        </ul>
+        <h4 style="margin-top:10px;">Data &amp; Messaging</h4>
+        <ul>
+          <li>PostgreSQL, SQL Server, MongoDB</li>
+          <li>Redis, Kafka, SignalR, Socket.IO</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Languages</h4>
+        <ul>
+          <li>C#, SQL, TypeScript</li>
+          <li>Python, Java</li>
+        </ul>
+        <h4 style="margin-top:10px;">Frontend</h4>
+        <ul>
+          <li>Angular, Next.js, React</li>
+        </ul>
+        <h4 style="margin-top:10px;">Tooling</h4>
+        <ul>
+          <li>Docker, Git</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK EXPERIENCE -->
+  <h2 class="band">Work Experience</h2>
+  <div class="section-body">
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Tech Lead <span style="font-weight:400; font-style:italic; color:var(--muted); font-size:11.5px;">(Engineering Manager)</span></span>
+        <span class="job-date">Mar 2026 – Present</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li>Promoted from Senior Developer within 8 months to lead a <b>6-person cross-functional engineering team</b>, owning technical direction, architecture decisions, and code-quality standards across all HRM workstreams.</li>
+        <li>Run technical planning and design reviews, translating product priorities into an actionable engineering roadmap; improved delivery predictability across the team.</li>
+        <li>Directed the design and rollout of an in-house <span class="proj-name">AIDD (AI-Driven Development) plugin suite</span> to standardize and automate the team's workflow:</li>
+        <li><b>BaKit</b> — automates business analysis, producing documentation <b>~30% faster</b> and more accurately.</li>
+        <li><b>DevKit</b> — accelerates coding with correct syntax and business logic, boosting developer output by <b>~70%</b>.</li>
+        <li><b>QcKit</b> — automates <b>~50% of test cases</b> and generates more reliable QC reports.</li>
+        <li>Mentors 4 developers through code review and pairing; drives reliability standards across high-load production systems.</li>
+      </ul>
+      <div class="stack-line"><b>Focus:</b> Technical Leadership, System Design, AIDD Tooling, Clean Architecture, Microservice, Kafka, Agile</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Developer</span>
+        <span class="job-date">Jul 2025 – Mar 2026</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Human Resource Management System</span> — a multi-module HR platform built for a <b>20-person</b> cross-functional team.</li>
+        <li>Led a mini team of <b>4 engineers</b> to design and build the Objectives &amp; Evaluation modules, synchronizing HR data from third-party systems reliably.</li>
+        <li>Contributed a centralized notification system with configurable email templates, distributed across <b>multiple channels</b> and business domains without cross-channel bottlenecks.</li>
+        <li>Built a No-code / Low-code configuration mechanism that cut partner deployment time and increased configuration flexibility for non-technical staff.</li>
+      </ul>
+      <div class="stack-line"><b>Tech:</b> C#, Angular, Clean Architecture, Microservice, Redis, Kafka, PostgreSQL, SignalR</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Developer</span>
+        <span class="job-date">Jan 2023 – Jun 2025</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Order Management System</span> — handled <b>~1,000 orders/second</b> from partner platforms with real-time intake; cut average latency <b>~40%</b> by redesigning the message-queuing pipeline; built webhook forwarding with auto-retry for resilient partner delivery. Team of 4; role: Backend Developer, Database Designer, Analyst. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Promotion Management System</span> — designed atomic quota validation to prevent over-application under high concurrency across a <b>10-person</b> team, reducing validation time from <b>1s to under 500ms (~2x faster)</b>. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, gRPC</span></li>
+        <li><span class="proj-name">Loyalty Management System</span> — delivered near-instant (sub-second) point accrual for end-users across channels; enabled reward redemption via product or QR-code scan. Team of 10. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Product Distribution System</span> — owned the stack end-to-end (backend, Angular frontend, dev-ops) for a <b>10-person</b> team; routed traffic through a YARP API gateway across microservices. <span class="stack-line"><b>Tech:</b> C#, ABP, Angular, TypeScript, PostgreSQL, Redis, Kafka, Firebase, MongoDB, YARP Gateway</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Junior Developer</span>
+        <span class="job-date">Jan 2021 – Dec 2022</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging (Upgrade)</span> — upgraded the codebase, improved system performance and efficiency. Team of 4. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, TypeScript</span></li>
+        <li><span class="proj-name">Product Management &amp; Collection System</span> — scraped and collected product information from domestic and international e-commerce platforms. Team of 5. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, Selenium, Socket.IO</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Intern</span>
+        <span class="job-date">Jul 2020 – Dec 2020</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging Management System</span> — aggregated messages from various social media platforms. <span class="stack-line"><b>Tech:</b> Python, Flask, Angular, TypeScript, MySQL</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- PERSONAL PROJECTS -->
+  <h2 class="band">Personal Projects</h2>
+  <div class="section-body">
+    <div class="job">
+      <ul class="job-list">
+        <li><span class="proj-name">SIM Management System</span> — centralized SIM management and control system integrating GSM hardware with a web dashboard. <span class="stack-line"><b>Tech:</b> Python, FastAPI, Flask, MongoDB, Linux, Next.js, TypeScript, Prisma, GSM, Redis</span></li>
+        <li><span class="proj-name">Household Electrical Appliances Website</span> — manages products, orders, and household electrical appliances. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+        <li><span class="proj-name">Steel Materials Website</span> — manages products, orders, and steel materials. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <h2 class="band">Education</h2>
+  <div class="section-body">
+    <div class="edu">
+      <div class="edu-row">
+        <span class="edu-title">FPT Polytechnic College, Da Nang</span>
+        <span class="edu-date">Aug 2018 – Dec 2020</span>
+      </div>
+      <div class="edu-sub">Software Applications</div>
+      <ul class="edu-list">
+        <li>GPA: 8.9 / 10</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LANGUAGE -->
+  <h2 class="band">Language</h2>
+  <div class="section-body">
+    <p class="summary">English: Intermediate (TOEIC in progress) &nbsp;·&nbsp; Vietnamese: Native</p>
+  </div>
+
+</div>
+</body>
+</html>
+`;
+  const glow=document.getElementById('glow');
+  addEventListener('pointermove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px'});
+
+  const nav=document.getElementById('nav');
+  addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40));
+
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -60px 0px'});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*70)+'ms';io.observe(el)});
+
+  // THEME
+  const body=document.body, themeBtn=document.getElementById('themeBtn'), themeIcon=document.getElementById('themeIcon');
+  const sun='<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>';
+  const moon='<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+  themeBtn.onclick=()=>{
+    const light=body.getAttribute('data-theme')==='light';
+    body.setAttribute('data-theme',light?'dark':'light');
+    themeIcon.innerHTML=light?sun:moon;
+  };
+
+  // I18N
+  const T={
+    en:{}, // english = defaults in HTML
+    vi:{
+      nav_about:"giới thiệu",nav_work:"kinh nghiệm",nav_projects:"dự án",nav_skills:"kỹ năng",nav_contact:"liên hệ",
+      hero_eyebrow:"Backend · Full-stack Engineer · Engineering Manager",
+      role_em:"Engineering Manager",role_senior_prev:"Senior Developer",
+      job_em:'Được thăng lên <b>Engineering Manager</b>, dẫn dắt một team kỹ thuật đa chức năng — phụ trách định hướng kỹ thuật, tiến độ bàn giao và chuẩn chất lượng code, chủ trì họp planning và review, kết nối ưu tiên giữa product và team dev, đồng thời kèm cặp anh em và giữ cho hệ thống chạy ổn định ở tải cao.',
+      hero_title:"Xây hệ thống<br>dễ <em>mở rộng.</em>",
+      hero_role:'Tôi xây <b>kiến trúc backend dễ mở rộng</b> và làm <b>full-stack</b> khi cần — microservices, xử lý theo sự kiện và thiết kế theo domain, từ cơ sở dữ liệu đến giao diện.',
+      hero_tag:"Sẵn sàng nhận việc",
+      tag_backend:"Đang ứng tuyển: Senior Backend Engineer",
+      tag_lead:"Đang ứng tuyển: Tech Lead / Engineering Manager",
+      stat_years:"Năm kinh nghiệm",stat_backend:"Năm backend",stat_systems:"Hệ thống đã làm",stat_core:"Đang dẫn dắt team",
+      sec_profile:"Giới thiệu",
+      about_body:'<b>6 năm</b> làm web, trong đó <b>4+ năm</b> chuyên về backend — nắm vững cấu trúc dữ liệu, thuật toán, kiến trúc phần mềm và thiết kế cơ sở dữ liệu. Tôi xây những hệ thống dễ bảo trì theo <span class="hl">OOP &amp; Domain-Driven Design</span>, làm được <span class="hl">full-stack</span> từ PostgreSQL đến Angular &amp; Next.js. Hiện tôi đang dẫn dắt team ở vai trò <span class="hl">Engineering Manager</span>, tự xây <span class="hl">bộ công cụ phát triển ứng dụng AI</span> để tự động hóa quy trình làm việc.',
+      sec_experience:"Kinh nghiệm",present:"Hiện tại",badge_current:"Hiện tại",
+      role_senior:"Senior Developer",role_junior:"Junior Developer",role_intern:"Thực tập sinh",
+      junior:"Junior Developer",internship:"Thực tập",
+      job_vnkr:'<b>Hệ thống Quản lý Nhân sự</b> — nền tảng HR gồm nhiều module.',
+      job_vnkr_i1:'<b>Dẫn dắt team nhỏ</b> thiết kế và phát triển module Mục tiêu &amp; Đánh giá.',
+      job_vnkr_i2:'Đồng bộ dữ liệu nhân sự từ <b>các hệ thống bên thứ ba</b> một cách ổn định.',
+      job_vnkr_i3:'Góp phần xây <b>hệ thống thông báo tập trung</b> — cho phép cấu hình mẫu email linh hoạt, phân tán qua nhiều kênh và nghiệp vụ mà không gây nghẽn giữa các kênh.',
+      job_vnkr_i4:'Xây cơ chế cấu hình <b>No-code / Low-code</b> giúp việc triển khai cho đối tác nhanh và linh hoạt hơn.',
+      job_em_i1:'Tự xây <b>bộ plugin AIDD (AI-Driven Development)</b> để tự động hóa quy trình phát triển sản phẩm và làm việc nhóm.',
+      job_em_i2:'<b>BaKit</b> — tự động hóa phân tích nghiệp vụ, làm tài liệu <b>nhanh và chính xác hơn ~30%</b>.',
+      job_em_i3:'<b>DevKit</b> — tăng tốc code với cú pháp chuẩn và đúng nghiệp vụ, tăng hiệu suất <b>~70%</b>.',
+      job_em_i4:'<b>QcKit</b> — tự động hóa <b>~50% test case</b> và tạo báo cáo QC đáng tin cậy hơn.',
+      m_bakit:"BaKit · tốc độ tài liệu",m_devkit:"DevKit · hiệu suất code",m_qckit:"QcKit · test tự động",
+      p_order:"Hệ thống Quản lý Đơn hàng",p_order_d:"Xử lý và quản lý trạng thái đơn tập trung, đồng bộ lượng đơn lớn từ các sàn đối tác.",
+      m_orders:"Đơn xử lý",m_latency:"Độ trễ giảm",m_intake:"Nhận đơn",m_valid:"Thời gian kiểm tra",m_from:"Từ 1 giây",
+      p_order_i1:'Xử lý <b>~1.000 đơn/giây</b> từ các sàn đối tác, nhận đơn theo thời gian thực.',
+      p_order_i2:'Giảm <b>~40%</b> độ trễ trung bình nhờ thiết kế lại luồng xử lý hàng đợi.',
+      p_order_i3:'Xây cơ chế <b>gửi webhook có tự động thử lại</b>, đảm bảo giao dữ liệu tin cậy cho đối tác.',
+      p_promo_i1:'Thiết kế <b>kiểm tra hạn mức an toàn</b>, tránh áp dụng vượt mức khi nhiều đơn cùng lúc.',
+      p_promo_i2:'Rút thời gian kiểm tra từ <b>1 giây xuống dưới 500ms</b>.',
+      p_loyal_i1:'Cộng điểm thưởng <b>gần như tức thì</b> cho người dùng trên nhiều kênh.',
+      p_loyal_i2:'Cho phép đổi thưởng bằng cách <b>quét sản phẩm hoặc mã QR</b>.',
+      p_dist_i1:'Đảm nhận <b>toàn bộ hệ thống</b> — backend, giao diện Angular và vận hành.',
+      p_dist_i2:'Điều hướng lưu lượng qua <b>YARP API gateway</b> giữa các microservice.',
+      p_promo:"Hệ thống Quản lý Khuyến mãi",p_promo_d:"Quản lý các chương trình khuyến mãi, đồng thời kiểm tra số khuyến mãi áp dụng cho mỗi đơn.",
+      p_loyal:"Hệ thống Tích điểm",p_loyal_d:"Tích điểm thưởng cho đơn đồng bộ từ đối tác hoặc do người dùng tự đặt.",
+      p_dist:"Hệ thống Phân phối Sản phẩm",p_dist_d:"Quản lý và phân phối sản phẩm về các chi nhánh; đảm nhận toàn bộ hệ thống lẫn vận hành.",
+      p_msgup:"Nâng cấp Hệ thống Nhắn tin",p_msgup_d:"Nâng cấp mã nguồn, cải thiện hiệu năng và tối ưu hệ thống.",
+      p_collect:"Quản lý & Thu thập Sản phẩm",p_collect_d:"Thu thập dữ liệu sản phẩm từ các sàn thương mại điện tử trong và ngoài nước.",
+      p_msg:"Hệ thống Nhắn tin Tập trung",p_msg_d:"Tổng hợp tin nhắn từ nhiều nền tảng mạng xã hội.",
+      sec_personal:"Dự án cá nhân",
+      pp_sim:"Hệ thống Quản lý SIM",pp_sim_d:"Hệ thống quản lý và điều khiển SIM tập trung.",
+      pp_home:"Website Đồ điện Gia dụng",pp_home_d:"Quản lý sản phẩm, đơn hàng và các mặt hàng điện gia dụng.",
+      pp_steel:"Website Vật liệu Thép",pp_steel_d:"Quản lý sản phẩm, đơn hàng và các mặt hàng vật liệu thép.",
+      sec_toolbox:"Công nghệ",
+      sk_lang:"Ngôn ngữ",sk_api:"Backend / API",sk_web:"Frontend",sk_data:"Dữ liệu",sk_msg:"Nhắn tin / Thời gian thực",sk_infra:"Hạ tầng & Quy trình",sk_lead:"Lãnh đạo & AIDD",
+      sec_talk:"Liên hệ",cta_text:"Cùng nhau xây<br>hệ thống vững chắc.",
+      cv_tab_backend:"Senior Backend Engineer",cv_tab_lead:"Tech Lead / EM",
+      view_portfolio:"Portfolio",view_resume:"CV",print_cv:"⤓  In / Lưu PDF",
+      r_summary:"Tóm tắt năng lực",
+      r_summary_body:'Backend / Full-stack Engineer với <b>6+ năm</b> xây dựng ứng dụng web doanh nghiệp và hệ thống phân tán, <b>4+ năm</b> chuyên sâu backend. Thành thạo <b>ASP.NET Core, ABP Framework, PostgreSQL, Kafka, Redis và gRPC</b>, áp dụng OOP, DDD và Clean Architecture, làm được full-stack với Angular &amp; Next.js. Gần đây được thăng lên <b>Engineering Manager</b>, phụ trách tiến độ bàn giao và chuẩn phát triển, đồng thời tự xây bộ công cụ <b>AI-Driven Development (AIDD)</b> để tự động hóa quy trình làm việc của team.',
+      r_skills:"Kỹ năng chuyên môn",
+      rk_lang:"Ngôn ngữ:",rk_back:"Backend:",rk_arch:"Kiến trúc:",rk_front:"Frontend:",rk_infra:"Nhắn tin & Dữ liệu:",rk_tools:"DevOps & Quy trình:",
+      r_exp:"Kinh nghiệm làm việc",
+      rj_em1:"Dẫn dắt một team kỹ thuật đa chức năng, phụ trách định hướng kỹ thuật, tiến độ bàn giao và chuẩn chất lượng code cho các mảng của hệ thống HRM.",
+      rj_em2:'Tự xây <b>bộ plugin AIDD (AI-Driven Development)</b> để tự động hóa quy trình phát triển sản phẩm và làm việc nhóm — <b>BaKit</b> (phân tích nghiệp vụ, làm tài liệu nhanh hơn <b>~30%</b>), <b>DevKit</b> (sinh code đúng cú pháp &amp; nghiệp vụ, tăng <b>~70%</b> hiệu suất), và <b>QcKit</b> (tự động <b>~50%</b> test case, báo cáo QC đáng tin cậy hơn).',
+      rj_em3:"Thiết lập chuẩn planning, pull-request và review; kèm cặp anh em và giúp việc bàn giao đều đặn, dễ dự đoán hơn.",
+      rj_vn1:'Dẫn dắt team nhỏ thiết kế và phát triển module Mục tiêu &amp; Đánh giá của một <b>Hệ thống Quản lý Nhân sự</b> nhiều module.',
+      rj_vn2:'Đồng bộ dữ liệu nhân sự từ các hệ thống bên thứ ba và góp phần xây <b>hệ thống thông báo tập trung</b> với mẫu email cấu hình được, phân tán qua nhiều kênh và nghiệp vụ mà không gây nghẽn giữa các kênh.',
+      rj_vn3:'Xây cơ chế cấu hình <b>No-code / Low-code</b> giúp triển khai cho đối tác nhanh và linh hoạt hơn.',
+      rj_vn4:'<b>Công nghệ:</b> C#, Angular, Clean Architecture, Microservices, Redis, Kafka, PostgreSQL, SignalR.',
+      rj_tmt1:'Thiết kế <b>Hệ thống Quản lý Đơn hàng</b> tập trung xử lý <b>~1.000 đơn/giây</b> theo thời gian thực; giảm <b>~40%</b> độ trễ trung bình nhờ thiết kế lại luồng xử lý hàng đợi và bổ sung gửi webhook có tự động thử lại.',
+      rj_tmt2:'Xây <b>Hệ thống Quản lý Khuyến mãi</b> với kiểm tra hạn mức an toàn khi nhiều đơn cùng lúc, rút thời gian kiểm tra từ <b>1 giây xuống dưới 500ms</b>.',
+      rj_tmt3:'Phát triển <b>Hệ thống Tích điểm</b> (cộng điểm gần như tức thì, đổi thưởng bằng quét sản phẩm/mã QR) và đảm nhận <b>Hệ thống Phân phối Sản phẩm</b> toàn bộ (backend, Angular, vận hành) qua YARP API gateway.',
+      rj_tmt4:'<b>Công nghệ:</b> C#, ABP Framework, Microservices, PostgreSQL, Redis, Kafka, Webhook, gRPC, MongoDB.',
+      rj_jr1:"Nâng cấp mã nguồn hệ thống Nhắn tin Tập trung, cải thiện hiệu năng và tối ưu (Python, FastAPI, MongoDB, Angular).",
+      rj_jr2:"Xây dịch vụ thu thập dữ liệu sản phẩm từ các sàn thương mại điện tử trong và ngoài nước (FastAPI, Selenium, Socket.IO).",
+      r_projects:"Dự án tiêu biểu",
+      rp_aidd_meta:"— Bộ plugin tự động hóa cho quy trình BA → Dev → QC",
+      rp_aidd:"Các plugin nội bộ tích hợp AI xuyên suốt phân tích, phát triển và kiểm thử — tự động soạn đặc tả, dựng khung code và sinh test case để chuẩn hóa đầu ra của team.",
+      rp_sim_meta:"— Python, FastAPI, MongoDB, Next.js, GSM, Redis",
+      rp_sim:"Hệ thống quản lý và điều khiển SIM tập trung, tích hợp phần cứng GSM với dashboard web.",
+      r_edu:"Học vấn",
+      r_edu_body:"Ứng dụng Phần mềm &nbsp;·&nbsp; 2018 – 2020 &nbsp;·&nbsp; GPA 8.9 / 10",
+      r_lang:"Ngôn ngữ",
+      r_lang_body:"Tiếng Anh: Trung cấp (đang thi TOEIC)<br>Tiếng Việt: Bản ngữ",
+      loc:"Hạnh Thông Tây, Thành phố Hồ Chí Minh"
+    }
+  };
+  // capture english defaults
+  document.querySelectorAll('[data-i18n]').forEach(el=>T.en[el.dataset.i18n]=el.textContent);
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>T.en[el.dataset.i18nHtml]=el.innerHTML);
+
+  let lang='en';
+  const langBtn=document.getElementById('langBtn'), langCur=document.getElementById('langCur');
+  function apply(l){
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const v=T[l][el.dataset.i18n];if(v!=null)el.textContent=v});
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{const v=T[l][el.dataset.i18nHtml];if(v!=null)el.innerHTML=v});
+    document.documentElement.lang=l;
+    langCur.textContent=l.toUpperCase();
+    langBtn.innerHTML='<b>'+l.toUpperCase()+'</b>&nbsp;/&nbsp;'+(l==='en'?'VI':'EN');
+  }
+  langBtn.onclick=()=>{lang=lang==='en'?'vi':'en';apply(lang)};
+
+  // VIEW SWITCH (Portfolio / Résumé)
+  const vPort=document.getElementById('view-portfolio'), vRes=document.getElementById('view-resume');
+  const pLinks=document.getElementById('portfolioLinks'), vsBtns=document.querySelectorAll('.vs-btn');
+  function setView(v){
+    const resume=v==='resume';
+    vRes.hidden=!resume; vPort.hidden=resume;
+    pLinks.style.display=resume?'none':'';
+    vsBtns.forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+    scrollTo({top:0,behavior:'instant'in window?'instant':'auto'});
+  }
+  vsBtns.forEach(b=>b.onclick=()=>{
+    setView(b.dataset.view);
+    if(b.dataset.view==='resume') requestAnimationFrame(()=>fitFrame(activeFrame()));
+  });
+
+  // CV SWITCH (Senior Backend / Tech Lead) — embedded original HTML files via iframe
+  const frameBackend=document.getElementById('frame-backend'), frameLead=document.getElementById('frame-lead');
+  function fitFrame(f){
+    try{
+      const doc=f.contentWindow.document;
+      f.style.height=doc.documentElement.scrollHeight+'px';
+    }catch(e){}
+  }
+  function activeFrame(){ return frameLead.hidden ? frameBackend : frameLead; }
+  frameBackend.addEventListener('load',()=>fitFrame(frameBackend));
+  frameLead.addEventListener('load',()=>fitFrame(frameLead));
+  frameBackend.srcdoc=CV_BACKEND_HTML;
+  frameLead.srcdoc=CV_LEAD_HTML;
+
+  const cvBtns=document.querySelectorAll('.cv-btn');
+  cvBtns.forEach(b=>b.onclick=()=>{
+    const isLead=b.dataset.cv==='lead';
+    frameLead.hidden=!isLead; frameBackend.hidden=isLead;
+    cvBtns.forEach(x=>x.classList.toggle('active',x===b));
+    requestAnimationFrame(()=>fitFrame(isLead?frameLead:frameBackend));
+  });
+  let resizeT;
+  addEventListener('resize',()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>fitFrame(activeFrame()),150)});
+</script>
+</body>
+</html>
