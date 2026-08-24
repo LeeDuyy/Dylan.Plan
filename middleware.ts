@@ -40,8 +40,13 @@ export default async function middleware(req: NextRequest) {
 
     // getToken reads/verifies the session JWT cookie directly -- unlike the
     // auth() wrapper, it never touches req.url/origin, so it's safe to use
-    // here regardless of the AUTH_URL quirk above.
-    const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+    // here regardless of the AUTH_URL quirk above. secureCookie must be
+    // forced to true: nginx terminates TLS and proxies to this app over
+    // plain HTTP, so req's own protocol looks insecure, and getToken would
+    // otherwise default to looking for "authjs.session-token" instead of
+    // the "__Secure-authjs.session-token" cookie actually being set for
+    // this (genuinely HTTPS-only) site, never finding a real session.
+    const token = await getToken({ req, secret: process.env.AUTH_SECRET, secureCookie: true });
     const email = typeof token?.email === "string" ? token.email : undefined;
 
     if (!email || !ALLOWED_EMAILS.has(email)) {
