@@ -33,13 +33,13 @@ export default auth((req) => {
   }
 
   if (hostname === PLAN_HOST) {
-    if (pathname.startsWith("/api/auth")) {
+    if (pathname.startsWith("/api/auth") || pathname === "/signin") {
       return NextResponse.next();
     }
 
     const email = req.auth?.user?.email;
     if (!email || !ALLOWED_EMAILS.has(email)) {
-      const signInUrl = new URL("/api/auth/signin", origin);
+      const signInUrl = new URL("/signin", origin);
       signInUrl.searchParams.set("callbackUrl", `${origin}${pathname}`);
       return NextResponse.redirect(signInUrl);
     }
