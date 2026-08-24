@@ -9,6 +9,15 @@ const ALLOWED_EMAILS = new Set(["leduy221200@gmail.com", "tranquynhnhu2601@gmail
 export default auth((req) => {
   const { hostname, pathname } = req.nextUrl;
 
+  if (pathname === "/__debug-host") {
+    return NextResponse.json({
+      nextUrlHostname: hostname,
+      rawHostHeader: req.headers.get("host"),
+      xForwardedHost: req.headers.get("x-forwarded-host"),
+      url: req.url
+    });
+  }
+
   if (ROOT_HOSTS.has(hostname)) {
     if (pathname === "/") {
       return NextResponse.rewrite(new URL("/Dylan_Porfolio.html", req.url));
