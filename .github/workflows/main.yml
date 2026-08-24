@@ -163,7 +163,11 @@ jobs:
           cd /mnt/SourceCode/DylanPlan
 
           # portfolio must be served at the root domain
-          curl -k -fsS --compressed --retry 10 --retry-delay 3 -H 'Host: dylan.com.vn' https://127.0.0.1/ -o /tmp/dylan-plan-local.html
+          # (--resolve, not -H 'Host:', so HTTP/2 :authority matches the intended
+          # hostname too -- curl over h2 derives :authority from the request URL and
+          # nginx honors that over a spoofed Host header, which silently breaks
+          # host-based routing tests that only override the Host header)
+          curl -k -fsS --compressed --retry 10 --retry-delay 3 --resolve dylan.com.vn:443:127.0.0.1 https://dylan.com.vn/ -o /tmp/dylan-plan-local.html
           if ! grep -q 'Full-stack Engineer' /tmp/dylan-plan-local.html; then
             echo "Local Docker HTTPS endpoint did not return the portfolio marker."
             head -80 /tmp/dylan-plan-local.html
@@ -174,7 +178,7 @@ jobs:
 
           # dashboard routes must NOT be reachable on the root domain
           for route in budget roadmap; do
-            code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 -H 'Host: dylan.com.vn' "https://127.0.0.1/${route}")
+            code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --resolve dylan.com.vn:443:127.0.0.1 "https://dylan.com.vn/${route}")
             if [ "$code" != "404" ]; then
               echo "Local Docker HTTPS endpoint for /${route} on dylan.com.vn expected 404, got ${code}."
               docker compose ps
@@ -184,7 +188,7 @@ jobs:
           done
 
           # dashboard subdomain must require auth (never 200 without a session)
-          code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 -H 'Host: plan.dylan.com.vn' https://127.0.0.1/)
+          code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --resolve plan.dylan.com.vn:443:127.0.0.1 https://plan.dylan.com.vn/)
           if [ "$code" = "200" ]; then
             echo "plan.dylan.com.vn returned 200 without authentication — auth gate is not active."
             docker compose ps
