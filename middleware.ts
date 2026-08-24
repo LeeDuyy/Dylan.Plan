@@ -20,7 +20,14 @@ export default auth((req) => {
 
   if (ROOT_HOSTS.has(hostname)) {
     if (pathname === "/") {
-      return NextResponse.rewrite(new URL("/Dylan_Porfolio.html", origin));
+      // Internal rewrite: must stay on the server's own internal nextUrl
+      // origin (clone + change pathname), not the public origin above --
+      // rewriting to an absolute URL on a *different* origin makes Next.js
+      // treat it as a proxy fetch to that external host instead of serving
+      // the local public/ file, which 404s.
+      const rewriteUrl = req.nextUrl.clone();
+      rewriteUrl.pathname = "/Dylan_Porfolio.html";
+      return NextResponse.rewrite(rewriteUrl);
     }
     return new NextResponse("Not Found", { status: 404 });
   }
