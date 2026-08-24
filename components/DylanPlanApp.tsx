@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 
 import { JobTrackerBoard } from "@/components/JobTrackerBoard";
 import { TargetGrid } from "@/components/shared/TargetGrid";
+import { UserMenu } from "@/components/shared/UserMenu";
 import { DEFAULT_INCOME } from "@/lib/budget-defaults";
 import type { JobTrackerSnapshot } from "@/server/job-tracker/actions";
 
@@ -218,6 +219,7 @@ export function DylanPlanApp({
             <button className="icon-button" onClick={() => setDark((value) => !value)} title="Đổi giao diện" type="button">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            <UserMenu />
           </div>
         </div>
       </header>

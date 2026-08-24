@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { TargetGrid } from "@/components/shared/TargetGrid";
 import { Toast } from "@/components/shared/Toast";
+import { UserMenu } from "@/components/shared/UserMenu";
 import { CATEGORY_TYPES, DEFAULT_INCOME, defaultCategories, quickRules } from "@/lib/budget-defaults";
 import {
   addPurchaseItem as addPurchaseItemAction,
@@ -584,6 +585,7 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
             <button className="icon-button" onClick={() => setDark((value) => !value)} title="Đổi giao diện" type="button">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            <UserMenu />
           </div>
         </div>
       </header>
