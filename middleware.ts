@@ -7,20 +7,20 @@ const PLAN_HOST = "plan.dylan.com.vn";
 const ALLOWED_EMAILS = new Set(["leduy221200@gmail.com", "tranquynhnhu2601@gmail.com"]);
 
 export default auth((req) => {
-  const { hostname, pathname } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-  if (pathname === "/__debug-host") {
-    return NextResponse.json({
-      nextUrlHostname: hostname,
-      rawHostHeader: req.headers.get("host"),
-      xForwardedHost: req.headers.get("x-forwarded-host"),
-      url: req.url
-    });
-  }
+  // Behind the nginx reverse proxy, req.nextUrl.hostname reflects the
+  // standalone server's own bind address (HOSTNAME=0.0.0.0), not the
+  // externally requested host -- nginx forwards the real host via
+  // Host/X-Forwarded-Host instead, so branch on that.
+  const forwardedHost = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
+  const hostname = forwardedHost.split(":")[0];
+  const protocol = req.headers.get("x-forwarded-proto") ?? "https";
+  const origin = `${protocol}://${forwardedHost}`;
 
   if (ROOT_HOSTS.has(hostname)) {
     if (pathname === "/") {
-      return NextResponse.rewrite(new URL("/Dylan_Porfolio.html", req.url));
+      return NextResponse.rewrite(new URL("/Dylan_Porfolio.html", origin));
     }
     return new NextResponse("Not Found", { status: 404 });
   }
@@ -32,8 +32,8 @@ export default auth((req) => {
 
     const email = req.auth?.user?.email;
     if (!email || !ALLOWED_EMAILS.has(email)) {
-      const signInUrl = new URL("/api/auth/signin", req.url);
-      signInUrl.searchParams.set("callbackUrl", req.url);
+      const signInUrl = new URL("/api/auth/signin", origin);
+      signInUrl.searchParams.set("callbackUrl", `${origin}${pathname}`);
       return NextResponse.redirect(signInUrl);
     }
 
