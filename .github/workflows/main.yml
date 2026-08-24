@@ -163,7 +163,7 @@ jobs:
           cd /mnt/SourceCode/DylanPlan
 
           # portfolio must be served at the root domain
-          curl -k -fsS --retry 10 --retry-delay 3 -H 'Host: dylan.com.vn' https://127.0.0.1/ -o /tmp/dylan-plan-local.html
+          curl -k -fsS --compressed --retry 10 --retry-delay 3 -H 'Host: dylan.com.vn' https://127.0.0.1/ -o /tmp/dylan-plan-local.html
           if ! grep -q 'Full-stack Engineer' /tmp/dylan-plan-local.html; then
             echo "Local Docker HTTPS endpoint did not return the portfolio marker."
             head -80 /tmp/dylan-plan-local.html
@@ -193,7 +193,7 @@ jobs:
           fi
           EOF
 
-          curl -k -fsS --retry 10 --retry-delay 3 https://dylan.com.vn/ -o /tmp/dylan-plan-public.html
+          curl -k -fsS --compressed --retry 10 --retry-delay 3 https://dylan.com.vn/ -o /tmp/dylan-plan-public.html
           if ! grep -q 'Full-stack Engineer' /tmp/dylan-plan-public.html; then
             echo "Public HTTPS endpoint did not return the portfolio marker."
             head -80 /tmp/dylan-plan-public.html
