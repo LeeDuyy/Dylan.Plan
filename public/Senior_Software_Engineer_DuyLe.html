@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lê Duy — Senior Backend Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#102a43;
+    --sub:#243b53;
+    --body:#334e68;
+    --muted:#627d98;
+    --band-bg:#eef7f7;
+    --page:#e9f0f5;
+    --paper:#ffffff;
+    --accent:#0f766e;
+    --accent-2:#14b8a6;
+    --navy:#0b253f;
+    --rule:#d9e5ec;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--page); }
+  body{
+    font-family:"Inter","Calibri",Arial,sans-serif;
+    color:var(--body);
+    font-size:12.8px;
+    line-height:1.58;
+    display:flex;
+    justify-content:center;
+    padding:42px 16px;
+  }
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-width:820px;
+    padding:0 50px 42px;
+    box-shadow:0 24px 70px -25px rgba(16,42,67,.35);
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+  }
+  .sheet::before{
+    content:""; position:absolute; inset:0 0 auto; height:6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  }
+
+  /* ===== HEADER ===== */
+  .head{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    margin:0 -50px;
+    padding:34px 50px 28px;
+    color:#fff;
+    background:
+      radial-gradient(circle at 88% 15%,rgba(20,184,166,.24),transparent 30%),
+      linear-gradient(135deg,#0b253f 0%,#123b58 100%);
+  }
+  .avatar{
+    width:76px; height:76px; border-radius:18px;
+    flex:none;
+    background:linear-gradient(135deg,var(--accent-2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:"Manrope",Arial,sans-serif; font-weight:800; font-size:25px;
+    letter-spacing:1px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 10px 24px rgba(0,0,0,.18);
+  }
+  .head-text h1{
+    margin:0;
+    font-family:"Manrope",Arial,sans-serif;
+    font-size:29px;
+    letter-spacing:1.5px;
+    color:#fff;
+    font-weight:800;
+  }
+  .head-text .role{
+    margin:4px 0 7px;
+    font-size:13px;
+    font-weight:600;
+    font-style:normal;
+    color:#99f6e4;
+    font-family:"Inter",sans-serif;
+  }
+  .head-contact{
+    font-size:11.3px;
+    color:#d7e4ed;
+    letter-spacing:.2px;
+  }
+  .head-contact a{ color:#fff; text-decoration:none; }
+  .head-contact a:hover{ color:#99f6e4; }
+  .head-contact .sep{ color:#6f8ba1; margin:0 6px; }
+
+  /* ===== SECTION LABEL — no borders, soft wash + letterspacing does the work ===== */
+  h2.band{
+    background:transparent;
+    margin:20px 0 10px;
+    padding:0 0 7px 14px;
+    border-bottom:1px solid var(--rule);
+    border-radius:0;
+    font-family:"Manrope",sans-serif;
+    font-size:10.5px;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    color:var(--navy);
+    font-weight:800;
+    position:relative;
+  }
+  h2.band::before{
+    content:""; position:absolute; left:0; top:1px; bottom:8px; width:4px;
+    border-radius:4px; background:var(--accent-2);
+  }
+
+  .section-body{ padding:0 2px; }
+
+  p.summary{ margin:0 0 4px; color:var(--body); font-size:12.5px; }
+
+  /* ===== EXPERIENCE ===== */
+  .job{ margin-bottom:14px; padding-left:12px; border-left:2px solid #e5eef3; }
+  .job:last-child{ margin-bottom:0; }
+  .job-row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  }
+  .job-title{ font-family:"Manrope",sans-serif; font-weight:800; color:var(--ink); font-size:13px; letter-spacing:.1px; }
+  .job-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .job-co{ font-size:11.5px; color:var(--accent); font-weight:700; margin:1px 0 5px; }
+  ul.job-list{ margin:3px 0 0; padding-left:16px; }
+  ul.job-list li{ margin-bottom:3px; font-size:12.2px; }
+  ul.job-list li::marker{ color:var(--accent); }
+  .proj-name{ font-weight:700; color:var(--sub); }
+  .stack-line{ font-size:10.8px; color:var(--muted); margin-top:2px; display:inline-block; }
+  .stack-line b{ color:var(--sub); }
+
+  /* ===== EDUCATION ===== */
+  .edu{ margin-bottom:8px; }
+  .edu:last-child{ margin-bottom:0; }
+  .edu-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .edu-title{ font-weight:700; color:var(--ink); font-size:13.5px; }
+  .edu-date{ font-weight:600; color:var(--muted); font-size:11px; white-space:nowrap; font-style:italic; }
+  .edu-sub{ font-size:12px; color:var(--body); margin:2px 0 3px; font-style:italic; }
+  ul.edu-list{ margin:2px 0 0; padding-left:16px; }
+  ul.edu-list li::marker{ color:var(--accent); }
+
+  /* ===== SKILLS (3-col like the mock) ===== */
+  .skills-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px 14px;
+  }
+  .skills-grid .col{ background:#f7fafc; border:1px solid #e5eef3; border-radius:8px; padding:10px 12px; }
+  .skills-grid .col ul{ margin:0; padding-left:15px; }
+  .skills-grid .col li{ margin-bottom:2px; font-size:11.7px; }
+  .skills-grid .col li::marker{ color:var(--accent); }
+  .skills-grid .col h4{
+    margin:0 0 5px; font-family:"Manrope",sans-serif; font-size:9.7px; color:var(--accent); font-weight:800;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+
+  @media (max-width:600px){
+    .sheet{ padding:0 22px 36px; border-radius:0; }
+    .head{ margin:0 -22px; padding:28px 22px 24px; }
+    .head{ flex-direction:column; text-align:center; }
+    .head-contact{ text-align:center; }
+    .skills-grid{ grid-template-columns:1fr 1fr; }
+  }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheet{ box-shadow:none; max-width:100%; padding:0 12mm 10mm; border-radius:0; }
+    .head{ margin:0 -12mm; padding:9mm 12mm 7mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .skills-grid .col,h2.band::before{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .job, .edu{ break-inside:avoid; }
+    h2.band{ break-after:avoid; }
+  }
+  @page{ size:A4; margin:10mm; }
+</style>
+<style>
+  /* Minimal editorial layout — clarity first */
+  :root{
+    --ink:#111827;
+    --sub:#374151;
+    --body:#4b5563;
+    --muted:#6b7280;
+    --page:#f3f4f6;
+    --paper:#ffffff;
+    --accent:#2563eb;
+    --rule:#d1d5db;
+  }
+  html,body{ background:var(--page); }
+  body{
+    font-family:"Inter","Segoe UI",Arial,sans-serif;
+    color:var(--body);
+    font-size:12.5px;
+    line-height:1.55;
+    padding:32px 16px;
+  }
+  .sheet{
+    max-width:800px;
+    padding:42px 52px 44px;
+    border-radius:0;
+    box-shadow:0 8px 28px rgba(17,24,39,.10);
+    overflow:visible;
+  }
+  .sheet::before{ display:none; }
+
+  .head{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:16px 24px;
+    align-items:end;
+    margin:0;
+    padding:0 0 20px;
+    color:var(--ink);
+    background:none;
+    border-bottom:2px solid var(--ink);
+  }
+  .avatar{ display:none; }
+  .head-text{ display:contents; }
+  .head-text h1{
+    grid-column:1;
+    margin:0;
+    color:var(--ink);
+    font-family:"Manrope","Inter",sans-serif;
+    font-size:32px;
+    line-height:1;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .head-text .role{
+    grid-column:1;
+    margin:-6px 0 0;
+    color:var(--accent);
+    font-size:12.5px;
+    line-height:1.3;
+    font-weight:600;
+  }
+  .head-contact{
+    grid-column:2;
+    grid-row:1 / span 2;
+    max-width:290px;
+    text-align:right;
+    color:var(--muted);
+    font-size:10.5px;
+    line-height:1.75;
+  }
+  .head-contact a{ color:var(--ink); text-decoration:none; }
+  .head-contact a:hover{ color:var(--accent); }
+  .head-contact .sep{ color:#c4c9d1; margin:0 5px; }
+
+  h2.band{
+    margin:22px 0 10px;
+    padding:0 0 6px;
+    background:none;
+    border:0;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink);
+    font-family:"Manrope","Inter",sans-serif;
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:1.5px;
+  }
+  h2.band::before{ display:none; }
+  .section-body{ padding:0; }
+  p.summary{ margin:0; color:var(--body); font-size:12.2px; }
+
+  .skills-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+  }
+  .skills-grid .col{
+    padding:0;
+    background:none;
+    border:0;
+    border-radius:0;
+  }
+  .skills-grid .col h4{
+    margin:0 0 5px;
+    color:var(--ink);
+    font-family:"Inter",sans-serif;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.8px;
+  }
+  .skills-grid .col ul{ margin:0; padding-left:14px; }
+  .skills-grid .col li{ margin-bottom:2px; font-size:11.5px; }
+  .skills-grid .col li::marker,
+  ul.job-list li::marker,
+  ul.edu-list li::marker{ color:#9ca3af; }
+
+  .job{
+    margin:0 0 15px;
+    padding:0;
+    border:0;
+  }
+  .job:last-child{ margin-bottom:0; }
+  .job-row{ gap:16px; align-items:baseline; }
+  .job-title{
+    color:var(--ink);
+    font-family:"Inter",sans-serif;
+    font-size:12.8px;
+    font-weight:700;
+  }
+  .job-date{
+    color:var(--muted);
+    font-size:10.5px;
+    font-weight:500;
+    font-style:normal;
+  }
+  .job-co{
+    margin:1px 0 5px;
+    color:var(--accent);
+    font-size:11px;
+    font-weight:600;
+  }
+  ul.job-list{ margin:3px 0 0; padding-left:16px; }
+  ul.job-list li{ margin-bottom:3px; font-size:11.9px; }
+  .proj-name{ color:var(--sub); font-weight:700; }
+  .stack-line{ color:var(--muted); font-size:10.4px; }
+  .stack-line b{ color:var(--sub); }
+
+  .edu-title{ color:var(--ink); font-size:12.5px; }
+  .edu-date{ color:var(--muted); font-size:10.5px; font-style:normal; }
+  .edu-sub{ font-size:11.5px; }
+
+  @media(max-width:600px){
+    body{ padding:0; }
+    .sheet{ padding:28px 22px 34px; box-shadow:none; }
+    .head{ display:block; }
+    .head-text{ display:block; }
+    .head-text .role{ margin:7px 0 9px; }
+    .head-contact{ max-width:none; text-align:left; }
+    .skills-grid{ grid-template-columns:1fr 1fr; gap:16px; }
+  }
+  @media print{
+    html,body{ background:#fff; }
+    body{ padding:0; background:#fff; }
+    .sheet{ max-width:100%; padding:10mm 13mm; box-shadow:none; }
+    .head{ margin:0; padding:0 0 5mm; color:var(--ink); background:none; }
+    .job,.edu{ break-inside:avoid; }
+    h2.band{ break-after:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- HEADER -->
+  <div class="head">
+    <div class="avatar">LD</div>
+    <div class="head-text">
+      <h1>LÊ DUY</h1>
+      <div class="role">Senior Backend Engineer</div>
+      <div class="head-contact">
+        leduy221200@gmail.com <span class="sep">|</span>
+        038.479.3266 <span class="sep">|</span>
+        Ho Chi Minh City, Vietnam <span class="sep">|</span>
+        <a href="https://www.linkedin.com/in/duy-le-443464285" target="_blank" rel="noopener"><b>LinkedIn</b></a> <span class="sep">|</span>
+        <a href="https://dylan.com.vn/" target="_blank" rel="noopener"><b>Portfolio</b></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <h2 class="band">Summary</h2>
+  <div class="section-body">
+    <p class="summary">
+      Senior Backend Engineer with <b>6+ years</b> of web development experience, including <b>4+ years</b>
+      architecting backend systems for high-load, distributed platforms. Built systems that process
+      <b>~1,000 transactions/second</b> (peak <b>~3,000/second</b> under load), cut latency by <b>~57%</b>
+      through a redesigned message-queuing pipeline, and brought validation time under <b>400ms</b> —
+      down from 1,000ms — under heavy concurrent load (200–500 concurrent requests). Deep hands-on
+      expertise in <b>C#, ASP.NET Core, ABP Framework, PostgreSQL, Kafka, Redis, and gRPC</b>, applying
+      OOP, Domain-Driven Design, and Clean Architecture to build maintainable, domain-centric microservices.
+      Comfortable owning a system end-to-end — from database design to API gateway — and currently
+      extending that ownership into people leadership as an Engineering Manager leading a <b>9-person</b> team.
+    </p>
+  </div>
+
+  <!-- KEY SKILLS — moved up: recruiters & ATS scan keywords early -->
+  <h2 class="band">Key Skills</h2>
+  <div class="section-body">
+    <div class="skills-grid">
+      <div class="col">
+        <h4>Backend</h4>
+        <ul>
+          <li>C#, ASP.NET Core, ABP Framework</li>
+          <li>EF Core, REST, gRPC</li>
+          <li>FastAPI, Flask, Node.js, Spring</li>
+        </ul>
+        <h4 style="margin-top:10px;">Architecture</h4>
+        <ul>
+          <li>Microservices, DDD</li>
+          <li>Clean Architecture</li>
+          <li>Event-Driven Design</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Data &amp; Messaging</h4>
+        <ul>
+          <li>PostgreSQL, SQL Server, MongoDB</li>
+          <li>Redis, Kafka, SignalR, Socket.IO</li>
+        </ul>
+        <h4 style="margin-top:10px;">Languages</h4>
+        <ul>
+          <li>C#, SQL, TypeScript</li>
+          <li>Python, Java</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Frontend</h4>
+        <ul>
+          <li>Angular, Next.js, React</li>
+        </ul>
+        <h4 style="margin-top:10px;">Practices</h4>
+        <ul>
+          <li>Docker, Git, Agile/Scrum</li>
+          <li>Team Mentoring</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORK EXPERIENCE -->
+  <h2 class="band">Work Experience</h2>
+  <div class="section-body">
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Engineering Manager</span>
+        <span class="job-date">Mar 2026 – Present</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li>Promoted to Engineering Manager after 8 months as Senior Developer, staying hands-on in architecture decisions and code reviews across the HRM platform.</li>
+        <li>Directs technical decisions for a <b>9-person</b> cross-functional team (8 engineers mentored directly, plus 1 QC).</li>
+        <li>Improved on-time sprint delivery rate from <b>65% to 90%</b> within the first five months as Engineering Manager, through structured sprint planning and design-review discipline.</li>
+        <li>Designed and directed the rollout of an in-house <span class="proj-name">AIDD (AI-Driven Development) plugin suite</span>: <b>BaKit</b> for business-analysis automation (cut documentation drafting time from ~5 to ~2 days, <b>~60% faster</b>, across 70 documents drafted in June–July 2026); <b>DevKit</b> for AI-assisted coding (lifted developer output by <b>~63%</b>, from 8 to 13 story points/sprint per developer, across 8 developers over 4 sprints); and <b>QcKit</b> for automated test generation (automated <b>~87%</b> of test cases — 260/300 — within two months of rollout).</li>
+        <li>Set and enforce reliability and performance standards across the platform's high-load production systems.</li>
+      </ul>
+      <div class="stack-line"><b>Focus:</b> Architecture, Clean Architecture, Microservice, Kafka, System Design, Agile</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Backend Developer</span>
+        <span class="job-date">Jul 2025 – Mar 2026</span>
+      </div>
+      <div class="job-co">Viet Nang Knowledge Resources JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Human Resource Management System</span> — a multi-module HR platform serving a <b>20-person</b> cross-functional team.</li>
+        <li>Led a <b>4-engineer</b> team designing and building the Objectives &amp; Evaluation modules, with reliable data synchronization from third-party HR systems.</li>
+        <li>Built a centralized notification system with configurable email templates, delivering across <b>multiple channels</b> and business domains without cross-channel bottlenecks.</li>
+        <li>Designed a No-code / Low-code configuration mechanism that shortened partner deployment time and gave non-technical staff more flexibility to configure the platform themselves.</li>
+      </ul>
+      <div class="stack-line"><b>Tech:</b> C#, Angular, Clean Architecture, Microservice, Redis, Kafka, PostgreSQL, SignalR</div>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Senior Backend Developer</span>
+        <span class="job-date">Jan 2023 – Jun 2025</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Order Management System</span> — processed <b>~1,000 orders/second</b> on average (peak <b>~3,000/second</b> during promotion/flash-sale spikes) from partner platforms with real-time intake; redesigned the message-queuing pipeline (Kafka partitioning + Saga pattern + Redis distributed lock + Redis-based quota), cutting average latency from ~700ms to ~300ms (<b>~57%</b>), measured over the first month post-pilot; built webhook forwarding with automatic retries for resilient partner delivery. Team of 4, wearing three hats: Backend Developer, Database Designer, and Analyst. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Promotion Management System</span> — designed atomic quota validation to prevent over-application under high concurrency, cutting validation time from <b>1,000ms to under 400ms (~2.5x faster)</b> under 200–500 concurrent requests, for a 10-person team. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, gRPC</span></li>
+        <li><span class="proj-name">Loyalty Management System</span> — delivered sub-second point accrual across channels for end users, with reward redemption via product or QR-code scan. Team of 10. <span class="stack-line"><b>Tech:</b> C#, ABP, Microservice, PostgreSQL, Redis, Kafka, Webhook, gRPC</span></li>
+        <li><span class="proj-name">Product Distribution System</span> — owned the stack end-to-end (backend, Angular frontend, dev-ops) for a 10-person team, routing traffic through a YARP API gateway across microservices. <span class="stack-line"><b>Tech:</b> C#, ABP, Angular, TypeScript, PostgreSQL, Redis, Kafka, Firebase, MongoDB, YARP Gateway</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Junior Developer</span>
+        <span class="job-date">Jan 2021 – Dec 2022</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging (Upgrade)</span> — upgraded the legacy codebase, improving system performance and reliability. Team of 4. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, TypeScript</span></li>
+        <li><span class="proj-name">Product Management &amp; Collection System</span> — built a scraping pipeline collecting product data from domestic and international e-commerce platforms. Team of 5. <span class="stack-line"><b>Tech:</b> Python, FastAPI, MongoDB, Angular, Selenium, Socket.IO</span></li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-title">Intern</span>
+        <span class="job-date">Jul 2020 – Dec 2020</span>
+      </div>
+      <div class="job-co">Truong Minh Thinh JSC</div>
+      <ul class="job-list">
+        <li><span class="proj-name">Centralized Messaging Management System</span> — aggregated messages from multiple social media platforms into a single management system. <span class="stack-line"><b>Tech:</b> Python, Flask, Angular, TypeScript, MySQL</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- PERSONAL PROJECTS -->
+  <h2 class="band">Personal Projects</h2>
+  <div class="section-body">
+    <div class="job">
+      <ul class="job-list">
+        <li><span class="proj-name">SIM Management System</span> — centralized platform for managing and controlling SIM banks, integrating GSM hardware with a web dashboard. <span class="stack-line"><b>Tech:</b> Python, FastAPI, Flask, MongoDB, Linux, Next.js, TypeScript, Prisma, GSM, Redis</span></li>
+        <li><span class="proj-name">Household Electrical Appliances Website</span> — e-commerce site for household appliances, covering product catalog and order management. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+        <li><span class="proj-name">Steel Materials Website</span> — e-commerce site for steel materials, covering product catalog and order management. <span class="stack-line"><b>Tech:</b> Next.js, TypeScript, SQL Server, IIS, Prisma, SSR</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <h2 class="band">Education</h2>
+  <div class="section-body">
+    <div class="edu">
+      <div class="edu-row">
+        <span class="edu-title">FPT Polytechnic College, Da Nang</span>
+        <span class="edu-date">Aug 2018 – Dec 2020</span>
+      </div>
+      <div class="edu-sub">Software Applications</div>
+      <ul class="edu-list">
+        <li>GPA: 8.9 / 10</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LANGUAGE -->
+  <h2 class="band">Language</h2>
+  <div class="section-body">
+    <p class="summary">English: Intermediate &nbsp;·&nbsp; Vietnamese: Native</p>
+  </div>
+
+</div>
+</body>
+</html>
