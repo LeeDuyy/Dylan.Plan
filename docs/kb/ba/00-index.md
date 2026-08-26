@@ -1,6 +1,6 @@
 # BA index
 
-Updated: 2026-08-21 (US-008 spec Ready for DEV, gắn EPC-004/F4)
+Updated: 2026-08-26 (US-021 raw — tự điền thông tin job từ link, mở rộng US-018)
 
 | Mã | Tên | File |
 | --- | --- | --- |
@@ -26,3 +26,4 @@ Updated: 2026-08-21 (US-008 spec Ready for DEV, gắn EPC-004/F4)
 | US-018 | Bảng theo dõi CV ứng tuyển tại trang Roadmap | [`docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) (nested — spec `Ready for DEV`, 11 AC) |
 | US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | [`docs/kb/ba/wiki/knowledge/feature/US-019-danh-sach-can-mua.md`](wiki/knowledge/feature/US-019-danh-sach-can-mua.md) (nested — spec `Ready for DEV`, 10 AC, gắn `F3`/`M3` qua `DEC-105`) |
 | US-020 | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | [`docs/kb/ba/wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md`](wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md) (nested — spec `Ready for DEV`, 9 AC) |
+| US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` (raw — chưa có wiki; chạy `ssr-ingest` để biên soạn) |

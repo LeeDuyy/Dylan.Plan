@@ -1,6 +1,6 @@
 # decisions.md — Quyết định đã chốt của dự án
 
-Updated: 2026-08-14
+Updated: 2026-08-26
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Đảo quyết định = thêm bản ghi mới có `Thay thế: DEC-xxx`, đồng thời đổi bản cũ thành `Status: Superseded`.
@@ -1320,3 +1320,99 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 - Phương án đã loại: "Mở rộng: cả thẻ insight và biểu đồ Cơ cấu chi tiêu cũng phải xác nhận rõ nguồn dữ liệu" — không chọn, vì hai thành phần này vốn luôn chỉ xem đúng một tháng đang chọn (dù đọc từ DB hay không), không có rủi ro "chỉ còn trong bộ nhớ tạm" như biểu đồ Xu hướng (vốn cần dữ liệu nhiều tháng cùng lúc); mở rộng sẽ làm spec rườm rà không thêm giá trị thực chất.
 - Hệ quả: `spec.md` giữ nguyên phạm vi hiện tại (chỉ `EL-01` — biểu đồ Xu hướng). `BR-028` và trang wiki feature `US-007` cần đồng bộ lại đúng phạm vi này khi `ssr-ingest mode=sync` chạy sau khi spec đạt `Ready for DEV`.
 - Bằng chứng: `docs/features/US-007-phan-tich-xu-huong-lich-su/spec.md` mục 14 (A2, trước khi chốt)
+
+### DEC-111 — Bảng "Theo dõi CV ứng tuyển": tính năng "đọc link → tự điền" là phần mở rộng của US-018, giữ ngoài Business Flow
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-018 (mở rộng)
+- Bối cảnh: User yêu cầu trực tiếp "tại danh sách job, tôi muốn khi nhập link vào, hệ thống phải tự truy cập vào link và điền các thông tin còn lại vào danh sách". `ssr-po mode=review` (`docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md`) nêu vấn đề định vị: US-018 đã chốt là tiện ích tách biệt ngoài Business Flow (`DEC-088`), nhưng US-019 thì user lại muốn đưa vào làm mục tiêu chính (`M3`, `DEC-105`) — hai tiền lệ trái nhau.
+- Quyết định: Coi tính năng này là phần mở rộng của bảng "Theo dõi CV ứng tuyển" (US-018), giữ **ngoài** Business Flow "Hệ Thống Quản Lý Chi Tiêu" theo đúng tiền lệ `DEC-088`. Không cần chạy `ssr-po mode=business-flow` để dựng khu vực định hướng cho mảng Roadmap/tuyển dụng trước khi làm.
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-po mode=review` (2026-08-26).
+- Phương án đã loại: "Nâng 'Theo dõi tuyển dụng' thành khu vực chính thức trong Business Flow (thêm mục tiêu mới, luồng riêng)" — không chọn; "Chưa chốt phạm vi, chỉ ghi đánh giá + backlog ưu tiên thấp" — không chọn.
+- Hệ quả: `docs/kb/ba/business-flow.md` không cần cập nhật. Raw/spec của tính năng này đi theo function độc lập (giống US-018, US-020). `po-expert` khi đối chiếu spec sau này áp dụng cùng tiền lệ `DEC-088`, không trả `Blocked` vì thiếu liên kết Business Flow.
+- Bằng chứng: `docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md` mục 4 (#1); `docs/memory/decisions.md#dec-088`; `docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` mục 2
+
+### DEC-112 — Bảng "Theo dõi CV ứng tuyển": đọc link từ mọi nền tảng kể cả LinkedIn, chấp nhận tỷ lệ thất bại cao
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-018 (mở rộng)
+- Bối cảnh: 3 Platform mặc định là ITViec, LinkedIn, VietNamWork (`components/JobTrackerBoard.tsx:24-33`). Thực tế kỹ thuật: LinkedIn chặn truy cập tự động từ máy chủ và thường yêu cầu đăng nhập nên phần đọc nội dung gần như luôn thất bại; ITViec và VietnamWorks để trang tuyển dụng đọc công khai dễ hơn nhiều. `ssr-po` hỏi nên giới hạn nguồn link hay thử đọc tất cả.
+- Quyết định: Hệ thống **thử đọc mọi link**, không giới hạn theo nền tảng. Chấp nhận tỷ lệ thất bại cao với link LinkedIn (và một số nền tảng khác), và chấp nhận rủi ro việc truy cập tự động có thể vi phạm điều khoản dịch vụ của nền tảng. Khi đọc nội dung thất bại, vẫn suy Platform từ tên miền link và rơi về nhập tay các trường còn lại (`DEC-114`).
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-po mode=review` (2026-08-26).
+- Phương án đã loại: "Chỉ nền tảng cho đọc công khai (ITViec, VietnamWorks...), link LinkedIn báo không đọc được" — không chọn; "Chỉ hỗ trợ đúng 1 nền tảng Dylan dùng nhiều nhất" — không chọn.
+- Hệ quả: Spec không giới hạn danh sách nền tảng nguồn. `ssr-plan` thiết kế luồng gọi mạng ngoài phải có timeout ngắn và xử lý thất bại êm (không văng lỗi chặn thao tác). Rủi ro điều khoản dịch vụ đã được user chấp nhận tường minh — không cần chặn ở tầng sản phẩm.
+- Bằng chứng: `docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md` mục 7 (#1, #2); `components/JobTrackerBoard.tsx:24-33`
+
+### DEC-113 — Bảng "Theo dõi CV ứng tuyển": đọc link tự điền đúng 3 trường (Công ty, Platform, Ngày hết hạn), không thêm cột mới
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-018 (mở rộng)
+- Bối cảnh: Bảng job hiện có các cột Công ty, Ngày hết hạn, Platform, Link, Trạng thái, Ngày nộp hồ sơ, Ghi chú — không có cột chức danh/vị trí ứng tuyển. `ssr-po` hỏi khi đọc được link thì tự điền trường nào.
+- Quyết định: Tự điền **Công ty** + **Platform** (suy từ tên miền link) + **Ngày hết hạn** (chỉ khi trang tuyển dụng có ghi rõ dạng ngày). Trạng thái và Ghi chú luôn do Dylan tự nhập. **Không** thêm cột mới "Vị trí ứng tuyển".
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-po mode=review` (2026-08-26).
+- Phương án đã loại: "Chỉ Công ty + Platform (bỏ Ngày hết hạn vì dễ điền sai)" — không chọn; "Thêm cột mới 'Vị trí ứng tuyển' và tự điền chức danh" — không chọn.
+- Hệ quả: Không cần `ssr-data`/migration — các cột hiện có đủ dùng. `ssr-ba` cần chốt cách xử lý khi trang ghi hạn nộp kiểu "còn N ngày" hoặc không có ngày rõ ràng (điểm mờ mục 4 #8 của PO review). Ngày hết hạn đọc sai có thể kích hoạt luật `BR-025` (US-020) tự chuyển "Expired" sai — `ssr-plan` lưu ý.
+- Bằng chứng: `docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md` mục 4 (#3, #8), mục 7 (#5); `docs/features/US-020-lich-su-trang-thai-job/spec.md`
+
+### DEC-114 — Bảng "Theo dõi CV ứng tuyển": đọc link thất bại/thiếu dữ liệu vẫn cho lưu job, chỉ báo nhẹ
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-018 (mở rộng)
+- Bối cảnh: Hiện tại thiếu trường bắt buộc (Công ty/Ngày hết hạn/Platform) hoặc Link sai định dạng thì chặn lưu (`docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` mục 6, `DEC-086`). `ssr-po` hỏi khi đọc link không ra đủ dữ liệu thì hành vi nên là gì.
+- Quyết định: Khi đọc link thất bại hoặc chỉ lấy được một phần, **vẫn lưu job** với link và phần thông tin đọc được; hiện thông báo nhẹ "chưa lấy được [tên trường] — mời nhập tay"; **không chặn** thao tác. Tính năng đọc link là tiện ích hỗ trợ, không thay đổi bản thân luật bắt buộc nhập của US-018 (Dylan vẫn phải có đủ Công ty/Ngày hết hạn/Platform trước khi dòng job được coi là hoàn chỉnh, nhưng việc đọc link không được là rào chắn thêm).
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-po mode=review` (2026-08-26).
+- Phương án đã loại: "Chặn lưu tới khi Dylan điền đủ trường bắt buộc" — không chọn; "Hiện bản xem trước để Dylan xác nhận từng trường rồi mới lưu" — không chọn (thêm một bước thao tác).
+- Hệ quả: `ssr-ba` chốt: (a) đọc link xảy ra lúc nào — ngay khi rời ô Link hay sau khi lưu; (b) có ghi đè giá trị Dylan đã gõ tay không (nghiêng về chỉ điền ô trống). Cách hiển thị thông báo nhẹ dùng chung cơ chế toast/thông báo lỗi ngay dưới ô đã có ở US-018.
+- Bằng chứng: `docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md` mục 4 (#4, #5, #6), mục 9; `docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` mục 6
+
+### DEC-115 — US-021: Đọc link để tự điền xảy ra ngay khi Dylan rời ô Link
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-021
+- Bối cảnh: Raw US-021 để mở câu hỏi việc đọc link xảy ra vào lúc nào — ngay khi rời ô Link, sau khi bấm Lưu (làm giàu nền), hay chỉ khi bấm một nút riêng.
+- Quyết định: Hệ thống đọc link ngay khi Dylan dán/gõ xong và rời ô Link. Trong lúc đọc hiện chỉ báo "Đang lấy thông tin..."; điền xong thì các ô của dòng job cập nhật tại chỗ, Dylan xem và sửa lại được trước khi lưu.
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-raw` (2026-08-26).
+- Phương án đã loại: "Sau khi Dylan bấm Lưu job (điền thêm ở nền, làm mới bảng)" — không chọn vì các ô tự nhảy giá trị sau khi đã lưu dễ gây bất ngờ; "Chỉ khi bấm nút riêng 'Lấy thông tin từ link'" — không chọn (thêm một thao tác bấm mỗi lần).
+- Hệ quả: Spec US-021 có Screen Element cho chỉ báo trạng thái đọc link tại dòng đang nhập. `ssr-plan` thiết kế luồng gọi mạng ngoài chạy được đồng bộ với thao tác rời ô, có timeout để không treo ô nhập (`DEC-114`, và xem Q10 của raw). Với job đã lưu, cơ chế đọc lại vẫn để `ssr-ba` chốt (Q9 của raw).
+- Bằng chứng: `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` mục 4 (Q5); `docs/po/review-2026-08-26-tu-dien-thong-tin-job-tu-link.md` mục 6 (#1)
+
+### DEC-116 — US-021: Tự điền chỉ vào ô đang trống, không ghi đè giá trị Dylan đã nhập
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-021
+- Bối cảnh: Raw US-021 để mở câu hỏi xử lý thế nào khi đọc link ra giá trị khác với ô Dylan đã tự gõ.
+- Quyết định: Hệ thống chỉ điền vào các ô đang để trống. Ô Dylan đã nhập giá trị thì giữ nguyên, không đụng tới, kể cả khi đọc link ra giá trị khác.
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-raw` (2026-08-26).
+- Phương án đã loại: "Luôn ghi đè bằng giá trị từ link kể cả ô Dylan đã nhập" — không chọn vì đè mất phần Dylan cố ý gõ khác; "Ghi đè nhưng báo ô nào vừa đổi và giá trị cũ" — không chọn (thêm thông báo cần thiết kế, và vẫn có rủi ro đè nhầm).
+- Hệ quả: AC của US-021 mô tả rõ tự điền là thao tác "điền ô trống", không phải "đồng bộ". Nếu Dylan gõ sai một trường rồi mới dán link, hệ thống không tự sửa giúp — đây là đánh đổi đã chấp nhận. Áp dụng cho cả 3 trường tự điền (`DEC-113`).
+- Bằng chứng: `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` mục 4 (Q6)
+
+### DEC-117 — US-021: Chỉ tự điền Ngày hết hạn khi trang tuyển dụng có ngày ở dạng tuyệt đối, rõ ràng
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-021
+- Bối cảnh: Raw US-021 để mở câu hỏi xử lý Ngày hết hạn khi trang tuyển dụng ghi kiểu mập mờ ("còn 5 ngày", "tuyển gấp") hoặc không có mục hạn nộp. Rủi ro: Ngày hết hạn sai kích hoạt luật `BR-025` (US-020) tự chuyển job đang "Interested" sang "Expired".
+- Quyết định: Hệ thống chỉ tự điền Ngày hết hạn khi trang có ngày ở dạng tuyệt đối, rõ ràng (vd 30/09/2026). Mọi kiểu mập mờ — đếm ngược "còn N ngày", "tuyển gấp", không có mục hạn nộp — đều để trống Ngày hết hạn và báo nhẹ "chưa lấy được Ngày hết hạn — mời chọn tay".
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-raw` (2026-08-26).
+- Phương án đã loại: "Quy đổi cả kiểu tương đối ('còn 5 ngày' → hôm nay + 5 ngày) rồi điền" — không chọn vì dễ lệch 1–2 ngày và kích hoạt luật Expired sai; "Điền mọi trường hợp đoán được nhưng đánh dấu ô 'cần xác nhận', tạm hoãn luật Expired cho job đó" — không chọn (thêm một trạng thái ô cần thiết kế).
+- Hệ quả: AC của US-021 phân biệt rõ "trang có ngày tuyệt đối" (điền) và "mọi kiểu khác" (để trống + báo nhẹ theo `DEC-114`). `ssr-ba` cần định nghĩa "ngày ở dạng tuyệt đối, rõ ràng" cụ thể hơn khi viết spec.
+- Bằng chứng: `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` mục 4 (Q7); `docs/kb/ba/wiki/knowledge/business-rule/BR-025-het-han-tu-dong-chuyen-expired.md`
+
+### DEC-118 — US-021: Tên miền link không khớp Platform nào đang có → để trống Platform, báo nhẹ
+
+- Ngày: 2026-08-26
+- Status: Active
+- Feature liên quan: US-021
+- Bối cảnh: Raw US-021 để mở câu hỏi tự điền Platform thế nào khi tên miền của link không khớp option Platform nào đang có (vd trang careers riêng của công ty). Platform là danh sách động Dylan tự quản lý, chặn xóa option đang có job dùng (`BR-021`, `DEC-082`).
+- Quyết định: Khi tên miền không khớp Platform nào đang có, để trống ô Platform và báo nhẹ "chưa nhận ra Platform từ link — mời chọn hoặc thêm mới". Hệ thống không tự tạo option Platform mới, không gán vào một nhãn "Khác".
+- Người chốt: User, qua `AskUserQuestion` trong `ssr-raw` (2026-08-26).
+- Phương án đã loại: "Tự tạo Platform option mới lấy tên từ tên miền" — không chọn vì danh sách Platform dễ phình nhiều option ít dùng và `BR-021` chặn xóa khi đang có job dùng; "Gán vào một option cố định tên 'Khác'" — không chọn vì gộp nhiều nguồn khác nhau vào một nhãn, khó lọc/sắp xếp theo Platform.
+- Hệ quả: Việc suy Platform chỉ thành công khi tên miền khớp một option đang có (khớp thế nào — theo tên miền chính xác hay chứa từ khóa — để `ssr-ba`/`ssr-plan` chốt). Không khớp thì rơi về nhập tay như `DEC-114`. Danh sách Platform vẫn hoàn toàn do Dylan kiểm soát.
+- Bằng chứng: `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` mục 4 (Q8); `docs/kb/ba/wiki/data/entity/ENT-005-platform-tuyen-dung.md`; `docs/memory/decisions.md#dec-082`

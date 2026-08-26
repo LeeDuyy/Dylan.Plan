@@ -1,6 +1,6 @@
 # Requirements index
 
-Updated: 2026-08-22 (US-008 Delivered With Notes — 4/4 AC, gap gốc đã tự động giải quyết bởi US-001, không sửa source)
+Updated: 2026-08-26 (US-021 raw tạo qua `ssr-po mode=intake` → `ssr-raw` — tự điền thông tin job từ link, mở rộng US-018)
 
 | Mã | Tên | Raw | BA wiki | Spec | Plan | Task | Report |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -24,3 +24,4 @@ Updated: 2026-08-22 (US-008 Delivered With Notes — 4/4 AC, gap gốc đã tự
 | US-018 | Bảng theo dõi CV ứng tuyển tại trang Roadmap | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` | `docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md` (nested) | `docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` (`Ready for DEV`) | `docs/features/US-018-theo-doi-cv-ung-tuyen/plan.md` (`Ready for task-breakdown`) | `docs/features/US-018-theo-doi-cv-ung-tuyen/task.md` (`Implemented`) | `docs/features/US-018-theo-doi-cv-ung-tuyen/report.md` (Delivered With Notes) |
 | US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | `docs/kb/ba/raw/US-019-danh-sach-can-mua.md` | `docs/kb/ba/wiki/knowledge/feature/US-019-danh-sach-can-mua.md` (nested) | `docs/features/US-019-danh-sach-can-mua/spec.md` (`Ready for DEV`) | `docs/features/US-019-danh-sach-can-mua/plan.md` (`Ready for task-breakdown`) | `docs/features/US-019-danh-sach-can-mua/task.md` (`Implemented`, 9/9 task Done) | `docs/features/US-019-danh-sach-can-mua/report.md` (Delivered With Notes) |
 | US-020 | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | `docs/kb/ba/raw/US-020-lich-su-trang-thai-job.md` | `docs/kb/ba/wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md` (nested) | `docs/features/US-020-lich-su-trang-thai-job/spec.md` (`Ready for DEV`) | `docs/features/US-020-lich-su-trang-thai-job/plan.md` (`Ready for task-breakdown`) | `docs/features/US-020-lich-su-trang-thai-job/task.md` (`Implemented`, 13/13 Done) | `docs/features/US-020-lich-su-trang-thai-job/report.md` (Delivered With Notes) |
+| US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` | Missing | Missing | Missing | Missing | Missing |

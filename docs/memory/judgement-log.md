@@ -1,6 +1,6 @@
 # judgement-log.md — Nhận định và kết luận sau phân tích
 
-Updated: 2026-08-14 (JDG-029)
+Updated: 2026-08-26 (JDG-032)
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Nhận định bị bác bỏ thì đổi `Status: Refuted` và thêm bản ghi mới trỏ ngược lại.
@@ -340,6 +340,17 @@ Khác `decisions.md`: nhận định **có thể sai**. Một nhận định đ�
 - Lập luận: Cùng nguyên nhân với `JDG-030` — raw `US-008` được ghi trước `US-001`. Sau khi `US-001`/`US-002` triển khai, `exportData()` không có bước đọc `localStorage` nào; nó đọc thẳng state đã DB-backed từ đầu. Vì `MonthBudget = MonthBudgetSnapshot` (không phải type rút gọn riêng cho UI), export tự động bao gồm đủ `categories`/`transactions`/`purchaseItems` cho mọi tháng, không riêng tháng đang xem.
 - Hệ quả nếu đúng: `ssr-breaker`/`ssr-dev` của US-008 chỉ cần task verification, không cần task sửa code. Cùng với `JDG-030`, đây là mẫu hình thứ hai xác nhận: nhiều gap trong `docs/kb/ba/backlog.md` được ghi từ trước `US-001` có thể đã tự động được giải quyết — `ssr-plan` của các US còn lại thuộc diện này (đặc biệt US-011) nên khảo sát source kỹ trước khi giả định cần code mới.
 - Cái gì sẽ chứng minh nó sai: Nếu `ssr-dev`/`ssr-review` phát hiện `exportData()` thực tế bỏ sót field nào đó (vd `purchaseItems` của tháng khác tháng hiện tại không được đưa vào JSON dù có trong state), nhận định này cần thu hẹp lại.
+
+### JDG-032 — Giá trị thực của tính năng "đọc link job → tự điền" nằm ở ITViec/VietnamWorks và ở việc suy Platform từ tên miền, không ở việc đọc nội dung LinkedIn
+
+- Ngày: 2026-08-26
+- Status: Open — chưa kiểm chứng trên môi trường dự án
+- Độ tin cậy: Nghi ngờ — dựa trên kiến thức chung về chính sách chống truy cập tự động của LinkedIn, chưa chạy thử request thật từ server của dự án
+- Feature liên quan: US-018 (mở rộng — `DEC-111`..`DEC-114`)
+- Bối cảnh: User chọn "thử đọc mọi link kể cả LinkedIn" (`DEC-112`), chấp nhận tỷ lệ thất bại cao. 1 trong 3 Platform mặc định là LinkedIn.
+- Lập luận: LinkedIn trả trang chặn / yêu cầu đăng nhập cho request máy chủ không có phiên đăng nhập, nên bước đọc nội dung (tách Công ty, Ngày hết hạn) gần như luôn thất bại với link LinkedIn. Ngược lại, trang tuyển dụng ITViec và VietnamWorks để đọc công khai. Riêng việc suy Platform từ tên miền (`linkedin.com` → "LinkedIn") không phụ thuộc đọc nội dung nên luôn chạy được.
+- Hệ quả nếu đúng: `ssr-ba`/`ssr-plan` nên tách rõ hai phần giá trị: (1) suy Platform + chuẩn hóa link từ tên miền — Quick win, chạy với mọi link; (2) đọc nội dung điền Công ty/Ngày hết hạn — chỉ thực sự hoạt động với một phần nền tảng. AC của spec nên kiểm chứng phần (1) độc lập, và kiểm chứng phần (2) bằng nền tảng đọc được (không dùng link LinkedIn làm case chính của "đọc thành công").
+- Cái gì sẽ chứng minh nó sai: Nếu chạy thử request thật từ server dự án tới một URL job LinkedIn công khai mà vẫn tách được Công ty/Ngày hết hạn ổn định, thì phần đọc nội dung LinkedIn khả thi và nhận định này cần thu hẹp.
 
 ### JDG-001 — "Chi thực tế" của danh mục là số độc lập, không tự tính lại từ danh sách giao dịch
 
