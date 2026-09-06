@@ -11,11 +11,14 @@ import {
   deleteJobApplication,
   deleteJobPlatform,
   getJobTrackerSnapshot,
+  readJobLink,
   updateJobApplication
 } from "@/server/job-tracker/actions";
 import type {
   JobApplicationEntity,
   JobApplicationStatus,
+  JobLinkField,
+  JobLinkReadResult,
   JobPlatformEntity,
   JobTrackerSnapshot,
   UpsertJobApplicationInput
@@ -55,12 +58,22 @@ type JobForm = {
   note: string;
 };
 type ClientJob = Omit<JobApplicationEntity, "deadline" | "submittedAt" | "createdAt" | "updatedAt"> & {
-  deadline: Date | string;
+  deadline: Date | string | null;
   submittedAt: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
 type FieldErrors = Partial<Record<JobField, string>>;
+type LinkMessageMap = Record<string, string[]>;
+type ReadingLinkMap = Record<string, boolean>;
+
+const LINK_MESSAGE_TTL_MS = 5_000;
+const LINK_READING_TTL_MS = 10_000;
+const LINK_FIELD_MESSAGES: Record<JobLinkField, string> = {
+  company: "chưa lấy được Công ty — mời nhập tay",
+  platform: "chưa nhận ra Platform từ link — mời chọn hoặc thêm mới",
+  deadline: "chưa lấy được Ngày hết hạn — mời chọn tay"
+};
 
 const EMPTY_JOB_FORM: JobForm = {
   company: "",
@@ -75,12 +88,13 @@ function toDate(value: Date | string) {
   return value instanceof Date ? value : new Date(value);
 }
 
-function toDateInputValue(value: Date | string) {
+function toDateInputValue(value: Date | string | null) {
+  if (value === null) return "";
   const date = toDate(value);
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
-function formatDate(value: Date | string) {
+function formatDate(value: Date | string | null) {
   const input = toDateInputValue(value);
   if (!input) return "";
   const [year, month, day] = input.split("-");
@@ -127,7 +141,6 @@ function toUpsertInput(form: JobForm, id?: string): UpsertJobApplicationInput {
 function validateJobForm(form: JobForm): FieldErrors {
   const errors: FieldErrors = {};
   if (!form.company.trim()) errors.company = "Nhập tên công ty.";
-  if (!form.deadline.trim()) errors.deadline = "Chọn ngày hết hạn.";
   if (!form.platformId.trim()) errors.platformId = "Chọn Platform.";
   if (!form.link.trim()) {
     errors.link = "Nhập link tin tuyển dụng.";
@@ -139,6 +152,26 @@ function validateJobForm(form: JobForm): FieldErrors {
 
 function hasErrors(errors: FieldErrors) {
   return Object.keys(errors).length > 0;
+}
+
+function isLinkFieldEmpty(form: JobForm, field: JobLinkField) {
+  if (field === "company") return !form.company.trim();
+  if (field === "platform") return !form.platformId.trim();
+  return !form.deadline.trim();
+}
+
+function buildReadLinkPatch(result: JobLinkReadResult, form: JobForm): Partial<JobForm> {
+  const patch: Partial<JobForm> = {};
+  if (!form.company.trim() && result.company) patch.company = result.company;
+  if (!form.platformId.trim() && result.platformId) patch.platformId = result.platformId;
+  if (!form.deadline.trim() && result.deadline) patch.deadline = result.deadline;
+  return patch;
+}
+
+function buildReadLinkMessages(result: JobLinkReadResult, form: JobForm) {
+  return result.missing
+    .filter((field) => isLinkFieldEmpty(form, field))
+    .map((field) => LINK_FIELD_MESSAGES[field]);
 }
 
 export function JobTrackerBoard({
@@ -157,8 +190,37 @@ export function JobTrackerBoard({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [confirmDeleteJobId, setConfirmDeleteJobId] = useState<string | null>(null);
+  const [readingLinkByKey, setReadingLinkByKey] = useState<ReadingLinkMap>({});
+  const [linkMessages, setLinkMessages] = useState<LinkMessageMap>({});
+  const jobsRef = useRef<ClientJob[]>(initialJobs);
+  const draftRef = useRef(draft);
+  const lastReadLinkRef = useRef<Record<string, string>>(
+    Object.fromEntries(initialJobs.map((job) => [job.id, job.link]))
+  );
+  const readingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const messageTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const platformNameById = useMemo(() => new Map(platforms.map((platform) => [platform.id, platform.name])), [platforms]);
+
+  useEffect(() => {
+    jobsRef.current = jobs;
+    for (const job of jobs) {
+      if (lastReadLinkRef.current[job.id] === undefined) {
+        lastReadLinkRef.current[job.id] = job.link;
+      }
+    }
+  }, [jobs]);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(readingTimeoutRef.current).forEach(clearTimeout);
+      Object.values(messageTimeoutRef.current).forEach(clearTimeout);
+    };
+  }, []);
 
   const sortedJobs = useMemo(() => {
     if (!sort) return jobs;
@@ -207,8 +269,99 @@ export function JobTrackerBoard({
     });
   };
 
+  const getCurrentForm = (key: string): JobForm | null => {
+    if (key === "draft") return draftRef.current;
+    const job = jobsRef.current.find((item) => item.id === key);
+    return job ? toJobForm(job) : null;
+  };
+
+  const clearReadingLink = (key: string) => {
+    if (readingTimeoutRef.current[key]) {
+      clearTimeout(readingTimeoutRef.current[key]);
+      delete readingTimeoutRef.current[key];
+    }
+    setReadingLinkByKey((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const markReadingLink = (key: string) => {
+    clearReadingLink(key);
+    setReadingLinkByKey((current) => ({ ...current, [key]: true }));
+    readingTimeoutRef.current[key] = setTimeout(() => clearReadingLink(key), LINK_READING_TTL_MS);
+  };
+
+  const setRowLinkMessages = (key: string, messages: string[]) => {
+    if (messageTimeoutRef.current[key]) {
+      clearTimeout(messageTimeoutRef.current[key]);
+      delete messageTimeoutRef.current[key];
+    }
+    setLinkMessages((current) => {
+      const next = { ...current };
+      if (messages.length > 0) {
+        next[key] = messages;
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+
+    if (messages.length > 0) {
+      messageTimeoutRef.current[key] = setTimeout(() => {
+        setLinkMessages((current) => {
+          const next = { ...current };
+          delete next[key];
+          return next;
+        });
+        delete messageTimeoutRef.current[key];
+      }, LINK_MESSAGE_TTL_MS);
+    }
+  };
+
+  const resetLinkReadState = (key: string) => {
+    delete lastReadLinkRef.current[key];
+    clearReadingLink(key);
+    setRowLinkMessages(key, []);
+  };
+
+  const readLinkFor = async (key: string, rawLink: string) => {
+    const url = rawLink.trim();
+    if (!/^https?:\/\//i.test(url) || lastReadLinkRef.current[key] === url) return;
+
+    lastReadLinkRef.current[key] = url;
+    setRowLinkMessages(key, []);
+    markReadingLink(key);
+
+    try {
+      const result = await readJobLink(url);
+      const currentForm = getCurrentForm(key);
+      if (!currentForm || currentForm.link.trim() !== url || lastReadLinkRef.current[key] !== url) return;
+
+      const patch = buildReadLinkPatch(result, currentForm);
+      const nextForm = { ...currentForm, ...patch };
+      if (Object.keys(patch).length > 0) {
+        if (key === "draft") {
+          setDraft((current) => ({ ...current, ...patch }));
+        } else {
+          updateJobLocal(key, patch);
+          await commitJob(key, patch);
+        }
+      }
+      setRowLinkMessages(key, buildReadLinkMessages(result, nextForm));
+    } catch {
+      // Invalid server-side validation or read errors do not block the existing save flow.
+    } finally {
+      if (lastReadLinkRef.current[key] === url) {
+        clearReadingLink(key);
+      }
+    }
+  };
+
   const commitJob = async (id: string, overridePatch?: Partial<JobForm>) => {
-    const job = jobs.find((item) => item.id === id);
+    const job = jobsRef.current.find((item) => item.id === id);
     if (!job) return;
     const form = { ...toJobForm(job), ...overridePatch };
     const errors = validateJobForm(form);
@@ -240,6 +393,7 @@ export function JobTrackerBoard({
     try {
       await createJobApplication(toUpsertInput(draft));
       clearRowErrors("draft");
+      resetLinkReadState("draft");
       setDraft(EMPTY_JOB_FORM);
       setAdding(false);
       await refreshSnapshot();
@@ -316,15 +470,19 @@ export function JobTrackerBoard({
                     <DraftJobRow
                       draft={draft}
                       errors={fieldErrors.draft ?? {}}
+                      linkMessages={linkMessages.draft ?? []}
                       onCancel={() => {
                         setAdding(false);
                         setDraft(EMPTY_JOB_FORM);
                         clearRowErrors("draft");
+                        resetLinkReadState("draft");
                       }}
                       onChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
                       onRefreshSnapshot={refreshSnapshot}
+                      onReadLink={(link) => readLinkFor("draft", link)}
                       onSave={saveDraft}
                       platforms={platforms}
+                      readingLink={Boolean(readingLinkByKey.draft)}
                       saving={savingId === "draft"}
                       setToastMessage={setToastMessage}
                     />
@@ -335,14 +493,17 @@ export function JobTrackerBoard({
                       errors={fieldErrors[job.id] ?? {}}
                       job={job}
                       key={job.id}
+                      linkMessages={linkMessages[job.id] ?? []}
                       onCancelDelete={() => setConfirmDeleteJobId(null)}
                       onChange={(patch) => updateJobLocal(job.id, patch)}
                       onCommit={(patch) => commitJob(job.id, patch)}
                       onConfirmDelete={() => confirmDeleteJob(job.id)}
+                      onReadLink={(link) => readLinkFor(job.id, link)}
                       onRefreshSnapshot={refreshSnapshot}
                       onStartDelete={() => setConfirmDeleteJobId(job.id)}
                       platformName={platformNameById.get(job.platformId) ?? "Không rõ Platform"}
                       platforms={platforms}
+                      readingLink={Boolean(readingLinkByKey[job.id])}
                       saving={savingId === job.id}
                       setToastMessage={setToastMessage}
                     />
@@ -378,21 +539,27 @@ function SortableHeader({ label, mark, onClick }: { label: string; mark: string;
 function DraftJobRow({
   draft,
   errors,
+  linkMessages,
   onCancel,
   onChange,
   onRefreshSnapshot,
+  onReadLink,
   onSave,
   platforms,
+  readingLink,
   saving,
   setToastMessage
 }: {
   draft: JobForm;
   errors: FieldErrors;
+  linkMessages: string[];
   onCancel: () => void;
   onChange: (patch: Partial<JobForm>) => void;
   onRefreshSnapshot: () => Promise<JobTrackerSnapshot>;
+  onReadLink: (link: string) => void;
   onSave: () => void;
   platforms: JobPlatformEntity[];
+  readingLink: boolean;
   saving: boolean;
   setToastMessage: (message: string) => void;
 }) {
@@ -415,7 +582,14 @@ function DraftJobRow({
         />
       </td>
       <td>
-        <JobLinkInput error={errors.link} onChange={(link) => onChange({ link })} value={draft.link} />
+        <JobLinkInput
+          error={errors.link}
+          messages={linkMessages}
+          onBlur={onReadLink}
+          onChange={(link) => onChange({ link })}
+          reading={readingLink}
+          value={draft.link}
+        />
       </td>
       <td>
         <StatusSelect onChange={(status) => onChange({ status })} value={draft.status} />
@@ -442,28 +616,34 @@ function JobRow({
   confirmDelete,
   errors,
   job,
+  linkMessages,
   onCancelDelete,
   onChange,
   onCommit,
   onConfirmDelete,
+  onReadLink,
   onRefreshSnapshot,
   onStartDelete,
   platformName,
   platforms,
+  readingLink,
   saving,
   setToastMessage
 }: {
   confirmDelete: boolean;
   errors: FieldErrors;
   job: ClientJob;
+  linkMessages: string[];
   onCancelDelete: () => void;
   onChange: (patch: Partial<JobForm>) => void;
   onCommit: (patch?: Partial<JobForm>) => void;
   onConfirmDelete: () => void;
+  onReadLink: (link: string) => void;
   onRefreshSnapshot: () => Promise<JobTrackerSnapshot>;
   onStartDelete: () => void;
   platformName: string;
   platforms: JobPlatformEntity[];
+  readingLink: boolean;
   saving: boolean;
   setToastMessage: (message: string) => void;
 }) {
@@ -503,7 +683,17 @@ function JobRow({
       </td>
       <td>
         <div className="job-link-cell">
-          <JobLinkInput error={errors.link} onBlur={() => onCommit()} onChange={(link) => onChange({ link })} value={job.link} />
+          <JobLinkInput
+            error={errors.link}
+            messages={linkMessages}
+            onBlur={(link) => {
+              onCommit();
+              onReadLink(link);
+            }}
+            onChange={(link) => onChange({ link })}
+            reading={readingLink}
+            value={job.link}
+          />
           <a className="icon-button job-link-open" href={job.link} rel="noreferrer" target="_blank" title="Mở link">
             <ExternalLink size={15} />
           </a>
@@ -604,18 +794,28 @@ function JobDateInput({
 
 function JobLinkInput({
   error,
+  messages = [],
   onBlur,
   onChange,
+  reading = false,
   value
 }: {
   error?: string;
-  onBlur?: () => void;
+  messages?: string[];
+  onBlur?: (value: string) => void;
   onChange: (value: string) => void;
+  reading?: boolean;
   value: string;
 }) {
   return (
     <div className="job-field">
-      <input onBlur={onBlur} onChange={(event) => onChange(event.target.value)} value={value} />
+      <input onBlur={(event) => onBlur?.(event.target.value)} onChange={(event) => onChange(event.target.value)} value={value} />
+      {reading && <span className="job-link-read-status">Đang lấy thông tin...</span>}
+      {messages.map((message) => (
+        <span className="job-link-read-message" key={message}>
+          {message}
+        </span>
+      ))}
       {error && <span className="job-field-error">{error}</span>}
     </div>
   );

@@ -1,39 +1,25 @@
 "use client";
 
-import {
-  BriefcaseBusiness,
-  CalendarDays,
-  CheckCircle2,
-  Handshake,
-  Moon,
-  PanelsTopLeft,
-  ShieldCheck,
-  ShoppingBag,
-  Sun,
-  Target,
-  WalletCards
-} from "lucide-react";
+import { CalendarDays, WalletCards } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 import { JobTrackerBoard } from "@/components/JobTrackerBoard";
+import { AppShell } from "@/components/shared/AppShell";
 import { TargetGrid } from "@/components/shared/TargetGrid";
-import { UserMenu } from "@/components/shared/UserMenu";
-import { DEFAULT_INCOME } from "@/lib/budget-defaults";
-import type { JobTrackerSnapshot } from "@/server/job-tracker/actions";
+import type { JobApplicationStatus, JobTrackerSnapshot } from "@/server/job-tracker/actions";
 
-type Tab = "overview" | "roadmap" | "freelance" | "product";
-
-const STORAGE_KEY = "dylan-plan-next-dashboard-v2";
-const FIXED_COSTS = 22500000;
 const EMPTY_JOB_TRACKER: JobTrackerSnapshot = { jobs: [], platforms: [] };
 
-const navItems: [Tab, string, typeof PanelsTopLeft, string][] = [
-  ["overview", "Tổng quan", PanelsTopLeft, "/"],
-  ["roadmap", "Roadmap", BriefcaseBusiness, "/roadmap"],
-  ["freelance", "Freelance", Handshake, "/freelance"],
-  ["product", "Sản phẩm", ShoppingBag, "/product"]
+// Các mốc trong `roadmapPhases` chỉ ghi ngày/tháng; toàn bộ kế hoạch nằm trong năm
+// 2026 (bắt đầu 22/06/2026, chiến dịch ứng tuyển kết thúc 15/09/2026).
+const ROADMAP_YEAR = 2026;
+
+// Nhóm trạng thái ứng tuyển thành phễu ngắn gọn cho phần Tổng quan.
+const PIPELINE_GROUPS: [string, JobApplicationStatus[], string][] = [
+  ["Quan tâm", ["Interested"], "Chưa nộp, đang cân nhắc"],
+  ["Đang chờ phản hồi", ["Waiting", "No Response"], "Đã nộp, chưa có kết quả"],
+  ["Đang tiến triển", ["Response", "Appointment"], "Có phản hồi hoặc đã hẹn phỏng vấn"],
+  ["Đã đóng", ["Cancel", "Fail", "Expired"], "Bị hủy, trượt hoặc hết hạn"]
 ];
 
 const roadmapPhases = [
@@ -147,171 +133,162 @@ const weekRows = [
   ["Sau 21:30", "Dừng học", "Dừng học", "Dừng học", "Dừng học", "Nghỉ", "Dừng làm việc", "Nghỉ sớm"]
 ];
 
-function shortMoney(value: number) {
-  return `${Math.round(value / 100000) / 10}M`;
+type PhaseState = "active" | "upcoming" | "done";
+
+function parsePhaseRange(range: string) {
+  const [from, to] = range.split("-");
+  const [fromDay, fromMonth] = from.split("/").map(Number);
+  const [toDay, toMonth] = to.split("/").map(Number);
+  return {
+    start: new Date(ROADMAP_YEAR, fromMonth - 1, fromDay),
+    end: new Date(ROADMAP_YEAR, toMonth - 1, toDay, 23, 59, 59)
+  };
 }
 
-export function DylanPlanApp({
-  activeTab,
+// Xác định pha roadmap ứng với hôm nay: đang chạy, sắp tới, hoặc (đã qua mốc cuối)
+// giữ pha cuối cùng. Chạy trên client nên lấy ngày thực của người dùng; sai lệch chỉ
+// có thể xảy ra đúng thời điểm giao pha, chấp nhận được với pha dài cả tháng.
+function resolveActivePhase(today: Date): { phase: (typeof roadmapPhases)[number]; state: PhaseState } {
+  const ranges = roadmapPhases.map((phase) => ({ phase, ...parsePhaseRange(phase.date) }));
+  const active = ranges.find(({ start, end }) => today >= start && today <= end);
+  if (active) return { phase: active.phase, state: "active" };
+  const upcoming = ranges.find(({ start }) => today < start);
+  if (upcoming) return { phase: upcoming.phase, state: "upcoming" };
+  return { phase: ranges[ranges.length - 1].phase, state: "done" };
+}
+
+const PHASE_STATE_LABEL: Record<PhaseState, string> = {
+  active: "Giai đoạn hiện tại",
+  upcoming: "Giai đoạn kế tiếp",
+  done: "Giai đoạn cuối"
+};
+
+export function OverviewView({
   initialJobTracker = EMPTY_JOB_TRACKER
 }: {
-  activeTab: Tab;
   initialJobTracker?: JobTrackerSnapshot;
 }) {
-  const pathname = usePathname();
-  const [dark, setDark] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-
-  // Chỉ đọc/ghi `dark` từ localStorage — độc lập với hiệu ứng tương tự ở /budget
-  // (BudgetApp), dùng chung khoá `dylan-plan-next-dashboard-v2` nhưng không chia sẻ
-  // React state qua route.
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as { dark?: boolean };
-        setDark(Boolean(parsed.dark));
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle("dark", dark);
-    if (hydrated) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ dark }));
-    }
-  }, [dark, hydrated]);
-
-  const summaryCards = [
-    ["Mục tiêu offer", "40M net", "Tập trung 15/08-15/09/2026", Target],
-    ["Thu nhập hiện tại", shortMoney(DEFAULT_INCOME), "Base để tính ngân sách tháng", WalletCards],
-    ["Chi phí cố định", shortMoney(FIXED_COSTS), "Tiền nhà 7.5M + cố định khác 15M", ShieldCheck]
-  ] as const;
+  const jobs = initialJobTracker.jobs;
+  const activePhase = resolveActivePhase(new Date());
+  const pipelineCards: [string, string, string][] = [
+    ["Tổng hồ sơ", String(jobs.length), "Toàn bộ job đang theo dõi"],
+    ...PIPELINE_GROUPS.slice(0, 3).map(
+      ([label, statuses, desc]) =>
+        [label, String(jobs.filter((job) => statuses.includes(job.status)).length), desc] as [string, string, string]
+    )
+  ];
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="container nav">
-          <Link className="brand" href="/">
-            <span className="logo">D</span>
-            <span>Dylan Plan Dashboard</span>
-          </Link>
-          <div className="nav-actions">
-            <nav className="nav-tabs" aria-label="Chuyển khu vực">
-              {navItems.map(([tab, label, Icon, href]) => (
-                <Link
-                  className={`tab-button ${pathname === href ? "active" : ""}`}
-                  href={href}
-                  key={tab}
-                >
-                  <Icon size={16} />
-                  {label}
-                </Link>
-              ))}
-              <Link className={`tab-button ${pathname === "/budget" ? "active" : ""}`} href="/budget">
-                <WalletCards size={16} />
-                Thu chi
+    <AppShell>
+      <section className="hero">
+        <div className="container">
+          <div className="hero-main">
+            <span className="eyebrow">Career · Buy to Build · Finance</span>
+            <h1>
+              Kế hoạch <span className="gradient">sự nghiệp, sản phẩm và thu chi</span>
+            </h1>
+            <p className="lead">
+              App hợp nhất kế hoạch chuyển việc, chiến lược Buy to Build, MVP Mini Shop Builder và budget planner có
+              nhập nhanh chi tiêu.
+            </p>
+            <div className="hero-actions">
+              <Link className="btn primary" href="/roadmap">
+                <CalendarDays size={18} />
+                Xem roadmap
               </Link>
-            </nav>
-            <button className="icon-button" onClick={() => setDark((value) => !value)} title="Đổi giao diện" type="button">
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <UserMenu />
+              <Link className="btn" href="/budget">
+                <WalletCards size={18} />
+                Nhập thu chi
+              </Link>
+            </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <main id="top">
-        <section className="hero">
-          <div className="container hero-grid">
-            <article className="card hero-main">
-              <span className="eyebrow">Career · Buy to Build · Finance</span>
-              <h1>
-                Kế hoạch <span className="gradient">sự nghiệp, sản phẩm và thu chi</span>
-              </h1>
-              <p className="lead">
-                App hợp nhất hai mẫu mới: roadmap nhận offer 40M net, chiến lược Buy to Build, MVP Mini Shop Builder và
-                budget planner thu nhập 35M/tháng có nhập nhanh chi tiêu.
-              </p>
-              <div className="hero-actions">
-                <Link className="btn primary" href="/roadmap">
-                  <CalendarDays size={18} />
-                  Xem roadmap
-                </Link>
-                <Link className="btn" href="/budget">
-                  <WalletCards size={18} />
-                  Nhập thu chi
-                </Link>
-              </div>
-            </article>
-
-            <aside className="card hero-aside">
-              <span className="eyebrow">Hồ sơ</span>
-              <div className="goal-number">40M NET</div>
-              <p className="muted">Senior .NET Engineer / Tech Lead / Engineering Manager phù hợp năng lực.</p>
-              <div className="deadline">
-                <strong>15/08 - 15/09/2026</strong>
-                <span>Khoảng thời gian ứng tuyển và phỏng vấn tập trung</span>
-              </div>
-              <div className="profile-list">
-                {[
-                  "Hơn 6 năm kinh nghiệm phát triển phần mềm",
-                  "6 tháng đảm nhiệm vai trò Engineering Manager",
-                  "Kinh nghiệm .NET, Angular, microservices và hệ thống doanh nghiệp",
-                  "Làm việc với khách hàng lớn và nhiều bên liên quan"
-                ].map((item) => (
-                  <div className="profile-item" key={item}>
-                    <CheckCircle2 size={18} />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </aside>
-          </div>
-        </section>
-
-        {activeTab === "overview" && (
-          <section className="section" id="overview">
-            <div className="container">
-              <div className="section-head">
-                <div>
-                  <span className="eyebrow">Tổng quan</span>
-                  <h2>Nhìn nhanh mục tiêu và dòng tiền</h2>
-                </div>
-                <p>Chọn khu vực cần làm việc, hoặc dùng phần tổng quan để kiểm tra nhanh offer target và budget tháng.</p>
-              </div>
-              <div className="summary-grid">
-                {summaryCards.map(([label, value, desc, Icon]) => (
-                  <article className="card summary" key={label}>
-                    <Icon size={22} />
-                    <span className="eyebrow">{label}</span>
-                    <div className="value">{value}</div>
-                    <p>{desc}</p>
-                  </article>
-                ))}
-              </div>
+      <section className="section" id="overview">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Tổng quan</span>
+              <h2>Đang ở đâu trong lộ trình</h2>
             </div>
-          </section>
-        )}
+            <p>Giai đoạn roadmap hiện tại và trạng thái pipeline ứng tuyển. Chi tiết ngân sách nằm ở tab Thu chi.</p>
+          </div>
 
-        {activeTab === "overview" && (
-          <>
-            <PrioritySection />
-            <LongTermSections />
-          </>
-        )}
-        {activeTab === "roadmap" && <RoadmapSections initialJobTracker={initialJobTracker} />}
-        {activeTab === "freelance" && <FreelanceSections />}
-        {activeTab === "product" && <ProductSections />}
-      </main>
+          <article className="card panel overview-phase">
+            <span className="eyebrow">
+              {PHASE_STATE_LABEL[activePhase.state]} · {activePhase.phase.date}
+            </span>
+            <h3>{activePhase.phase.label}</h3>
+            <div className="deliverables">
+              {activePhase.phase.items.map(([title]) => (
+                <div className="deliverable" key={title}>
+                  <strong>{title}</strong>
+                </div>
+              ))}
+            </div>
+            <Link className="btn" href="/roadmap">
+              <CalendarDays size={18} />
+              Xem chi tiết roadmap
+            </Link>
+          </article>
 
-      <footer className="footer">
-        <div className="container">Bắt đầu 22/06/2026 · Offer 40M net · Buy to Build · Mini Shop Builder · Budget 35M/tháng</div>
-      </footer>
-    </div>
+          <div className="summary-grid overview-pipeline">
+            {pipelineCards.map(([label, value, desc]) => (
+              <article className="card summary" key={label}>
+                <span className="eyebrow">{label}</span>
+                <div className="value">{value}</div>
+                <p>{desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <PrioritySection />
+      <TargetGrid
+        eyebrow="KPI"
+        title="KPI hằng tuần"
+        desc="Các chỉ số trung gian giúp phát hiện sớm CV, tiếng Anh hoặc kỹ thuật đang có vấn đề."
+        items={weeklyKpis}
+      />
+    </AppShell>
+  );
+}
+
+export function RoadmapView({
+  initialJobTracker = EMPTY_JOB_TRACKER
+}: {
+  initialJobTracker?: JobTrackerSnapshot;
+}) {
+  return (
+    <AppShell>
+      <RoadmapSections initialJobTracker={initialJobTracker} />
+    </AppShell>
+  );
+}
+
+export function TimetableView() {
+  return (
+    <AppShell>
+      <TimetableSection />
+    </AppShell>
+  );
+}
+
+export function FreelanceView() {
+  return (
+    <AppShell>
+      <FreelanceSections />
+    </AppShell>
+  );
+}
+
+export function ProductView() {
+  return (
+    <AppShell>
+      <ProductSections />
+    </AppShell>
   );
 }
 
@@ -395,8 +372,8 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
         desc="Các chỉ số trung gian giúp phát hiện sớm CV, tiếng Anh hoặc kỹ thuật đang có vấn đề."
         items={weeklyKpis}
       />
-      <TimetableSection />
       <EnglishInterviewSections />
+      <LongTermSections />
     </>
   );
 }

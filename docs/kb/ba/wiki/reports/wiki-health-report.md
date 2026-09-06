@@ -1,6 +1,6 @@
 ---
 status: Active
-updated: 2026-08-21
+updated: 2026-08-28
 owner: ssr-ingest
 tags: [kb/ba/wiki/reports]
 ---
@@ -14,10 +14,10 @@ tags: [kb/ba/wiki/reports]
 
 | Loại trang | Số lượng |
 | --- | --- |
-| Feature (nested) | 17 (16 `Active` gồm `US-007`, `US-008`, `US-018`, `US-019`, `US-020`; `US-009` mới `Draft`, spec chưa viết; `US-013` gộp vào `US-006`, không tính riêng) |
-| Epic | 4 (US-018, US-020 không gắn epic nào — xem mục 2; US-019 chính thức gắn `EPC-003`, `DEC-105`; `EPC-004` (F4) có 2 function: `US-007`, `US-008` — cả hai `Active`; `EPC-002` (F2) nay có thêm `US-009` `Draft`) |
+| Feature (nested) | 18 (17 `Active` gồm `US-007`, `US-008`, `US-018`, `US-019`, `US-020`, `US-021`; chỉ `US-009` `Draft`, spec chưa viết; `US-013` gộp vào `US-006`, không tính riêng) |
+| Epic | 4 (US-018, US-020, US-021 không gắn epic nào — xem mục 2; US-019 chính thức gắn `EPC-003`, `DEC-105`; `EPC-004` (F4) có 2 function: `US-007`, `US-008` — cả hai `Active`; `EPC-002` (F2) nay có thêm `US-009` `Draft`) |
 | Concept | 0 |
-| Business rule | 30 (mới: `BR-030`) |
+| Business rule | 32 (mới: `BR-031` tự điền job từ link, `BR-032` suy Platform từ tên miền — cả hai của `US-021`) |
 | Workflow | 0 |
 | Entity | 6 (`ENT-004-job-ung-tuyen` mở rộng cho `US-020`: thêm mốc "Ngày nộp hồ sơ", trạng thái "Expired") |
 | PBI | 15 đã đồng bộ (US-002 5 AC, US-003 3 AC, US-004 11 AC, US-005 6 AC, US-006 7 AC — gồm 2 AC gộp từ US-013, US-007 4 AC, US-010 7 AC, US-012 5 AC, US-014 5 AC, US-015 6 AC, US-016 8 AC, US-017 8 AC, US-018 11 AC, US-019 10 AC, US-020 9 AC) |
@@ -26,8 +26,9 @@ tags: [kb/ba/wiki/reports]
 
 | Trang | Thiếu gì |
 | --- | --- |
-| `ENT-004-job-ung-tuyen`, `ENT-005-platform-tuyen-dung` | Chưa có model Prisma — entity mới/mở rộng, chờ `ssr-data` khi `ssr-plan` của `US-018`/`US-020` tới lượt |
 | `ENT-006-item-can-mua` | Chưa có model Prisma — entity mới, chờ `ssr-data` khi `ssr-plan` của `US-019` tới lượt |
+
+Ghi chú: `ENT-004-job-ung-tuyen` (model `JobApplication`) và `ENT-005-platform-tuyen-dung` (model `JobPlatform`) đã được `US-018`/`US-020` triển khai; `US-021` không đổi cấu trúc hai entity này (`DEC-113`).
 
 ## 3. Conflict Chưa Xử Lý
 
@@ -72,6 +73,8 @@ Không có.
 | 2026-08-21 | `US-008` | ingest | 4 (feature `Draft`, feature-summary, pbi rỗng, source-record, business rule mới `BR-029`) — không tạo epic mới, gắn vào `EPC-004` (F4) đã có sẵn từ `US-007`; migrate từ trang phẳng cũ, gọi bởi `ssr-ba` trong `ssr-pipeline US-008`; `openItemsCount=0` (raw không còn câu hỏi mở nào chặn spec) |
 | 2026-08-21 | `US-008` | sync | 5 (feature → Active, pbi → 4 AC, feature-summary, source-record, `EPC-004` mục 4 → Active) — spec đạt `Ready for DEV` ngay lượt đầu, không cần dialog (0 câu hỏi `Cần user xác nhận` — raw đã tự trả lời đủ); `po-expert` xác nhận `Aligned` ngay lượt đầu (đúng M1, F4, không mâu thuẫn DEC nào Active); `ba-expert` chỉ bổ sung AC-03 làm rõ item cần mua ở tháng khác cũng phải xuất đầy đủ, không phát sinh đề xuất cần user quyết; `spec-quality.mjs --strict` 0 lỗi |
 | 2026-08-22 | `US-009` | ingest | 4 (feature `Draft`, feature-summary, pbi rỗng, source-record, business rule mới `BR-030`) — không tạo epic mới, gắn vào `EPC-002` (F2) đã có sẵn; migrate từ trang phẳng cũ, gọi bởi `ssr-ba` trong `ssr-pipeline US-009`; `openItemsCount=1` (quy tắc kế thừa ngưỡng khi Clone tháng từ tháng nguồn không phải tháng gần nhất — cần `ssr-ba` gom vào dialog) |
+| 2026-08-27 | `US-021` | ingest | 7 (feature `Draft`, feature-summary, pbi rỗng, source-record, 2 business rule mới `BR-031`/`BR-032`, indexes) — không gắn epic (mở rộng `US-018`, giữ ngoài Business Flow theo tiền lệ `DEC-088`/`DEC-111`); requirement do user yêu cầu trực tiếp qua `/dylan-ssrkit:ssr-po` → `ssr-po mode=review` (PO review + `DEC-111`..`DEC-114`) → `ssr-po mode=intake` → `ssr-raw` (`DEC-115`..`DEC-118`) → `ssr-pipeline US-021`; `openItemsCount=2` (Q9 job đã lưu đọc lại thế nào, Q10 timeout gọi mạng ngoài — cần `ssr-ba` gom vào dialog) |
+| 2026-08-28 | `US-021` | sync | 7 (feature → `Active`, feature-summary → `Active`, pbi → 8 AC chép nguyên văn, source-record, `BR-031`/`BR-032` → `Active` + bổ sung `DEC-121`/`DEC-124`/`DEC-125`/`DEC-126`, `ENT-004`/`ENT-005`/`BR-025` thêm liên kết `US-021`, indexes) — spec đạt `Ready for DEV` (8 AC) sau: pipeline dừng 1 lần ở `ba` vì xung đột đợt `DEC-119` chưa commit (user chọn phương án c: chạy trên nền đó sau khi verify `tsc` xanh + migration đã áp); dialog Q9–Q12 (`DEC-120`..`DEC-123`), B1–B4 (`DEC-124`), A14/A15 (`DEC-125`, `DEC-126`); `spec-quality.mjs --strict` 0 lỗi; `ba-expert` sửa mâu thuẫn nội bộ mục 6 (đọc link thất bại vẫn suy Platform từ tên miền) + làm chặt 8 AC; `po-expert` xác nhận `Aligned` (áp dụng tiền lệ `DEC-088`/`DEC-111`); `openItemsCount=0` |
 
 ## 5. Nợ Kỹ Thuật (Ghi Chú Ngoài Template Chuẩn)
 

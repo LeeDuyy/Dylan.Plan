@@ -1,6 +1,6 @@
 # BA index
 
-Updated: 2026-08-26 (US-021 raw — tự điền thông tin job từ link, mở rộng US-018)
+Updated: 2026-08-28 (US-021 spec Ready for DEV, 8 AC — tự điền thông tin job từ link, mở rộng US-018; đã sync wiki)
 
 | Mã | Tên | File |
 | --- | --- | --- |
@@ -23,7 +23,7 @@ Updated: 2026-08-26 (US-021 raw — tự điền thông tin job từ link, mở 
 | US-015 | Giới hạn khu vực "Lịch sử thu chi" chỉ hiển thị 3 thẻ tháng quick view | `docs/kb/ba/wiki/knowledge/feature/US-015-quick-view-thang-lien-ke.md` (nested — spec `Ready for DEV`) |
 | US-016 | Chuẩn hóa "Loại" chi tiêu (danh mục) thành combobox cố định | [`docs/kb/ba/wiki/knowledge/feature/US-016-loai-chi-tieu-combobox.md`](wiki/knowledge/feature/US-016-loai-chi-tieu-combobox.md) (nested — spec `Ready for DEV`, 8 AC) |
 | US-017 | Sắp xếp vị trí danh mục bằng kéo thả (drag-and-drop row reordering) | [`docs/kb/ba/wiki/knowledge/feature/US-017-sap-xep-danh-muc-keo-tha.md`](wiki/knowledge/feature/US-017-sap-xep-danh-muc-keo-tha.md) (nested — spec `Ready for DEV`, 8 AC) |
-| US-018 | Bảng theo dõi CV ứng tuyển tại trang Roadmap | [`docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) (nested — spec `Ready for DEV`, 11 AC) |
+| US-018 | Bảng theo dõi CV ứng tuyển tại trang Roadmap | [`docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) (nested — spec `Ready for DEV`, 13 AC) |
 | US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | [`docs/kb/ba/wiki/knowledge/feature/US-019-danh-sach-can-mua.md`](wiki/knowledge/feature/US-019-danh-sach-can-mua.md) (nested — spec `Ready for DEV`, 10 AC, gắn `F3`/`M3` qua `DEC-105`) |
 | US-020 | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | [`docs/kb/ba/wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md`](wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md) (nested — spec `Ready for DEV`, 9 AC) |
-| US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | `docs/kb/ba/raw/US-021-tu-dien-thong-tin-job-link.md` (raw — chưa có wiki; chạy `ssr-ingest` để biên soạn) |
+| US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | [`docs/kb/ba/wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md`](wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) (nested — spec `Ready for DEV`, 8 AC; rule `BR-031`, `BR-032`) |

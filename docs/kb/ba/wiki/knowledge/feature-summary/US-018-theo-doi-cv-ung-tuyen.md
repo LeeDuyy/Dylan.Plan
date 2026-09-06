@@ -13,7 +13,7 @@ aliases: ["US-018"]
 
 ## 1. Tóm Tắt Một Đoạn
 
-Bảng "Theo dõi CV ứng tuyển" trên trang Roadmap, cho Dylan thêm/sửa inline/xóa job đang quan tâm (Công ty, Ngày hết hạn, Platform, Link, Trạng thái, Ghi chú), lưu bền vững qua database. Platform là combobox Dylan tự thêm/xóa option; bảng cho sắp xếp theo cột bất kỳ. Độc lập với Business Flow "Hệ Thống Quản Lý Chi Tiêu" (`DEC-088`). Spec `Ready for DEV`, 11 AC.
+Bảng "Theo dõi CV ứng tuyển" trên trang Roadmap, cho Dylan thêm/sửa inline/xóa job đang quan tâm (Công ty, Ngày hết hạn, Platform, Link, Trạng thái, Ghi chú), lưu bền vững qua database. Platform là combobox Dylan tự thêm/xóa option; bảng cho sắp xếp theo cột bất kỳ. Ngày hết hạn không bắt buộc (`DEC-119`). Độc lập với Business Flow "Hệ Thống Quản Lý Chi Tiêu" (`DEC-088`). Spec `Ready for DEV`, 13 AC.
 
 ## 2. Rule Cốt Lõi
 

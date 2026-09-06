@@ -14,7 +14,7 @@ export function computeAutomaticStatusUpdates(
   const updates: AutomaticJobStatusUpdate[] = [];
 
   for (const job of jobs) {
-    if (job.status === "Interested" && job.deadline < now) {
+    if (job.status === "Interested" && job.deadline !== null && job.deadline < now) {
       updates.push({ id: job.id, status: "Expired" });
       continue;
     }

@@ -45,14 +45,14 @@ Ngoài phạm vi:
 ## 4. Luồng Nghiệp Vụ
 
 1. Dylan mở trang Roadmap, thấy bảng "Theo dõi CV ứng tuyển" ngay dưới khu vực "Lộ trình thực hiện".
-2. Dylan bấm "+ Thêm job": nhập Công ty, chọn Ngày hết hạn qua lịch chọn ngày, chọn Platform (hoặc thêm Platform mới ngay tại chỗ), nhập Link, giữ nguyên hoặc đổi Trạng thái (mặc định "Interested" — `DEC-084`), nhập Ghi chú, rồi lưu.
+2. Dylan bấm "+ Thêm job": nhập Công ty, chọn Ngày hết hạn qua lịch chọn ngày (có thể bỏ trống — `DEC-119`), chọn Platform (hoặc thêm Platform mới ngay tại chỗ), nhập Link, giữ nguyên hoặc đổi Trạng thái (mặc định "Interested" — `DEC-084`), nhập Ghi chú, rồi lưu.
 3. Dylan sửa ngay tại dòng (inline) các trường Công ty, Ngày hết hạn, Platform, Link, hoặc Ghi chú của một job đã tạo — bấm vào ô, sửa, xác nhận, không mở form riêng (`DEC-089`).
 4. Dylan cập nhật Trạng thái bất kỳ lúc nào, chọn tự do trong 7 giá trị, không ràng buộc thứ tự (`DEC-087`).
 5. Dylan xóa một job, xác nhận trong hộp thoại trước khi xóa thật.
 6. Dylan quản lý danh sách Platform: thêm option mới, hoặc xóa option không còn dùng (chặn nếu đang dùng — `BR-021`).
 7. Dylan click tiêu đề cột để sắp xếp bảng, click lại đảo chiều.
 
-Ngoại lệ: bảng rỗng khi chưa có job nào; lưu lỗi hệ thống giữ nguyên dữ liệu trên form; thiếu trường bắt buộc (Công ty/Ngày hết hạn/Platform) hoặc Link sai định dạng thì chặn lưu và báo lỗi; xóa Platform đang dùng bị chặn (`BR-021`).
+Ngoại lệ: bảng rỗng khi chưa có job nào; lưu lỗi hệ thống giữ nguyên dữ liệu trên form; thiếu trường bắt buộc (Công ty/Platform/Link) thì chặn lưu và báo lỗi (Ngày hết hạn không bắt buộc từ `DEC-119`); Link sai định dạng thì chặn lưu; xóa Platform đang dùng bị chặn (`BR-021`).
 
 ## 5. Business Rules
 
@@ -79,7 +79,7 @@ Thuật ngữ mới phát sinh phải thêm vào `glossary.md`.
 
 | Bằng chứng | Path |
 | --- | --- |
-| Spec | `docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` (`Ready for DEV`, 11 AC) |
+| Spec | `docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md` (`Ready for DEV`, 13 AC — 11 gốc + AC-12/AC-13 từ `DEC-119`) |
 | Source record | `docs/kb/ba/wiki/ingestion/source-record/US-018-theo-doi-cv-ung-tuyen.md` |
 | Raw | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` |
 
@@ -93,4 +93,4 @@ Không gắn Epic: `docs/kb/ba/business-flow.md` chỉ phạm vi "Hệ Thống Q
 
 | Trang PBI | Trạng thái AC |
 | --- | --- |
-| [`../../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | Đã đồng bộ 2026-08-13 — 11 AC |
+| [`../../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | Đã đồng bộ 2026-08-13 — 11 AC; cập nhật 2026-08-27 thêm AC-12/AC-13 (`DEC-119`) |

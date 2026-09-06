@@ -1,5 +1,5 @@
-import { DylanPlanApp } from "@/components/DylanPlanApp";
+import { FreelanceView } from "@/components/PlanViews";
 
 export default function FreelancePage() {
-  return <DylanPlanApp activeTab="freelance" />;
+  return <FreelanceView />;
 }

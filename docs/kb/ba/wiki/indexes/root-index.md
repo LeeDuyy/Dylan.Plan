@@ -1,6 +1,6 @@
 ---
 status: Active
-updated: 2026-08-21
+updated: 2026-08-28
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
@@ -13,7 +13,7 @@ tags: [kb/ba/wiki/indexes]
 
 Wiki phục vụ `ssr-ba` khi tổng hợp spec — nguồn sự thật đa trang, liên kết, dùng lại được xuyên function. Raw là nguồn bất biến; wiki được `ssr-ingest` biên soạn từ raw và cập nhật ngược từ spec đã hoàn chỉnh.
 
-**Trạng thái di trú:** Cấu trúc nested này (`indexes/`, `knowledge/`, `delivery/`, `ingestion/`, `data/`) mới được khởi tạo lần đầu ngày 2026-08-05 khi làm US-004. US-002, US-003, US-004, US-005, US-006, US-010, US-012, US-014, US-015, US-016 và US-017 đã có đủ trang trong cấu trúc này, tất cả `Active`. US-018 đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — độc lập với Business Flow "Hệ Thống Quản Lý Chi Tiêu" (nằm ở trang Roadmap, không thuộc F1-F4; xác nhận qua `DEC-088`, `po-expert` `Aligned`). US-019 đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). US-020 đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), cùng tiền lệ không gắn epic (`DEC-088`, `po-expert` xác nhận `Aligned`). US-007 đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn epic mới `EPC-004` (F4, epic đầu tiên cho luồng F4), `po-expert` xác nhận `Aligned` ngay lượt đầu. US-008 đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — cùng gắn `EPC-004`, `po-expert` Aligned ngay lượt đầu. US-009 mới ingest, `Draft`, chưa có spec — gắn `EPC-002` (F2), còn 1 điểm `Cần user xác nhận` (quy tắc kế thừa ngưỡng khi Clone). 2 US còn lại (US-001, US-011) vẫn chỉ tồn tại dạng trang phẳng tại `docs/kb/ba/wiki/US-###-*.md` (chưa migrate) — xem `docs/requirements-index.md` để biết trạng thái từng US.
+**Trạng thái di trú:** Cấu trúc nested này (`indexes/`, `knowledge/`, `delivery/`, `ingestion/`, `data/`) mới được khởi tạo lần đầu ngày 2026-08-05 khi làm US-004. US-002, US-003, US-004, US-005, US-006, US-010, US-012, US-014, US-015, US-016 và US-017 đã có đủ trang trong cấu trúc này, tất cả `Active`. US-018 đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — độc lập với Business Flow "Hệ Thống Quản Lý Chi Tiêu" (nằm ở trang Roadmap, không thuộc F1-F4; xác nhận qua `DEC-088`, `po-expert` `Aligned`). US-019 đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). US-020 đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), cùng tiền lệ không gắn epic (`DEC-088`, `po-expert` xác nhận `Aligned`). US-007 đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn epic mới `EPC-004` (F4, epic đầu tiên cho luồng F4), `po-expert` xác nhận `Aligned` ngay lượt đầu. US-008 đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — cùng gắn `EPC-004`, `po-expert` Aligned ngay lượt đầu. US-009 mới ingest, `Draft`, chưa có spec — gắn `EPC-002` (F2), còn 1 điểm `Cần user xác nhận` (quy tắc kế thừa ngưỡng khi Clone). US-021 đã `sync`, `Active`, spec `Ready for DEV` (8 AC) — mở rộng `US-018` (bảng "Theo dõi CV ứng tuyển"), giữ ngoài Business Flow theo tiền lệ `DEC-088` (`DEC-111`, `po-expert` `Aligned` 2026-08-28); 2 rule mới `BR-031`, `BR-032`; chạy trên nền `DEC-119` (Ngày hết hạn không bắt buộc). 2 US còn lại (US-001, US-011) vẫn chỉ tồn tại dạng trang phẳng tại `docs/kb/ba/wiki/US-###-*.md` (chưa migrate) — xem `docs/requirements-index.md` để biết trạng thái từng US.
 
 Raw là nguồn bất biến. Wiki là nguồn sự thật cho phân tích — được `ssr-ingest` biên soạn từ raw và cập nhật ngược từ spec đã hoàn chỉnh.
 
@@ -25,7 +25,7 @@ Raw là nguồn bất biến. Wiki là nguồn sự thật cho phân tích — �
 | Epic | `knowledge/epic/` | [`epic-index.md`](epic-index.md) |
 | Feature | `knowledge/feature/` | [`feature-index.md`](feature-index.md) |
 | Concept | `knowledge/concept/` | — (chưa có trang nào) |
-| Business rule | `knowledge/business-rule/` | — (30 trang, xem `feature-index.md` để tra theo function) |
+| Business rule | `knowledge/business-rule/` | — (32 trang, xem `feature-index.md` để tra theo function) |
 | Workflow | `knowledge/workflow/` | — (chưa có trang nào) |
 | PBI | `delivery/pbi/` | — |
 | Entity | `data/entity/` | — (6 trang: `ENT-001-giao-dich`, `ENT-002-danh-muc`, `ENT-003-thang-ngan-sach`, `ENT-004-job-ung-tuyen`, `ENT-005-platform-tuyen-dung`, `ENT-006-item-can-mua`) |
@@ -47,12 +47,13 @@ Raw là nguồn bất biến. Wiki là nguồn sự thật cho phân tích — �
 | --- | --- | --- |
 | `US-018` | Bảng theo dõi CV ứng tuyển tại trang Roadmap | `docs/kb/ba/business-flow.md` chỉ phạm vi "Hệ Thống Quản Lý Chi Tiêu" (F1-F4) — trang Roadmap được chính Business Flow liệt kê là mục **tách biệt** (mục 1, M2). Không gắn epic; cần `ssr-po` mở rộng hoặc lập Business Flow riêng cho mảng Roadmap nếu muốn hoá epic sau này |
 | `US-020` | Lịch sử thay đổi trạng thái job ứng tuyển | Mở rộng trực tiếp `US-018` (cùng entity Job ứng tuyển, cùng trang Roadmap) — áp dụng cùng lý do và cùng tiền lệ `DEC-088` |
+| `US-021` | Tự điền thông tin job từ link tin tuyển dụng | Mở rộng trực tiếp `US-018` (cùng bảng "Theo dõi CV ứng tuyển") — user xác nhận tường minh giữ ngoài Business Flow theo tiền lệ `DEC-088` (`DEC-111`, `ssr-po mode=review` 2026-08-27) |
 
 ## 4. Trạng Thái Tổng Quan
 
 | Chỉ số | Giá trị |
 | --- | --- |
-| Số nguồn raw đã ingest (cấu trúc nested) | 17 (US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-009 `Draft`, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020 — còn lại `Active`) — cộng `US-013` gộp vào `US-006` |
-| Số feature (cấu trúc nested) | 17 (như trên; chỉ `US-009` còn `Draft`, còn lại `Active`) |
-| Số concept / business rule / workflow / entity | 0 / 28 / 0 / 6 |
+| Số nguồn raw đã ingest (cấu trúc nested) | 18 (US-002..US-010, US-012, US-014..US-021; chỉ `US-009` còn `Draft`, còn lại `Active`) — cộng `US-013` gộp vào `US-006` |
+| Số feature (cấu trúc nested) | 18 (như trên; chỉ `US-009` còn `Draft`, còn lại `Active`) |
+| Số concept / business rule / workflow / entity | 0 / 32 / 0 / 6 |
 | Conflict chưa xử lý | 0 |

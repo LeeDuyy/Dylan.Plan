@@ -1,13 +1,13 @@
 ---
 status: Draft
-updated: 2026-08-22
+updated: 2026-08-28
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
 
 # Wiki Raw Index
 
-> Manifest các nguồn raw đã được `ssr-ingest` biên soạn thành wiki dạng nested. Raw file gốc vẫn nằm ở `docs/kb/ba/raw/` — bảng này chỉ trỏ tới, không sao chép nội dung. US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-009, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019 và US-020 đã ingest vào cấu trúc nested; 2 US khác vẫn ở dạng phẳng, xem ghi chú mục 2. `US-013` đã gộp vào `US-006` (`DEC-065`), không có source record riêng.
+> Manifest các nguồn raw đã được `ssr-ingest` biên soạn thành wiki dạng nested. Raw file gốc vẫn nằm ở `docs/kb/ba/raw/` — bảng này chỉ trỏ tới, không sao chép nội dung. US-002..US-010, US-012, US-014..US-021 đã ingest vào cấu trúc nested; 2 US khác (US-001, US-011) vẫn ở dạng phẳng, xem ghi chú mục 2. `US-013` đã gộp vào `US-006` (`DEC-065`), không có source record riêng.
 
 ## 1. Danh Sách Nguồn Raw
 
@@ -31,6 +31,7 @@ tags: [kb/ba/wiki/indexes]
 | `US-018` | [`../../../raw/US-018-theo-doi-cv-ung-tuyen.md`](../../../raw/US-018-theo-doi-cv-ung-tuyen.md) | [`../ingestion/source-record/US-018-theo-doi-cv-ung-tuyen.md`](../ingestion/source-record/US-018-theo-doi-cv-ung-tuyen.md) | 2026-08-13 |
 | `US-019` | [`../../../raw/US-019-danh-sach-can-mua.md`](../../../raw/US-019-danh-sach-can-mua.md) | [`../ingestion/source-record/US-019-danh-sach-can-mua.md`](../ingestion/source-record/US-019-danh-sach-can-mua.md) | 2026-08-14 |
 | `US-020` | [`../../../raw/US-020-lich-su-trang-thai-job.md`](../../../raw/US-020-lich-su-trang-thai-job.md) | [`../ingestion/source-record/US-020-lich-su-trang-thai-job.md`](../ingestion/source-record/US-020-lich-su-trang-thai-job.md) | 2026-08-14 |
+| `US-021` | [`../../../raw/US-021-tu-dien-thong-tin-job-link.md`](../../../raw/US-021-tu-dien-thong-tin-job-link.md) | [`../ingestion/source-record/US-021-tu-dien-thong-tin-job-link.md`](../ingestion/source-record/US-021-tu-dien-thong-tin-job-link.md) | 2026-08-28 |
 
 ## 2. Trạng Thái Ingest
 
@@ -54,4 +55,5 @@ tags: [kb/ba/wiki/indexes]
 | `US-018` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (11 AC), đã sync — không thuộc luồng F# nào của Business Flow hiện có, xác nhận qua `DEC-088` (trang Roadmap, ngoài phạm vi Hệ Thống Quản Lý Chi Tiêu) |
 | `US-019` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (10 AC), đã sync — gắn `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`), `po-expert` xác nhận `Aligned` sau 2 lượt |
 | `US-020` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (9 AC), đã sync — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088` |
+| `US-021` | Đã ingest + sync | Cấu trúc nested đầy đủ, spec `Ready for DEV` (8 AC), đã sync — mở rộng trực tiếp `US-018` (Depends on), tác động `US-020` (Impacts qua `BR-025`), không gắn epic, giữ ngoài Business Flow theo tiền lệ `DEC-088`/`DEC-111`, `po-expert` `Aligned`; 2 rule mới `BR-031`, `BR-032`; chạy trên nền `DEC-119` (Ngày hết hạn không bắt buộc, code chưa commit) |
 | US-001, US-011 | Chưa ingest (dạng nested) | Có raw + trang wiki phẳng tại `docs/kb/ba/wiki/US-###-*.md`, chưa qua `ssr-ingest` cấu trúc nested — không chặn triển khai (US-001 đã Delivered dùng quy trình cũ), chỉ là nợ migrate |

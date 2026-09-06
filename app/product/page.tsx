@@ -1,5 +1,5 @@
-import { DylanPlanApp } from "@/components/DylanPlanApp";
+import { ProductView } from "@/components/PlanViews";
 
 export default function ProductPage() {
-  return <DylanPlanApp activeTab="product" />;
+  return <ProductView />;
 }

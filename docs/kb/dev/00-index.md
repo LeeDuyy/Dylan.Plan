@@ -1,9 +1,10 @@
 # DEV index
 
-Updated: 2026-08-21 (US-008 plan Ready for task-breakdown — không đổi source)
+Updated: 2026-08-28 (US-021 plan Ready for task-breakdown — không đổi schema; thêm Server Action `readJobLink` đọc-thuần trong `server/job-tracker/`)
 
 | Mã | Tên | File |
 | --- | --- | --- |
+| US-021 | Tự điền thông tin job từ link tin tuyển dụng | `docs/kb/dev/wiki/US-021-tu-dien-thong-tin-job-link.md` |
 | US-001 | Lưu trữ chi tiêu bền vững và liên kết giao dịch theo danh mục cố định | `docs/kb/dev/wiki/US-001-luu-tru-chi-tieu-ben-vung.md` |
 | US-007 | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | `docs/kb/dev/wiki/US-007-phan-tich-xu-huong-lich-su.md` |
 | US-008 | Xuất dữ liệu từ nguồn lưu trữ bền vững | `docs/kb/dev/wiki/US-008-xuat-du-lieu-ben-vung.md` |

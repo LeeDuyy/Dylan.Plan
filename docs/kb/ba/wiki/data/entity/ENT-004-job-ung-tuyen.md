@@ -26,13 +26,14 @@ Một job/vị trí tuyển dụng mà Dylan đang quan tâm và theo dõi trạ
 | --- | --- |
 | [`US-018`](../../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) | Tạo, Sửa, Xóa, Đọc |
 | [`US-020`](../../knowledge/feature/US-020-lich-su-trang-thai-job.md) | Mở rộng: thêm mốc "Ngày nộp hồ sơ", thêm trạng thái "Expired", tự động cập nhật Trạng thái theo `BR-025`/`BR-026` |
+| [`US-021`](../../knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) | Đọc: điền sẵn giá trị cho Công ty, Platform (tham chiếu), Ngày hết hạn của một dòng job từ link tin tuyển dụng trước khi Dylan lưu; không thêm/sửa trường nào (`DEC-113`) |
 
 ## 4. Ràng Buộc
 
 | Ràng buộc | Nguồn |
 | --- | --- |
 | Trạng thái nhận đúng 1 trong 8 giá trị cố định: Interested/Waiting/No Response/Response/Appointment/Cancel/Fail/Expired (Expired thêm từ `US-020`, vẫn chọn tay được như 7 giá trị còn lại) | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` mục 2; `docs/memory/decisions.md#dec-101`, `#dec-102` |
-| Ngày hết hạn hiển thị theo định dạng `DD/MM/YYYY` | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` mục 2 |
+| Ngày hết hạn hiển thị theo định dạng `DD/MM/YYYY`; **không bắt buộc** — job có thể không có Ngày hết hạn (để trống), lưu bình thường (`DEC-119`, 2026-08-27) | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` mục 2; `docs/memory/decisions.md#dec-119` |
 | Platform tham chiếu tới danh sách option động — xem [`ENT-005`](ENT-005-platform-tuyen-dung.md) | `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md` mục 2, `docs/memory/decisions.md#dec-082` |
 | "Ngày nộp hồ sơ" chỉ có giá trị khi job đã từng chuyển Interested → Waiting; bị xoá khi chuyển ngược Waiting → Interested; là mốc để tính luật "quá 7 ngày → No Response" (`BR-026`, `BR-027`) | `docs/kb/ba/raw/US-020-lich-su-trang-thai-job.md` mục 2; `docs/memory/decisions.md#dec-099` |
-| Trạng thái "Expired" chỉ tự động gán khi job đang "Interested" và Ngày hết hạn đã qua; kiểm tra lại mỗi khi dữ liệu bảng được tải/làm mới (`BR-025`) | `docs/memory/decisions.md#dec-100`, `#dec-101` |
+| Trạng thái "Expired" chỉ tự động gán khi job đang "Interested" **và có Ngày hết hạn** và Ngày hết hạn đã qua; kiểm tra lại mỗi khi dữ liệu bảng được tải/làm mới (`BR-025`). Job không có Ngày hết hạn không bao giờ bị tự chuyển "Expired" (`DEC-119`) | `docs/memory/decisions.md#dec-100`, `#dec-101`, `#dec-119` |

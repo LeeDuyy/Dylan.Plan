@@ -25,6 +25,7 @@ Danh sách các kênh/nền tảng tuyển dụng (vd ITViec, LinkedIn, VietNamW
 | Function | Cách dùng |
 | --- | --- |
 | [`US-018`](../../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) | Tạo, Sửa, Xóa option; [`ENT-004`](ENT-004-job-ung-tuyen.md) tham chiếu để chọn giá trị |
+| [`US-021`](../../knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) | Đọc: so tên miền của link với danh sách kênh để tự chọn Platform cho một dòng job; không tạo kênh mới ([`BR-032`](../../knowledge/business-rule/BR-032-suy-platform-tu-ten-mien.md)) |
 
 ## 4. Ràng Buộc
 

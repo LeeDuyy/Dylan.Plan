@@ -8,6 +8,8 @@ Provider: sqlite
 Created: 2026-08-13
 Owner: ssr-data
 
+> **Cập nhật 2026-08-27 (`DEC-119`)**: `JobApplication.deadline` chuyển từ bắt buộc (`DateTime`) sang tùy chọn (`DateTime?`). Migration `20260827150332_make_job_deadline_optional` (`RedefineTables` — SQLite phải tạo lại bảng để bỏ `NOT NULL`; không có dữ liệu nào mất, mọi giá trị `deadline` cũ được giữ nguyên). Job không có Ngày hết hạn thì không bị `BR-025` tự chuyển "Expired". Các mô tả "Nullable: Không" cho `deadline` bên dưới là trạng thái tại thời điểm 2026-08-13; xem delta ở cuối mục 2.
+
 ## 1. Thay Đổi Model
 
 | Model | Thay đổi | Lý do nghiệp vụ | AC liên quan |
@@ -56,13 +58,27 @@ model JobApplication {
 | `JobPlatform.createdAt` | `DateTime` | `TEXT` (ISO 8601, theo quy ước Prisma+SQLite hiện có trong dự án) | Không | `now()` | Không |
 | `JobApplication.id` | `String` | `TEXT` | Không | `cuid()` | `@id` |
 | `JobApplication.company` | `String` | `TEXT` | Không | Không | Không |
-| `JobApplication.deadline` | `DateTime` | `TEXT` | Không | Không | Không |
+| `JobApplication.deadline` | `DateTime` | `TEXT` | Không (→ **Có** từ `DEC-119`, 2026-08-27) | Không | Không |
 | `JobApplication.platformId` | `String` | `TEXT` | Không | Không | `@@index([platformId])`, FK → `JobPlatform.id` |
 | `JobApplication.link` | `String` | `TEXT` | Không | Không | Không |
 | `JobApplication.status` | `String` | `TEXT` | Không | `"Interested"` (`DEC-084`) | Không — 7 giá trị hợp lệ ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (đúng mẫu `Category.type`, `BR-019`) |
 | `JobApplication.note` | `String?` | `TEXT` | Có | Không | Không |
 | `JobApplication.createdAt` | `DateTime` | `TEXT` | Không | `now()` | Không |
 | `JobApplication.updatedAt` | `DateTime` | `TEXT` | Không | `@updatedAt` | Không |
+
+### Delta 2026-08-27 — `DEC-119`
+
+```prisma
+model JobApplication {
+  // ...
+  deadline DateTime?   // trước: DateTime (bắt buộc)
+  // ...
+}
+```
+
+- Migration: `rtk npx prisma migrate dev --name make_job_deadline_optional` → `prisma/migrations/20260827150332_make_job_deadline_optional/migration.sql` (`RedefineTables`: tạo `new_JobApplication` với `"deadline" DATETIME` không `NOT NULL`, copy toàn bộ dữ liệu, drop + rename, dựng lại index `platformId`).
+- An toàn dữ liệu: mọi `deadline` cũ giữ nguyên; không job nào bị xóa. Backup: `prisma/backups/` (file `dev.db` trước khi chạy migrate).
+- Verification: `rtk tsc --noEmit` Passed (0 lỗi); thủ công trên `next dev` — thêm job mới bỏ trống Ngày hết hạn lưu thành công (DB `deadline = NULL`); xóa Ngày hết hạn của job đã có lưu thành công; job không có deadline không bị `BR-025` chuyển "Expired".
 
 ## 3. Migration SQLite
 
@@ -108,7 +124,7 @@ Table JobPlatform {
 Table JobApplication {
   id text [pk]
   company text [not null]
-  deadline timestamp [not null]
+  deadline timestamp  // DEC-119 (2026-08-27): bỏ [not null] — Ngày hết hạn tùy chọn
   platformId text [not null, ref: > JobPlatform.id]
   link text [not null]
   status text [not null, default: 'Interested', note: 'Chỉ 1 trong 7 giá trị: Interested | Waiting | No Response | Response | Appointment | Cancel | Fail — ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (DEC-084, DEC-087)']

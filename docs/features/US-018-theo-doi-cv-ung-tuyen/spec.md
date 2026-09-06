@@ -3,7 +3,7 @@
 Status: Ready for DEV
 Feature: US-018
 Created: 2026-08-13
-Updated: 2026-08-13
+Updated: 2026-08-27
 Raw Source: `docs/kb/ba/raw/US-018-theo-doi-cv-ung-tuyen.md`
 BA Wiki: `docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`
 Owner: ssr-ba
@@ -34,7 +34,7 @@ Memory đã đối chiếu: `rules.md`, `language.md`, `decisions.md`, `glossary
 ## 3. Phạm Vi
 
 - Thêm bảng "Theo dõi CV ứng tuyển" trên trang Roadmap, ngay dưới khu vực "Lộ trình thực hiện" (`DEC-081`)
-- Thêm, sửa, xóa từng job trong bảng, gồm: Công ty, Ngày hết hạn, Platform, Link, Trạng thái, Ghi chú
+- Thêm, sửa, xóa từng job trong bảng, gồm: Công ty, Ngày hết hạn, Platform, Link, Trạng thái, Ghi chú. Trường bắt buộc: Công ty, Platform, Link. Ngày hết hạn và Ghi chú không bắt buộc — job không có Ngày hết hạn thì để trống, lưu bình thường (`DEC-119`)
 - Quản lý danh sách option Platform ngay trong ô chọn: thêm option mới, xóa option không còn dùng (chặn xóa nếu đang có job dùng — `BR-021`); khởi tạo sẵn 3 option mặc định "ITViec", "LinkedIn", "VietNamWork"
 - Sắp xếp bảng theo cột bất kỳ bằng cách click vào tiêu đề cột (`DEC-083`)
 - Lưu toàn bộ dữ liệu (job và danh sách Platform) bền vững vào database, không phụ thuộc trình duyệt (`DEC-080`)
@@ -74,7 +74,7 @@ Trường hợp ngoại lệ:
 | Hệ thống lỗi | Lưu job mới hoặc cập nhật job bị lỗi (mất kết nối, lỗi máy chủ) — ứng dụng hiện thông báo lỗi chung; dữ liệu Dylan vừa nhập vẫn giữ nguyên trên form tới khi thử lại thành công |
 | Xóa Platform đang được job dùng | Thao tác xóa bị chặn, thông báo cho biết đang có job dùng option đó (`BR-021`) |
 | Link không hợp lệ | Thao tác lưu bị chặn, thông báo lỗi định dạng hiện ngay dưới ô Link (`DEC-086`) |
-| Thiếu trường bắt buộc | Dylan bấm lưu khi Công ty, Ngày hết hạn, hoặc Platform còn để trống — thao tác lưu bị chặn, thông báo lỗi hiện ngay dưới ô còn thiếu yêu cầu nhập/chọn giá trị, cùng cách hiển thị lỗi như ô Link |
+| Thiếu trường bắt buộc | Dylan bấm lưu khi Công ty, Platform, hoặc Link còn để trống — thao tác lưu bị chặn, thông báo lỗi hiện ngay dưới ô còn thiếu yêu cầu nhập/chọn giá trị, cùng cách hiển thị lỗi như ô Link. Ngày hết hạn để trống **không** chặn lưu (`DEC-119`) |
 
 ## 7. Tiêu Chí Chấp Nhận
 
@@ -91,6 +91,8 @@ Trường hợp ngoại lệ:
 | AC-09 | Dylan đã điền đầy đủ thông tin hợp lệ cho một job mới và bấm lưu | Việc lưu bị lỗi do mất kết nối hoặc lỗi máy chủ | Ứng dụng hiện thông báo lỗi chung; dữ liệu Dylan vừa nhập vẫn còn nguyên trên form, chưa có dòng nào được thêm vào bảng, cho tới khi Dylan thử lưu lại thành công | Xem ASCII Mockup mục 8.1 |
 | AC-10 | Dylan đang thêm một job mới, đã nhập Link và Ghi chú nhưng để trống Công ty | Dylan bấm lưu mà chưa nhập Công ty | Thao tác lưu bị chặn; thông báo lỗi hiện ngay dưới ô Công ty yêu cầu nhập tên công ty; chưa có dòng nào được thêm vào bảng | Xem ASCII Mockup mục 8.1 |
 | AC-11 | Job "Tech Corp" đang có Công ty "Tech Corp", Ngày hết hạn 30/09/2026, Platform "LinkedIn" | Dylan bấm vào ô Công ty của job "Tech Corp", sửa thành "Tech Corp Vietnam", rồi xác nhận | Ô Công ty của job đó hiển thị ngay "Tech Corp Vietnam"; giá trị được lưu lại cho job đó, không cần mở form riêng | Xem ASCII Mockup mục 8.1 |
+| AC-12 | Bảng đang rỗng; Platform có sẵn 3 option mặc định (`DEC-119`) | Dylan bấm "+ Thêm job", nhập Công ty "Beta Co", chọn Platform "ITViec", nhập Link "https://itviec.com/jobs/1", **để trống Ngày hết hạn**, rồi lưu | Một dòng mới xuất hiện trên bảng với ô Ngày hết hạn để trống; job được lưu bền vững; job này không bị tự chuyển trạng thái "Expired" (`BR-025` chỉ áp dụng khi có Ngày hết hạn và đã qua) | Xem ASCII Mockup mục 8.1 |
+| AC-13 | Job "Beta Co" đang có Ngày hết hạn 30/09/2026 (`DEC-119`) | Dylan bấm vào ô Ngày hết hạn của job "Beta Co" và xóa giá trị đang có, rồi rời ô | Ô Ngày hết hạn của job đó trở nên trống; thay đổi được lưu lại, không có thông báo lỗi chặn lưu | Xem ASCII Mockup mục 8.1 |
 
 Quy tắc:
 
@@ -109,7 +111,7 @@ Liệt kê mọi thành phần màn hình mà requirement này chạm tới.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | EL-01 | Bảng "Theo dõi CV ứng tuyển" | Table | "Theo dõi CV ứng tuyển" | Danh sách Job ứng tuyển | **Element mới**. Mỗi dòng là một job. Tiêu đề mỗi cột click được để sắp xếp toàn bảng theo cột đó (tăng dần); click lại vào cùng tiêu đề đảo thành giảm dần. Khi chưa có tương tác sắp xếp nào, bảng giữ nguyên thứ tự job được thêm gần đây nhất lên trên (`DEC-083`) | Dylan | AC-07 | Không |
 | EL-02 | Cột "Công ty" | Column | "Công ty" | Công ty (Job ứng tuyển) | **Element mới**. Ô nhập chữ tự do, bắt buộc; để trống thì chặn lưu, thông báo lỗi hiện ngay dưới ô. Sửa ngay tại dòng (inline) cho job đã tạo — bấm vào ô để chỉnh sửa, không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-10, AC-11 | Không |
-| EL-03 | Cột "Ngày hết hạn" | Column | "Ngày hết hạn" | Ngày hết hạn (Job ứng tuyển) | **Element mới**. Chọn qua lịch chọn ngày, hiển thị theo định dạng `DD/MM/YYYY` (`DEC-085`); bắt buộc, để trống thì chặn lưu, thông báo lỗi hiện ngay dưới ô. Sửa ngay tại dòng (inline) cho job đã tạo — bấm vào ô để mở lại lịch chọn ngày, không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-07 | Không |
+| EL-03 | Cột "Ngày hết hạn" | Column | "Ngày hết hạn" | Ngày hết hạn (Job ứng tuyển) | **Element mới**. Chọn qua lịch chọn ngày, hiển thị theo định dạng `DD/MM/YYYY` (`DEC-085`); **không bắt buộc** — để trống vẫn lưu được, không hiện thông báo lỗi (`DEC-119`); ô để trống hiển thị rỗng. Sửa ngay tại dòng (inline) cho job đã tạo — bấm vào ô để mở lại lịch chọn ngày hoặc xóa giá trị đang có, không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-07, AC-12, AC-13 | Không |
 | EL-04 | Cột "Platform" | Column | "Platform" | Platform (tham chiếu Platform tuyển dụng) | **Element mới**. Ô chọn (combobox), bắt buộc, để trống thì chặn lưu và hiện thông báo lỗi ngay dưới ô; có sẵn 3 option mặc định "ITViec", "LinkedIn", "VietNamWork"; có mục "+ Thêm platform mới" ở cuối danh sách để tạo option ngay tại chỗ, option mới tạo được chọn ngay cho job đang thao tác; mỗi option kèm biểu tượng xóa, xóa bị chặn nếu đang có job dùng (`BR-021`). Sửa ngay tại dòng (inline) cho job đã tạo — bấm vào ô để mở lại danh sách chọn, không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-02, AC-03, AC-04 | Không |
 | EL-05 | Cột "Link" | Column | "Link" | Link (Job ứng tuyển) | **Element mới**. Ô nhập chữ, bắt buộc, phải bắt đầu bằng `http://` hoặc `https://` (`DEC-086`); sai định dạng thì chặn lưu và hiện thông báo lỗi ngay dưới ô. Sửa ngay tại dòng (inline) cho job đã tạo — bấm vào ô để chỉnh sửa, không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-08 | Không |
 | EL-06 | Cột "Trạng thái" | Column | "Trạng thái" | Trạng thái (Job ứng tuyển) | **Element mới**. Ô chọn cố định 7 giá trị: Interested/Waiting/No Response/Response/Appointment/Cancel/Fail; mặc định "Interested" khi thêm job mới (`DEC-084`); Dylan chọn tự do bất kỳ giá trị nào tại mọi thời điểm, không ràng buộc thứ tự (`DEC-087`); sửa ngay tại dòng (inline), không cần mở form riêng (`DEC-089`) | Dylan | AC-01, AC-05 | Không |
@@ -172,9 +174,9 @@ Không có spec nào bị ảnh hưởng. Đã rà toàn bộ 12 spec hiện có
 | File | Nội dung cập nhật |
 | --- | --- |
 | [`docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](../../kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) | Nâng `Status` lên `Active` khi spec đạt `Ready for DEV` (qua `ssr-ingest mode=sync`) |
-| [`docs/kb/ba/wiki/delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../../kb/ba/wiki/delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | Điền đầy đủ User Story và 11 AC từ spec này (qua `ssr-ingest mode=sync`) |
+| [`docs/kb/ba/wiki/delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../../kb/ba/wiki/delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | Điền đầy đủ User Story và 13 AC từ spec này (11 AC gốc + AC-12/AC-13 từ `DEC-119`) |
 
-Memory: 6 quyết định chốt qua dialog trong `ssr-ba` (2026-08-13) đã ghi thành `DEC-084` (Trạng thái mặc định "Interested"), `DEC-085` (Ngày hết hạn dùng date picker), `DEC-086` (validate Link hợp lệ), `DEC-087` (chuyển Trạng thái tự do, không tuần tự), `DEC-088` (US-018 là tiện ích cá nhân tách biệt, không thuộc Business Flow "Hệ Thống Quản Lý Chi Tiêu"), `DEC-089` (sửa các trường job ngay tại dòng — inline). Thuật ngữ nghiệp vụ mới "Job ứng tuyển" và "Platform tuyển dụng" cần thêm vào `glossary.md` — chưa có trong bản hiện tại, cần bổ sung cùng đợt `ssr-ingest mode=sync` khi spec đạt `Ready for DEV`.
+Memory: 6 quyết định chốt qua dialog trong `ssr-ba` (2026-08-13) đã ghi thành `DEC-084` (Trạng thái mặc định "Interested"), `DEC-085` (Ngày hết hạn dùng date picker), `DEC-086` (validate Link hợp lệ), `DEC-087` (chuyển Trạng thái tự do, không tuần tự), `DEC-088` (US-018 là tiện ích cá nhân tách biệt, không thuộc Business Flow "Hệ Thống Quản Lý Chi Tiêu"), `DEC-089` (sửa các trường job ngay tại dòng — inline). Cập nhật 2026-08-27: `DEC-119` (Ngày hết hạn không bắt buộc) — thay phần "Ngày hết hạn bắt buộc" của `DEC-114`. Thuật ngữ nghiệp vụ mới "Job ứng tuyển" và "Platform tuyển dụng" cần thêm vào `glossary.md` — chưa có trong bản hiện tại, cần bổ sung cùng đợt `ssr-ingest mode=sync` khi spec đạt `Ready for DEV`.
 
 ## 13. Handoff Cho DEV
 
@@ -198,3 +200,4 @@ Memory: 6 quyết định chốt qua dialog trong `ssr-ba` (2026-08-13) đã ghi
 | A6 | Khi bảng chưa có tương tác sắp xếp nào, job hiển thị theo thứ tự thêm gần đây nhất lên trên; click tiêu đề cột lần đầu sắp tăng dần, click lại đảo thành giảm dần | Giả định hợp lý — hành vi click-to-sort tiêu chuẩn phổ biến, chưa được user xác nhận chi tiết chiều sắp xếp mặc định | Nếu sai, cần đổi mô tả thứ tự mặc định và chiều sắp xếp ở mục 6, AC-07, EL-01 |
 | A7 | Sửa các trường Công ty, Ngày hết hạn, Platform, Link, Ghi chú của một job đã tạo theo cách sửa ngay tại dòng (inline) — bấm vào ô để chỉnh sửa trực tiếp, không mở form riêng | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-13 (`docs/memory/decisions.md#dec-089`) | Nếu sai (Dylan muốn mở form riêng để sửa), cần đổi lại bước 3 ở mục 6, AC-11, và ràng buộc ở EL-02, EL-03, EL-04, EL-05, EL-07 |
 | A8 | US-018 là tiện ích cá nhân tách biệt trên trang Roadmap, không thuộc Business Flow "Hệ Thống Quản Lý Chi Tiêu" (`docs/kb/ba/business-flow.md`) và không cần một phiên `ssr-po mode=business-flow` riêng để mở rộng phạm vi trước khi tiếp tục | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-13, sau khi `po-expert` nêu vấn đề định hướng (`docs/memory/decisions.md#dec-088`) | Nếu sai, US-018 cần tạm dừng ở `Draft` chờ một phiên `ssr-po mode=business-flow` chốt mục tiêu mới cho khu vực Roadmap trước khi tiếp tục |
+| A9 | Ngày hết hạn không bắt buộc — job không có Ngày hết hạn thì để trống, lưu bình thường; luật `BR-025` (tự chuyển "Expired") chỉ chạy khi job có Ngày hết hạn và ngày đó đã qua | Đã xác nhận — user yêu cầu trực tiếp ngày 2026-08-27 (`docs/memory/decisions.md#dec-119`); thay thế phần "Ngày hết hạn bắt buộc" trong `DEC-114` | Nếu sai (muốn khôi phục bắt buộc), cần khôi phục ràng buộc ở mục 3, 6, EL-03, bỏ AC-12/AC-13, và đổi `deadline` về `DateTime` (not null) trong data model |

@@ -97,7 +97,7 @@ model JobPlatform {
 model JobApplication {
   id          String    @id @default(cuid())
   company     String
-  deadline    DateTime
+  deadline    DateTime?
   platformId  String
   link        String
   status      String    @default("Interested")

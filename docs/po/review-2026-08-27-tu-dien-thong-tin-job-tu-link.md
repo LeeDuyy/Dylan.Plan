@@ -2,7 +2,7 @@
 
 Status: Reviewed
 Scope: Một function — bảng "Theo dõi CV ứng tuyển" trên trang Roadmap (mở rộng US-018)
-Reviewed: 2026-08-26
+Reviewed: 2026-08-27
 Owner: ssr-po
 
 > Nguồn yêu cầu: user (Dylan), trực tiếp — "tại danh sách job, tôi muốn khi nhập link vào, hệ thống phải tự truy cập vào link và điền các thông tin còn lại vào danh sách."
@@ -45,10 +45,10 @@ Tất cả là **opportunity/gap**, **không có defect** — hành vi nhập ta
 
 | # | Điểm mờ | Đã tự trả lời từ knowledge | Trạng thái |
 | --- | --- | --- | --- |
-| 1 | Định vị tính năng trong định hướng sản phẩm | User chốt: mở rộng US-018 như tiện ích độc lập, **giữ ngoài** Business Flow (theo tiền lệ `DEC-088`), không cần phiên `ssr-po mode=business-flow` | Đã xác nhận — `AskUserQuestion` 2026-08-26 → `DEC-111` |
-| 2 | Nền tảng link cần đọc được | User chốt: **thử đọc mọi link kể cả LinkedIn**, chấp nhận tỷ lệ thất bại cao và rủi ro điều khoản dịch vụ của nền tảng | Đã xác nhận — 2026-08-26 → `DEC-112` |
-| 3 | Trường tự điền khi đọc được link | User chốt: **Công ty + Platform (suy từ tên miền) + Ngày hết hạn (nếu trang tuyển dụng có ghi)**; không thêm cột "Vị trí ứng tuyển" | Đã xác nhận — 2026-08-26 → `DEC-113` |
-| 4 | Hành vi khi đọc lỗi / chỉ lấy được một phần | User chốt: **vẫn lưu job** với link + phần điền được; báo nhẹ "chưa lấy được [tên trường] — mời nhập tay"; **không chặn lưu** | Đã xác nhận — 2026-08-26 → `DEC-114` |
+| 1 | Định vị tính năng trong định hướng sản phẩm | User chốt: mở rộng US-018 như tiện ích độc lập, **giữ ngoài** Business Flow (theo tiền lệ `DEC-088`), không cần phiên `ssr-po mode=business-flow` | Đã xác nhận — `AskUserQuestion` 2026-08-27 → `DEC-111` |
+| 2 | Nền tảng link cần đọc được | User chốt: **thử đọc mọi link kể cả LinkedIn**, chấp nhận tỷ lệ thất bại cao và rủi ro điều khoản dịch vụ của nền tảng | Đã xác nhận — 2026-08-27 → `DEC-112` |
+| 3 | Trường tự điền khi đọc được link | User chốt: **Công ty + Platform (suy từ tên miền) + Ngày hết hạn (nếu trang tuyển dụng có ghi)**; không thêm cột "Vị trí ứng tuyển" | Đã xác nhận — 2026-08-27 → `DEC-113` |
+| 4 | Hành vi khi đọc lỗi / chỉ lấy được một phần | User chốt: **vẫn lưu job** với link + phần điền được; báo nhẹ "chưa lấy được [tên trường] — mời nhập tay"; **không chặn lưu** | Đã xác nhận — 2026-08-27 → `DEC-114` |
 | 5 | Việc đọc link xảy ra lúc nào — ngay khi Dylan rời ô Link (chờ trong dòng) hay sau khi lưu (làm giàu nền)? | Nghiêng về: đọc ngay khi Dylan rời ô Link hoặc bấm nút "Lấy thông tin", có chỉ báo "Đang lấy thông tin..." | Cần user xác nhận — để `ssr-ba` chốt khi viết spec |
 | 6 | Có ghi đè giá trị Dylan đã gõ tay không, nếu đọc link ra giá trị khác? | Nghiêng về: chỉ điền vào ô đang trống, không ghi đè ô Dylan đã nhập | Cần user xác nhận — `ssr-ba` |
 | 7 | Cần timeout / giới hạn số lần thử khi gọi ra mạng ngoài? | Giả định hợp lý: 1 lần thử, timeout ngắn (vd 10 giây), thất bại thì rơi về nhập tay | Giả định hợp lý — `ssr-plan` chốt |

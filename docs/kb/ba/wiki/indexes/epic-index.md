@@ -1,6 +1,6 @@
 ---
 status: Draft
-updated: 2026-08-21
+updated: 2026-08-28
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
@@ -23,6 +23,14 @@ tags: [kb/ba/wiki/indexes]
 | Mã | Tên function | Lý do không gắn epic |
 | --- | --- | --- |
 | `US-002` | Route/module riêng cho Quản lý chi tiêu (spec `Ready for DEV`) | Hạ tầng route/điều hướng dùng chung cho cả 4 luồng (F1, F2, F3, F4) — không thuộc riêng một luồng nào theo mô hình ánh xạ 1:1 epic↔luồng hiện tại |
+
+## 1c. Function Ngoài Business Flow "Hệ Thống Quản Lý Chi Tiêu" (mảng Roadmap/tuyển dụng)
+
+| Mã | Tên function | Lý do không gắn epic |
+| --- | --- | --- |
+| `US-018` | Bảng theo dõi CV ứng tuyển tại trang Roadmap | Trang Roadmap nằm ngoài phạm vi Business Flow hiện có (F1–F4); user xác nhận là tiện ích tách biệt (`DEC-088`) |
+| `US-020` | Lịch sử thay đổi trạng thái job ứng tuyển | Mở rộng trực tiếp `US-018`, cùng tiền lệ `DEC-088` |
+| `US-021` | Tự điền thông tin job từ link tin tuyển dụng | Mở rộng trực tiếp `US-018`, user xác nhận giữ ngoài Business Flow (`DEC-111`, tiền lệ `DEC-088`) |
 
 ## 2. Epic Chưa Có Function
 

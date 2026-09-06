@@ -13,7 +13,7 @@ export type UpsertJobApplicationInput = {
   /** Có id => cập nhật job; không có id => tạo mới. */
   id?: string;
   company: string;
-  deadline: string;
+  deadline?: string | null;
   platformId: string;
   link: string;
   status?: string;
@@ -39,12 +39,13 @@ export function createUpsertJobApplicationUseCase(repository: JobApplicationRepo
     if (!company) {
       throw new UpsertJobApplicationError("Công ty không được để trống.");
     }
-    if (!input.deadline.trim()) {
-      throw new UpsertJobApplicationError("Ngày hết hạn không được để trống.");
-    }
-    const deadline = new Date(input.deadline);
-    if (Number.isNaN(deadline.getTime())) {
-      throw new UpsertJobApplicationError("Ngày hết hạn không hợp lệ.");
+    const deadlineRaw = input.deadline?.trim() ?? "";
+    let deadline: Date | null = null;
+    if (deadlineRaw) {
+      deadline = new Date(deadlineRaw);
+      if (Number.isNaN(deadline.getTime())) {
+        throw new UpsertJobApplicationError("Ngày hết hạn không hợp lệ.");
+      }
     }
     if (!platformId) {
       throw new UpsertJobApplicationError("Platform không được để trống.");

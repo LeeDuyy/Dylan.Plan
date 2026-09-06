@@ -2,7 +2,7 @@ import type { JobApplicationEntity, JobApplicationStatus } from "../entities/job
 
 export type CreateJobApplicationInput = {
   company: string;
-  deadline: Date;
+  deadline: Date | null;
   platformId: string;
   link: string;
   status: JobApplicationStatus;

@@ -1,6 +1,6 @@
 ---
 status: Draft
-updated: 2026-08-21
+updated: 2026-08-28
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
@@ -9,7 +9,9 @@ tags: [kb/ba/wiki/indexes]
 
 > Chỉ liệt kê function đã có trang trong cấu trúc nested. 2 US khác (US-001, US-011) vẫn ở dạng phẳng — xem `docs/requirements-index.md`. `US-013` không có trang riêng — đã gộp vào `US-006` (`DEC-065`).
 >
-> Cập nhật gần nhất: `US-008` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn `EPC-004` (F4, đã có sẵn từ `US-007`), rule mới `BR-029`, `po-expert` xác nhận `Aligned` ngay lượt đầu, `ba-expert` chỉ làm rõ AC-03 (item cần mua ở tháng khác), không cần dialog. `US-007` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn epic mới `EPC-004` (F4, luồng đầu tiên ingest cho F4), rule mới `BR-028` (thu hẹp đúng phạm vi biểu đồ "Xu hướng", `DEC-109`, `DEC-110`), `po-expert` xác nhận `Aligned` ngay lượt đầu. `US-019` đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn epic `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). `US-020` đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088`. `US-018` đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — không thuộc luồng F# nào của Business Flow hiện có (`DEC-088`, `po-expert` xác nhận `Aligned`).
+> Cập nhật gần nhất: `US-021` đã `sync`, `Active`, spec `Ready for DEV` (8 AC) — mở rộng trực tiếp `US-018` (Depends on), tác động `US-020` (Impacts, luật `BR-025`); giữ ngoài Business Flow theo tiền lệ `DEC-088`/`DEC-111`, `po-expert` xác nhận `Aligned` (2026-08-28); 2 rule mới `BR-031`/`BR-032`; 12 DEC (`DEC-111`..`DEC-118`, `DEC-120`..`DEC-126`) + liên quan `DEC-119` (Ngày hết hạn không bắt buộc). `ba-expert` sửa mâu thuẫn nội bộ mục 6 (đọc link thất bại vẫn suy Platform từ tên miền) và làm chặt AC; user chốt A14 (`DEC-125`, chỉ đọc khi Link đổi) và A15 (`DEC-126`, ngày quá khứ vẫn điền) qua dialog.
+>
+> Cập nhật trước đó: `US-008` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn `EPC-004` (F4, đã có sẵn từ `US-007`), rule mới `BR-029`, `po-expert` xác nhận `Aligned` ngay lượt đầu, `ba-expert` chỉ làm rõ AC-03 (item cần mua ở tháng khác), không cần dialog. `US-007` đã `sync`, `Active`, spec `Ready for DEV` (4 AC) — gắn epic mới `EPC-004` (F4, luồng đầu tiên ingest cho F4), rule mới `BR-028` (thu hẹp đúng phạm vi biểu đồ "Xu hướng", `DEC-109`, `DEC-110`), `po-expert` xác nhận `Aligned` ngay lượt đầu. `US-019` đã `sync`, `Active`, spec `Ready for DEV` (10 AC) — gắn epic `EPC-003` (F3), phục vụ mục tiêu mới `M3` (`DEC-105`, `po-expert` xác nhận `Aligned` sau 2 lượt). `US-020` đã `sync`, `Active`, spec `Ready for DEV` (9 AC) — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088`. `US-018` đã `sync`, `Active`, spec `Ready for DEV` (11 AC) — không thuộc luồng F# nào của Business Flow hiện có (`DEC-088`, `po-expert` xác nhận `Aligned`).
 
 ## 1. Danh Sách Feature
 
@@ -32,10 +34,11 @@ tags: [kb/ba/wiki/indexes]
 | `US-018` | Bảng theo dõi CV ứng tuyển tại trang Roadmap | [`../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`](../knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md) | [`../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md`](../delivery/pbi/US-018-theo-doi-cv-ung-tuyen.md) | [`docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md`](../../../../features/US-018-theo-doi-cv-ung-tuyen/spec.md) — `Ready for DEV` |
 | `US-019` | Danh sách items cần mua theo tháng tại bảng thu chi | [`../knowledge/feature/US-019-danh-sach-can-mua.md`](../knowledge/feature/US-019-danh-sach-can-mua.md) | [`../delivery/pbi/US-019-danh-sach-can-mua.md`](../delivery/pbi/US-019-danh-sach-can-mua.md) | [`docs/features/US-019-danh-sach-can-mua/spec.md`](../../../../features/US-019-danh-sach-can-mua/spec.md) — `Ready for DEV` |
 | `US-020` | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | [`../knowledge/feature/US-020-lich-su-trang-thai-job.md`](../knowledge/feature/US-020-lich-su-trang-thai-job.md) | [`../delivery/pbi/US-020-lich-su-trang-thai-job.md`](../delivery/pbi/US-020-lich-su-trang-thai-job.md) | [`docs/features/US-020-lich-su-trang-thai-job/spec.md`](../../../../features/US-020-lich-su-trang-thai-job/spec.md) — `Ready for DEV` |
+| `US-021` | Tự điền thông tin job từ link tin tuyển dụng | [`../knowledge/feature/US-021-tu-dien-thong-tin-job-link.md`](../knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) | [`../delivery/pbi/US-021-tu-dien-thong-tin-job-link.md`](../delivery/pbi/US-021-tu-dien-thong-tin-job-link.md) | [`docs/features/US-021-tu-dien-thong-tin-job-link/spec.md`](../../../../features/US-021-tu-dien-thong-tin-job-link/spec.md) — `Ready for DEV` |
 
 ## 2. Feature Theo Trạng Thái
 
 | Trạng thái | Function |
 | --- | --- |
 | Draft | US-009 |
-| Active | US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020 |
+| Active | US-002, US-003, US-004, US-005, US-006, US-007, US-008, US-010, US-012, US-014, US-015, US-016, US-017, US-018, US-019, US-020, US-021 |

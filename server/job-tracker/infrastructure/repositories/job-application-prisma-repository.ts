@@ -11,7 +11,7 @@ import type {
 type JobApplicationRow = {
   id: string;
   company: string;
-  deadline: Date;
+  deadline: Date | null;
   platformId: string;
   link: string;
   status: string;

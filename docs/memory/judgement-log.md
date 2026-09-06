@@ -1,6 +1,6 @@
 # judgement-log.md — Nhận định và kết luận sau phân tích
 
-Updated: 2026-08-26 (JDG-032)
+Updated: 2026-08-28 (JDG-033)
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Nhận định bị bác bỏ thì đổi `Status: Refuted` và thêm bản ghi mới trỏ ngược lại.
@@ -11,7 +11,16 @@ Khác `decisions.md`: nhận định **có thể sai**. Một nhận định đ�
 
 ---
 
-### JDG-029 — Ràng buộc "chỉ thao tác được ở tháng hiện tại" (US-019) nên chặn thật ở server, chặt hơn tiền lệ DEC-010 (giao dịch chi tiêu chỉ chặn ở UI)
+### JDG-033 — Đọc link tin tuyển dụng nên dùng fetch phía máy chủ + bóc JSON-LD JobPosting / OpenGraph, không thêm thư viện, không scrape DOM riêng từng nền tảng
+
+- Ngày: 2026-08-28
+- Status: Open — chưa kiểm chứng bằng implementation thật
+- Độ tin cậy: Giả định hợp lý — kết luận kỹ thuật của `ssr-plan` khi khảo sát US-021; chưa chạy thử fetch thật tới ITViec/VietnamWorks
+- Feature liên quan: US-021
+- Bối cảnh: US-021 cần đọc Công ty + Ngày hết hạn từ trang tin tuyển dụng ở phía máy chủ (`DEC-121`/`DEC-122` — không gửi ra dịch vụ ngoài). Dự án chưa có thư viện parse HTML (`package.json`). Node v22.12 có `fetch` + `AbortSignal.timeout` sẵn.
+- Lập luận: Trang tuyển dụng của ITViec và VietnamWorks (và phần lớn site tuyển dụng nghiêm túc) nhúng dữ liệu có cấu trúc schema.org `JobPosting` trong khối `application/ld+json` và các thẻ OpenGraph — đây là nguồn ổn định hơn nhiều so với việc dò cấu trúc DOM riêng cho từng site (dễ hỏng khi site đổi layout). Với `JobPosting` có `hiringOrganization.name` và `validThrough`, cộng `og:site_name`/`author`/tiêu đề làm fallback, việc bóc bằng tách chuỗi + `JSON.parse` là đủ, không cần `cheerio`/`node-html-parser`. LinkedIn không nằm trong diện đọc được (`JDG-032`) nên không cần rule riêng cho nó.
+- Hệ quả nếu đúng: `ssr-dev`/`swe-expert` viết `job-posting-parser.ts` bằng regex/tách chuỗi thuần, không thêm dependency; test được bằng cách feed HTML tĩnh. Ranh giới lớp: fetch + parse HTML nằm ở `infrastructure/` (I/O + format ngoài), quyết định nghiệp vụ (match platform, validate deadline, dựng `missing[]`) nằm ở `domain/`.
+- Cái gì sẽ chứng minh nó sai: Nếu chạy thử fetch thật tới URL job ITViec/VietnamWorks công khai mà trang KHÔNG có JSON-LD JobPosting hoặc OG tags đủ dùng (vd nội dung render hoàn toàn bằng JavaScript phía client, HTML thô rỗng) — khi đó cần thêm thư viện parse mạnh hơn hoặc chấp nhận tỉ lệ đọc thấp và dựa nhiều hơn vào việc suy Platform từ tên miền.
 
 - Ngày: 2026-08-14
 - Status: Applied — đã áp dụng vào `docs/features/US-019-danh-sach-can-mua/plan.md` mục 4, 5, 8
@@ -343,7 +352,7 @@ Khác `decisions.md`: nhận định **có thể sai**. Một nhận định đ�
 
 ### JDG-032 — Giá trị thực của tính năng "đọc link job → tự điền" nằm ở ITViec/VietnamWorks và ở việc suy Platform từ tên miền, không ở việc đọc nội dung LinkedIn
 
-- Ngày: 2026-08-26
+- Ngày: 2026-08-27
 - Status: Open — chưa kiểm chứng trên môi trường dự án
 - Độ tin cậy: Nghi ngờ — dựa trên kiến thức chung về chính sách chống truy cập tự động của LinkedIn, chưa chạy thử request thật từ server của dự án
 - Feature liên quan: US-018 (mở rộng — `DEC-111`..`DEC-114`)

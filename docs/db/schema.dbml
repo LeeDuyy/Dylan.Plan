@@ -75,7 +75,7 @@ Table JobPlatform {
 Table JobApplication {
   id text [pk]
   company text [not null]
-  deadline timestamp [not null]
+  deadline timestamp [note: 'Không bắt buộc — job không có Ngày hết hạn thì để trống, không bị luật BR-025 tự chuyển "Expired" (DEC-119)']
   platformId text [not null, ref: > JobPlatform.id]
   link text [not null, note: 'Phải bắt đầu http:// hoặc https:// — ràng buộc ở tầng ứng dụng (DEC-086)']
   status text [not null, default: 'Interested', note: 'Chỉ 1 trong 8 giá trị: Interested | Waiting | No Response | Response | Appointment | Cancel | Fail | Expired — ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (DEC-084, DEC-087, DEC-101, DEC-102)']

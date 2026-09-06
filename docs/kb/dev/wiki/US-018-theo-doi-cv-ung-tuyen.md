@@ -1,7 +1,7 @@
 ---
 status: Active
 feature: US-018
-updated: 2026-08-13 (implemented)
+updated: 2026-08-27 (DEC-119 — deadline optional)
 plan: docs/features/US-018-theo-doi-cv-ung-tuyen/plan.md
 ba_wiki: docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md
 owner: ssr-plan
@@ -17,6 +17,14 @@ Updated: 2026-08-13 (implemented — `task.md` Status: Implemented)
 Plan: `docs/features/US-018-theo-doi-cv-ung-tuyen/plan.md`
 BA Wiki: `docs/kb/ba/wiki/knowledge/feature/US-018-theo-doi-cv-ung-tuyen.md`
 Owner: ssr-plan
+
+> **Cập nhật 2026-08-27 (`DEC-119`)** — Ngày hết hạn không còn bắt buộc:
+> - `prisma/schema.prisma`: `JobApplication.deadline` → `DateTime?`. Migration `20260827150332_make_job_deadline_optional` (`RedefineTables`).
+> - `server/job-tracker/domain/entities/job-application.ts`, `.../domain/repositories/job-application-repository.ts`, `.../infrastructure/repositories/job-application-prisma-repository.ts`: `deadline: Date | null`.
+> - `server/job-tracker/application/use-cases/upsert-job-application.ts`: `deadline?: string | null`; bỏ check "không được để trống", chỉ validate định dạng khi có giá trị; lưu `null` khi để trống.
+> - `server/job-tracker/domain/services/job-status-automation-service.ts`: `BR-025` thêm điều kiện `job.deadline !== null` trước khi so sánh với `now`.
+> - `components/JobTrackerBoard.tsx`: `validateJobForm` bỏ dòng bắt buộc `deadline`; `toDateInputValue`/`formatDate`/`ClientJob.deadline` nhận `null`.
+> - Verification: `rtk tsc --noEmit` Passed; thủ công `next dev` — thêm job không deadline (DB `NULL`), xóa deadline job cũ, job không deadline không bị Expired.
 
 ## 1. Tổng Quan Kỹ Thuật
 
@@ -70,10 +78,11 @@ app/page.tsx (Server Component, async) -> getJobTrackerSnapshot()
 
 | Model | Field liên quan | Index | Quan hệ |
 | --- | --- | --- | --- |
-| `JobApplication` (mới) | `id`, `company`, `deadline`, `platformId`, `link`, `status` (default `"Interested"`), `note` (nullable), `createdAt`, `updatedAt` | `@@index([platformId])` | `platform JobPlatform @relation(fields: [platformId], references: [id], onDelete: Restrict)` |
+| `JobApplication` (mới) | `id`, `company`, `deadline` (**nullable từ `DEC-119`**), `platformId`, `link`, `status` (default `"Interested"`), `note` (nullable), `createdAt`, `updatedAt` | `@@index([platformId])` | `platform JobPlatform @relation(fields: [platformId], references: [id], onDelete: Restrict)` |
 | `JobPlatform` (mới) | `id`, `name`, `createdAt` | Không cần thêm | `jobApplications JobApplication[]` |
 
 - Migration liên quan: `prisma/migrations/20260813110324_add_job_tracker/migration.sql` — đã áp dụng (2026-08-13), backup trước tại `prisma/backups/dev.db.us-018-before-job-tracker.20260813180307.bak`. Chỉ gồm `CREATE TABLE`/`CREATE INDEX`, không `RedefineTables` (bảng mới, không dữ liệu cũ).
+- Migration `prisma/migrations/20260827150332_make_job_deadline_optional/migration.sql` (`DEC-119`) — `RedefineTables` để bỏ `NOT NULL` khỏi `deadline` (SQLite không `ALTER COLUMN` được); copy toàn bộ dữ liệu, dựng lại index. Không mất dữ liệu.
 - DBML đã đồng bộ: Có — `docs/db/schema.dbml` (thủ công, dự án không có generator DBML).
 - Lưu ý SQLite: 2 bảng hoàn toàn mới (`JobApplication`, `JobPlatform`), không có dữ liệu cũ cần backfill, migration chỉ gồm `CREATE TABLE`/`CREATE INDEX`. `status` dùng `String` + validate tầng ứng dụng (không có enum gốc trong SQLite, đúng mẫu `Category.type`/`BR-019`). `platformId` có `onDelete: Restrict` làm lớp bảo vệ dự phòng ở DB cho `BR-021`, nhưng đường xử lý chính là `job-platform-guard-service.ts` kiểm tra trước để trả lỗi nghiệp vụ thân thiện. 3 dòng `JobPlatform` mặc định **không** tạo bằng migration data-only — xử lý ở tầng application (`ensureDefaultJobPlatforms`, ensure-default kiểm tra `count() === 0`), vì hook `guard-artifact-path` từng chặn sửa tay `migration.sql` cho thay đổi data-only tương tự ở US-016 (`JDG-018`, khái quát hóa thành `JDG-023`).
 
@@ -82,7 +91,7 @@ app/page.tsx (Server Component, async) -> getJobTrackerSnapshot()
 | Contract | Định nghĩa | Người dùng lại |
 | --- | --- | --- |
 | `JobTrackerSnapshot` (mới) | `{ jobs: JobApplicationEntity[], platforms: JobPlatformEntity[] }` | `app/page.tsx`, `components/JobTrackerBoard.tsx` |
-| `UpsertJobApplicationInput` (mới) | `{ id?, company, deadline, platformId, link, status, note? }` | `components/JobTrackerBoard.tsx` |
+| `UpsertJobApplicationInput` (mới) | `{ id?, company, deadline?, platformId, link, status, note? }` — `deadline?: string \| null` từ `DEC-119` (chuỗi rỗng/`null`/vắng mặt = không có Ngày hết hạn) | `components/JobTrackerBoard.tsx` |
 | `server/job-tracker/actions.ts` (mới) | 6 hàm: `getJobTrackerSnapshot`, `createJobApplication`, `updateJobApplication`, `deleteJobApplication`, `createJobPlatform`, `deleteJobPlatform` | `app/page.tsx`, `components/JobTrackerBoard.tsx` |
 
 ## 6. Liên Kết Function

@@ -22,7 +22,7 @@ export const JOB_APPLICATION_STATUSES: JobApplicationStatus[] = [
 export type JobApplicationEntity = {
   id: string;
   company: string;
-  deadline: Date;
+  deadline: Date | null;
   platformId: string;
   link: string;
   status: JobApplicationStatus;

@@ -1,7 +1,7 @@
 ---
 status: Active
 feature: US-018
-updated: 2026-08-13
+updated: 2026-08-27
 spec: docs/features/US-018-theo-doi-cv-ung-tuyen/spec.md
 owner: ssr-ingest
 tags: [kb/ba/wiki/delivery/pbi]
@@ -31,6 +31,8 @@ Là một Dylan, tôi muốn theo dõi tập trung các job đang quan tâm và 
 | AC-09 | Dylan đã điền đầy đủ thông tin hợp lệ cho một job mới và bấm lưu | Việc lưu bị lỗi do mất kết nối hoặc lỗi máy chủ | Ứng dụng hiện thông báo lỗi chung; dữ liệu Dylan vừa nhập vẫn còn nguyên trên form, chưa có dòng nào được thêm vào bảng, cho tới khi Dylan thử lưu lại thành công | Xem ASCII Mockup mục 8.1 |
 | AC-10 | Dylan đang thêm một job mới, đã nhập Link và Ghi chú nhưng để trống Công ty | Dylan bấm lưu mà chưa nhập Công ty | Thao tác lưu bị chặn; thông báo lỗi hiện ngay dưới ô Công ty yêu cầu nhập tên công ty; chưa có dòng nào được thêm vào bảng | Xem ASCII Mockup mục 8.1 |
 | AC-11 | Job "Tech Corp" đang có Công ty "Tech Corp", Ngày hết hạn 30/09/2026, Platform "LinkedIn" | Dylan bấm vào ô Công ty của job "Tech Corp", sửa thành "Tech Corp Vietnam", rồi xác nhận | Ô Công ty của job đó hiển thị ngay "Tech Corp Vietnam"; giá trị được lưu lại cho job đó, không cần mở form riêng | Xem ASCII Mockup mục 8.1 |
+| AC-12 | Bảng đang rỗng; Platform có sẵn 3 option mặc định (`DEC-119`) | Dylan bấm "+ Thêm job", nhập Công ty "Beta Co", chọn Platform "ITViec", nhập Link "https://itviec.com/jobs/1", để trống Ngày hết hạn, rồi lưu | Một dòng mới xuất hiện với ô Ngày hết hạn để trống; job được lưu bền vững; job này không bị tự chuyển "Expired" | Xem ASCII Mockup mục 8.1 |
+| AC-13 | Job "Beta Co" đang có Ngày hết hạn 30/09/2026 (`DEC-119`) | Dylan bấm vào ô Ngày hết hạn của job "Beta Co", xóa giá trị đang có, rồi rời ô | Ô Ngày hết hạn trở nên trống; thay đổi được lưu lại, không có thông báo lỗi chặn lưu | Xem ASCII Mockup mục 8.1 |
 
 ## 3. Business Rule Áp Dụng
 
