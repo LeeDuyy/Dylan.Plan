@@ -33,6 +33,7 @@ tags: [kb/ba/wiki/indexes]
 | `US-020` | [`../../../raw/US-020-lich-su-trang-thai-job.md`](../../../raw/US-020-lich-su-trang-thai-job.md) | [`../ingestion/source-record/US-020-lich-su-trang-thai-job.md`](../ingestion/source-record/US-020-lich-su-trang-thai-job.md) | 2026-08-14 |
 | `US-021` | [`../../../raw/US-021-tu-dien-thong-tin-job-link.md`](../../../raw/US-021-tu-dien-thong-tin-job-link.md) | [`../ingestion/source-record/US-021-tu-dien-thong-tin-job-link.md`](../ingestion/source-record/US-021-tu-dien-thong-tin-job-link.md) | 2026-08-28 |
 | `US-022` | [`../../../raw/US-022-nguon-thu-va-insight-tab-thu-chi.md`](../../../raw/US-022-nguon-thu-va-insight-tab-thu-chi.md) | [`../ingestion/source-record/US-022-nguon-thu-va-insight-tab-thu-chi.md`](../ingestion/source-record/US-022-nguon-thu-va-insight-tab-thu-chi.md) | 2026-09-07 |
+| `US-023` | [`../../../raw/US-023-layout-antd-responsive-toan-app.md`](../../../raw/US-023-layout-antd-responsive-toan-app.md) | [`../ingestion/source-record/US-023-layout-antd-responsive-toan-app.md`](../ingestion/source-record/US-023-layout-antd-responsive-toan-app.md) | 2026-09-07 |
 
 ## 2. Trạng Thái Ingest
 
@@ -58,5 +59,5 @@ tags: [kb/ba/wiki/indexes]
 | `US-020` | Đã ingest | Cấu trúc nested đầy đủ, spec `Ready for DEV` (9 AC), đã sync — mở rộng trực tiếp `US-018` (Depends on), không gắn epic, `po-expert` xác nhận `Aligned` áp dụng tiền lệ `DEC-088` |
 | `US-021` | Đã ingest + sync | Cấu trúc nested đầy đủ, spec `Ready for DEV` (8 AC), đã sync — mở rộng trực tiếp `US-018` (Depends on), tác động `US-020` (Impacts qua `BR-025`), không gắn epic, giữ ngoài Business Flow theo tiền lệ `DEC-088`/`DEC-111`, `po-expert` `Aligned`; 2 rule mới `BR-031`, `BR-032`; chạy trên nền `DEC-119` (Ngày hết hạn không bắt buộc, code chưa commit) |
 | `US-022` | Đã ingest + sync | Cấu trúc nested đầy đủ, spec `Ready for DEV` (13 AC), đã sync — cross-cutting F2/F3/F4 không gắn 1 epic; Business Flow đồng bộ inline 2026-09-07 (`JDG-034`); Impacts `US-019` (`BR-024` `Superseded` → `BR-036`); 5 rule mới `BR-033`..`BR-037` + `DEC-133`..`DEC-135`, entity mới `ENT-007`; `po-expert` `Aligned` (lần 2); `schemaChangeRequired = true` |
-| `US-023` | Chưa ingest | Có raw `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` (layout Ant Design + responsive toàn app) — thuần tầng trình bày, không đụng data model; chờ `ssr-ingest` khi tới lượt pipeline |
+| `US-023` | Đã ingest + sync | Cấu trúc nested đầy đủ, spec `Ready for DEV` (8 AC), đã sync — layout Ant Design + responsive toàn app, thuần tầng trình bày (data stage skip); không gắn epic, không neo M1–M4 (`DEC-132`); `DEC-132`/`DEC-002` bổ sung append-only; rule mới `BR-038`; `po-expert` `Aligned` (lần 2); Depends on `US-022` |
 | US-001, US-011 | Chưa ingest (dạng nested) | Có raw + trang wiki phẳng tại `docs/kb/ba/wiki/US-###-*.md`, chưa qua `ssr-ingest` cấu trúc nested — không chặn triển khai (US-001 đã Delivered dùng quy trình cũ), chỉ là nợ migrate |

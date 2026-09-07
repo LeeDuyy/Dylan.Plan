@@ -1,3 +1,5 @@
+import { Card, Col, Row } from "antd";
+
 export function TargetGrid({
   eyebrow,
   title,
@@ -19,14 +21,16 @@ export function TargetGrid({
           </div>
           {desc && <p>{desc}</p>}
         </div>
-        <div className="targets">
+        <Row className="targets" gutter={[16, 16]}>
           {items.map(([value, label]) => (
-            <article className="card target-card" key={`${value}-${label}`}>
-              <strong>{value}</strong>
-              <span>{label}</span>
-            </article>
+            <Col key={`${value}-${label}`} xs={24} sm={12} lg={8} xl={6}>
+              <Card className="target-card">
+                <strong>{value}</strong>
+                <span>{label}</span>
+              </Card>
+            </Col>
           ))}
-        </div>
+        </Row>
       </div>
     </section>
   );

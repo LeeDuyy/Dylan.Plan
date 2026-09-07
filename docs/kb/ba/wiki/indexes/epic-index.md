@@ -23,6 +23,7 @@ tags: [kb/ba/wiki/indexes]
 | Mã | Tên function | Lý do không gắn epic |
 | --- | --- | --- |
 | `US-002` | Route/module riêng cho Quản lý chi tiêu (spec `Ready for DEV`) | Hạ tầng route/điều hướng dùng chung cho cả 4 luồng (F1, F2, F3, F4) — không thuộc riêng một luồng nào theo mô hình ánh xạ 1:1 epic↔luồng hiện tại |
+| `US-023` | Chuẩn hóa layout toàn app bằng Ant Design + responsive (`Draft`) | Cross-cutting toàn bộ giao diện (F1–F4 + các tab ngoài Business Flow) — thuần tầng trình bày, xử lý như tiền lệ `US-002`, không gắn epic. Rule `BR-038` |
 | `US-022` | Nguồn thu, sửa insight, tháng mặc định, item cần mua mọi tháng tại tab Thu chi (`Draft`) | Cross-cutting ba luồng, không gắn 1 epic: F2 (khai báo/điều chỉnh nguồn thu — phục vụ `M4`), F3 (tháng mặc định + nới giới hạn tháng item cần mua — Impacts `US-019`, phục vụ `M3`), F4 (sửa insight tiết kiệm cho đúng — phục vụ `M4`). Business Flow đã sync 2026-09-07 theo `DEC-127`..`DEC-131` |
 
 ## 1c. Function Ngoài Business Flow "Hệ Thống Quản Lý Chi Tiêu" (mảng Roadmap/tuyển dụng)

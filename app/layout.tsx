@@ -1,6 +1,9 @@
+import "@ant-design/v5-patch-for-react-19";
 import type { Metadata } from "next";
 import "./globals.css";
 
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { AppThemeProvider } from "@/components/shared/AppThemeProvider";
 import { UserSessionProvider } from "@/components/shared/UserSessionContext";
 import { auth } from "@/auth";
 
@@ -19,7 +22,11 @@ export default async function RootLayout({
   return (
     <html lang="vi">
       <body suppressHydrationWarning>
-        <UserSessionProvider email={session?.user?.email ?? null}>{children}</UserSessionProvider>
+        <AntdRegistry>
+          <UserSessionProvider email={session?.user?.email ?? null}>
+            <AppThemeProvider>{children}</AppThemeProvider>
+          </UserSessionProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

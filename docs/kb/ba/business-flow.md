@@ -274,7 +274,7 @@ Nơi hai luồng dùng chung dữ liệu hoặc chặn nhau — đây là chỗ 
 | US-016 | Chuẩn hóa "Loại" chi tiêu (danh mục) thành combobox cố định (defect + opportunity PO-03) | F2 | M1 | Raw (2026-08-11) |
 | US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | F3 | M3 (mục tiêu mới, `DEC-105`) | Delivered With Notes (2026-08-14) — điều kiện tháng thao tác được nới bởi US-022 (`DEC-130`) |
 | US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định, và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | F2 (nguồn thu), F3 (tháng mặc định, item cần mua), F4 (insight tiết kiệm) | M4 (mục tiêu mới, `DEC-127`); M3 (nới item cần mua) | Spec đang hoàn thiện (2026-09-07) |
-| US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | Toàn bộ giao diện (cross-cutting F1–F4) | M2 (trải nghiệm) | Raw (2026-09-07) |
+| US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | Toàn bộ Dylan Plan app (6 tab — chỉ tab Thu chi thuộc F1–F4; 5 tab còn lại ngoài Business Flow này) | Không neo M1–M4 — hạng mục cross-cutting UX/kỹ thuật, căn cứ `DEC-132` (user chốt tường minh, tiền lệ `DEC-088`) | Spec `Ready for DEV` — đang qua pipeline (2026-09-07) |
 
 Trạng thái `Raw`: `ssr-raw` đã cấp mã và tạo raw + BA wiki stub cho toàn bộ 11 US (2026-08-03, sau khi user duyệt "DUYỆT TẠO CHO 11 US"). Tính đến 2026-08-06, US-001, US-002, US-003, US-004, US-005 đã đi hết pipeline (`ba → plan → data (khi cần) → task → implement → review/test → report`), đều verdict `Pass`/`Pass With Notes` — xem `report.md` tương ứng trong `docs/features/`. 6 US còn lại (US-006 đến US-011, trừ US-010 đã liệt kê ở trên) vẫn dừng ở `Raw`, chưa có spec. Chi tiết từng mã xem `docs/requirements-index.md`.
 

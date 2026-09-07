@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Card, Col, Progress, Row } from "antd";
 import { CalendarDays, WalletCards } from "lucide-react";
 import Link from "next/link";
 
@@ -192,13 +193,15 @@ export function OverviewView({
               nhập nhanh chi tiêu.
             </p>
             <div className="hero-actions">
-              <Link className="btn primary" href="/roadmap">
-                <CalendarDays size={18} />
-                Xem roadmap
+              <Link href="/roadmap">
+                <Button type="primary" icon={<CalendarDays size={18} />}>
+                  Xem roadmap
+                </Button>
               </Link>
-              <Link className="btn" href="/budget">
-                <WalletCards size={18} />
-                Nhập thu chi
+              <Link href="/budget">
+                <Button icon={<WalletCards size={18} />}>
+                  Nhập thu chi
+                </Button>
               </Link>
             </div>
           </div>
@@ -215,7 +218,7 @@ export function OverviewView({
             <p>Giai đoạn roadmap hiện tại và trạng thái pipeline ứng tuyển. Chi tiết ngân sách nằm ở tab Thu chi.</p>
           </div>
 
-          <article className="card panel overview-phase">
+          <Card className="panel overview-phase">
             <span className="eyebrow">
               {PHASE_STATE_LABEL[activePhase.state]} · {activePhase.phase.date}
             </span>
@@ -227,21 +230,24 @@ export function OverviewView({
                 </div>
               ))}
             </div>
-            <Link className="btn" href="/roadmap">
-              <CalendarDays size={18} />
-              Xem chi tiết roadmap
+            <Link href="/roadmap">
+              <Button icon={<CalendarDays size={18} />}>
+                Xem chi tiết roadmap
+              </Button>
             </Link>
-          </article>
+          </Card>
 
-          <div className="summary-grid overview-pipeline">
+          <Row className="overview-pipeline" gutter={[16, 16]}>
             {pipelineCards.map(([label, value, desc]) => (
-              <article className="card summary" key={label}>
-                <span className="eyebrow">{label}</span>
-                <div className="value">{value}</div>
-                <p>{desc}</p>
-              </article>
+              <Col key={label} xs={24} sm={12} lg={6}>
+                <Card className="summary">
+                  <span className="eyebrow">{label}</span>
+                  <div className="value">{value}</div>
+                  <p>{desc}</p>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
       </section>
 
@@ -303,19 +309,25 @@ function PrioritySection() {
           </div>
           <p>Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio.</p>
         </div>
-        <div className="priority-grid">
+        <Row className="priority-grid" gutter={[16, 16]}>
           {priorities.map(([title, percent, desc, width], index) => (
-            <article className="card priority" key={title}>
-              <span className="eyebrow">Ưu tiên {index + 1}</span>
-              <div className="percent">{percent}</div>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-              <div className="bar">
-                <i style={{ width: `${width}%` }} />
-              </div>
-            </article>
+            <Col key={title} xs={24} sm={12} lg={6}>
+              <Card className="priority">
+                <span className="eyebrow">Ưu tiên {index + 1}</span>
+                <div className="percent">{percent}</div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <Progress
+                  className="priority-bar"
+                  percent={width}
+                  showInfo={false}
+                  strokeColor="var(--primary)"
+                  trailColor="var(--line)"
+                />
+              </Card>
+            </Col>
           ))}
-        </div>
+        </Row>
       </div>
     </section>
   );
@@ -335,7 +347,7 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
           </div>
           <div className="timeline">
             {roadmapPhases.map((phase) => (
-              <article className="card phase" key={phase.date}>
+              <Card className="phase" key={phase.date}>
                 <div className="phase-date">
                   <strong>{phase.date}</strong>
                   <span>{phase.label}</span>
@@ -352,7 +364,7 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
                     ))}
                   </div>
                 </div>
-              </article>
+              </Card>
             ))}
           </div>
         </div>
@@ -391,14 +403,17 @@ function FreelanceSections() {
             <p>Không build platform lớn trước khi có tín hiệu mua; bán gói nhỏ, lấy feedback, rồi chuẩn hóa phần lặp lại.</p>
           </div>
           <div className="freelance-strategy">
-            <article className="card panel">
+            <Card className="panel">
               <span className="eyebrow">Chiến lược chính</span>
               <h3>80% Buy to Build · 20% Build to Buy</h3>
               <p className="muted">Ưu tiên lead, demo, báo giá và delivery nhỏ; chỉ refactor phần đã có tín hiệu lặp lại.</p>
-              <div className="hybrid-ratio">
-                <span className="buy-build" />
-                <span className="build-buy" />
-              </div>
+              <Progress
+                className="hybrid-ratio"
+                percent={80}
+                showInfo={false}
+                strokeColor="var(--warning)"
+                trailColor="var(--success)"
+              />
               <div className="ratio-labels">
                 <div>
                   <strong>80% Buy to Build</strong>
@@ -409,8 +424,8 @@ function FreelanceSections() {
                   Refactor, config, module dùng chung
                 </div>
               </div>
-            </article>
-            <article className="card panel">
+            </Card>
+            <Card className="panel">
               <span className="eyebrow">Nguyên tắc</span>
               <h3>Không build khi chưa có tín hiệu mua</h3>
               <TopicList
@@ -420,22 +435,24 @@ function FreelanceSections() {
                   ["3", "Platform hóa sau khi lặp lại", "Một feature nên xuất hiện ở ít nhất 2-3 khách hàng trước khi đưa vào core."]
                 ]}
               />
-            </article>
+            </Card>
           </div>
-          <div className="service-grid">
+          <Row className="service-grid" gutter={[16, 16]}>
             {freelanceServices.map(([code, title, desc, items]) => (
-              <article className="card service-card" key={title}>
-                <small>{code}</small>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-                <div className="service-meta">
-                  {items.map((item) => (
-                    <span key={item}>{item}</span>
-                  ))}
-                </div>
-              </article>
+              <Col key={title} xs={24} sm={12} lg={8}>
+                <Card className="service-card">
+                  <small>{code}</small>
+                  <h3>{title}</h3>
+                  <p>{desc}</p>
+                  <div className="service-meta">
+                    {items.map((item) => (
+                      <span key={item}>{item}</span>
+                    ))}
+                  </div>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
       </section>
 
@@ -515,7 +532,7 @@ function ProductSections() {
             <p>Tạo bộ template bán hàng nhỏ dùng cho shop của bạn, sau đó tái sử dụng cho khách freelance theo Buy to Build.</p>
           </div>
           <div className="two-col">
-            <article className="card panel">
+            <Card className="panel">
               <span className="eyebrow">Định vị MVP</span>
               <h3>Mini Shop Builder cho shop nhỏ</h3>
               <div className="stack-list">
@@ -531,8 +548,8 @@ function ProductSections() {
                   </div>
                 ))}
               </div>
-            </article>
-            <article className="card panel">
+            </Card>
+            <Card className="panel">
               <span className="eyebrow">Nguyên tắc build</span>
               <h3>Build nhỏ, dùng được ngay</h3>
               <TopicList
@@ -542,7 +559,7 @@ function ProductSections() {
                   ["3", "Không vượt 4-5 giờ/tuần", "Trước 15/09, sản phẩm là portfolio và tài sản tái sử dụng, không cạnh tranh với mục tiêu offer."]
                 ]}
               />
-            </article>
+            </Card>
           </div>
         </div>
       </section>
@@ -556,20 +573,22 @@ function ProductSections() {
             </div>
             <p>Chỉ build những phần giúp demo, bán gói nhỏ hoặc reuse cho khách sau.</p>
           </div>
-          <div className="module-grid">
+          <Row className="module-grid" gutter={[16, 16]}>
             {[
               ["01 · PUBLIC SITE", "Landing + Catalog", "Trang chủ, banner, câu chuyện thương hiệu, danh sách sản phẩm, chi tiết sản phẩm và CTA Zalo/Facebook."],
               ["02 · ORDER", "Đặt hàng đơn giản", "Form thông tin khách, sản phẩm quan tâm, ghi chú, trạng thái đơn ở mức cơ bản. Ưu tiên COD/manual confirm."],
               ["03 · ADMIN", "Quản trị nội dung", "CRUD sản phẩm, danh mục, ảnh, giá, trạng thái hiển thị, đơn hàng và thông tin liên hệ."],
               ["04 · REUSE", "Theme Config", "Cấu hình màu, logo, font, social link, thông tin shop và banner để clone cho khách mới nhanh hơn."]
             ].map(([code, title, desc]) => (
-              <article className="card module-card" key={title}>
-                <small>{code}</small>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-              </article>
+              <Col key={title} xs={24} sm={12} lg={6}>
+                <Card className="module-card">
+                  <small>{code}</small>
+                  <h3>{title}</h3>
+                  <p>{desc}</p>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
       </section>
 
@@ -582,19 +601,21 @@ function ProductSections() {
             </div>
             <p>Nếu tuần nào có phỏng vấn, ưu tiên phỏng vấn và đẩy sản phẩm sang cuối tuần.</p>
           </div>
-          <div className="product-roadmap">
+          <Row className="product-roadmap" gutter={[16, 16]}>
             {productWeeks.map(([week, title, items]) => (
-              <article className="card product-week" key={week}>
-                <small>{week}</small>
-                <h3>{title}</h3>
-                <ul>
-                  {items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </article>
+              <Col key={week} xs={24} sm={12} lg={6}>
+                <Card className="product-week">
+                  <small>{week}</small>
+                  <h3>{title}</h3>
+                  <ul>
+                    {items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
       </section>
 
@@ -627,27 +648,31 @@ function LongTermSections() {
             <p>Hướng tới tổng thu nhập tối thiểu 60M/tháng nhưng không đánh đổi bằng quá tải sau khi vừa chuyển việc.</p>
           </div>
           <div className="two-col">
-            <article className="card panel">
+            <Card className="panel">
               <span className="eyebrow">Cơ cấu mục tiêu</span>
               <div className="income-total">≥ 60M / tháng</div>
               <p className="muted">Lương mới vẫn là nền tảng. Freelance tăng trưởng theo Buy to Build; sản phẩm chỉ mở rộng khi có khách.</p>
               <div className="income-breakdown">
                 {[
-                  ["Lương chính", "40-45M net", "70%", "salary-bar"],
-                  ["Freelance", "10-15M", "20%", "freelance-bar"],
-                  ["Sản phẩm", "0-5M ban đầu", "10%", "product-bar"]
-                ].map(([title, value, width, cls]) => (
+                  ["Lương chính", "40-45M net", "70%", "var(--primary)"],
+                  ["Freelance", "10-15M", "20%", "var(--warning)"],
+                  ["Sản phẩm", "0-5M ban đầu", "10%", "var(--success)"]
+                ].map(([title, value, width, color]) => (
                   <div className="income-row" key={title}>
                     <strong>{title}</strong>
-                    <div className="income-track">
-                      <i className={cls} style={{ width }} />
-                    </div>
+                    <Progress
+                      className="income-track"
+                      percent={Number.parseInt(width, 10)}
+                      showInfo={false}
+                      strokeColor={color}
+                      trailColor="var(--line)"
+                    />
                     <span>{value}</span>
                   </div>
                 ))}
               </div>
-            </article>
-            <article className="card panel">
+            </Card>
+            <Card className="panel">
               <span className="eyebrow">Kịch bản</span>
               <h3>Ba phương án thu nhập</h3>
               <div className="scenario-list">
@@ -663,7 +688,7 @@ function LongTermSections() {
                   </div>
                 ))}
               </div>
-            </article>
+            </Card>
           </div>
         </div>
       </section>
@@ -693,7 +718,7 @@ function TimetableSection() {
           </div>
           <p>Mỗi tối chỉ có một nhiệm vụ chính, tiếng Anh ngắn hằng ngày và ít nhất một buổi nghỉ hoàn toàn.</p>
         </div>
-        <article className="card panel">
+        <Card className="panel">
           <div className="schedule">
             {["Khung giờ", "T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((item) => (
               <div className="cell head" key={item}>
@@ -717,7 +742,7 @@ function TimetableSection() {
             <span style={{ "--legend-color": "var(--success)" } as React.CSSProperties}>Sản phẩm</span>
             <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Freelance/portfolio</span>
           </div>
-        </article>
+        </Card>
       </div>
     </section>
   );
@@ -737,7 +762,7 @@ function EnglishInterviewSections() {
     <>
       <section className="section" id="english">
         <div className="container two-col">
-          <article className="card panel">
+          <Card className="panel">
             <span className="eyebrow">Tiếng Anh</span>
             <h2>Kế hoạch tiếng Anh</h2>
             <TopicList
@@ -749,8 +774,8 @@ function EnglishInterviewSections() {
                 ["5", "Salary & motivation", "Lý do chuyển việc, kỳ vọng vai trò và thương lượng package."]
               ]}
             />
-          </article>
-          <article className="card panel">
+          </Card>
+          <Card className="panel">
             <span className="eyebrow">Phỏng vấn</span>
             <h2>Các vòng phỏng vấn</h2>
             <div className="round-grid">
@@ -767,7 +792,7 @@ function EnglishInterviewSections() {
                 </div>
               ))}
             </div>
-          </article>
+          </Card>
         </div>
       </section>
       <TargetGrid
@@ -830,7 +855,7 @@ function GateSection({
           <p>{desc}</p>
         </div>
         <div className="decision-grid">
-          <article className="card panel">
+          <Card className="panel">
             <span className="eyebrow accept">{acceptTitle}</span>
             <div className="decision-list">
               {acceptItems.map((item) => (
@@ -840,8 +865,8 @@ function GateSection({
                 </div>
               ))}
             </div>
-          </article>
-          <article className="card panel">
+          </Card>
+          <Card className="panel">
             <span className="eyebrow reject">{rejectTitle}</span>
             <div className="decision-list">
               {rejectItems.map((item) => (
@@ -851,7 +876,7 @@ function GateSection({
                 </div>
               ))}
             </div>
-          </article>
+          </Card>
         </div>
       </div>
     </section>

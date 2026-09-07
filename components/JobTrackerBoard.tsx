@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, ChevronDown, ExternalLink, Plus, Trash2, X } from "lucide-react";
+import { Button, Card, Dropdown, Input, Popconfirm, Select, Space, Table } from "antd";
+import type { TableProps } from "antd";
+import { Check, ExternalLink, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { Toast } from "@/components/shared/Toast";
 import {
@@ -66,6 +67,9 @@ type ClientJob = Omit<JobApplicationEntity, "deadline" | "submittedAt" | "create
 type FieldErrors = Partial<Record<JobField, string>>;
 type LinkMessageMap = Record<string, string[]>;
 type ReadingLinkMap = Record<string, boolean>;
+type JobTableRow =
+  | { key: "draft"; kind: "draft" }
+  | { key: string; kind: "job"; job: ClientJob };
 
 const LINK_MESSAGE_TTL_MS = 5_000;
 const LINK_READING_TTL_MS = 10_000;
@@ -417,319 +421,231 @@ export function JobTrackerBoard({
     }
   };
 
-  const toggleSort = (column: SortColumn) => {
-    setSort((current) =>
-      current?.column === column
-        ? { column, direction: current.direction === "asc" ? "desc" : "asc" }
-        : { column, direction: "asc" }
-    );
+  const tableRows: JobTableRow[] = [
+    ...(adding ? ([{ key: "draft", kind: "draft" }] as JobTableRow[]) : []),
+    ...sortedJobs.map((job) => ({ key: job.id, kind: "job" as const, job }))
+  ];
+
+  const sortOrder = (column: SortColumn) =>
+    sort?.column === column ? (sort.direction === "asc" ? "ascend" : "descend") : null;
+
+  const handleTableChange: TableProps<JobTableRow>["onChange"] = (_pagination, _filters, sorter) => {
+    const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+    if (!activeSorter?.columnKey || !activeSorter.order) return;
+    setSort({
+      column: activeSorter.columnKey as SortColumn,
+      direction: activeSorter.order === "ascend" ? "asc" : "desc"
+    });
   };
 
-  const renderSortMark = (column: SortColumn) => {
-    if (sort?.column !== column) return "v";
-    return sort.direction === "asc" ? "↑" : "↓";
-  };
+  const columns: TableProps<JobTableRow>["columns"] = [
+    {
+      title: "Công ty",
+      key: "company",
+      width: 170,
+      sorter: true,
+      sortOrder: sortOrder("company"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <JobTextInput error={fieldErrors.draft?.company} onChange={(company) => setDraft((current) => ({ ...current, company }))} value={draft.company} />
+        ) : (
+          <JobTextInput
+            error={fieldErrors[row.job.id]?.company}
+            onBlur={() => commitJob(row.job.id)}
+            onChange={(company) => updateJobLocal(row.job.id, { company })}
+            value={row.job.company}
+          />
+        )
+    },
+    {
+      title: "Ngày hết hạn",
+      key: "deadline",
+      width: 150,
+      sorter: true,
+      sortOrder: sortOrder("deadline"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <JobDateInput error={fieldErrors.draft?.deadline} onChange={(deadline) => setDraft((current) => ({ ...current, deadline }))} value={draft.deadline} />
+        ) : (
+          <JobDateInput
+            error={fieldErrors[row.job.id]?.deadline}
+            onBlur={() => commitJob(row.job.id)}
+            onChange={(deadline) => updateJobLocal(row.job.id, { deadline })}
+            title={formatDate(row.job.deadline)}
+            value={toDateInputValue(row.job.deadline)}
+          />
+        )
+    },
+    {
+      title: "Platform",
+      key: "platformId",
+      width: 170,
+      sorter: true,
+      sortOrder: sortOrder("platformId"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <PlatformDropdown
+            error={fieldErrors.draft?.platformId}
+            onChange={(platformId) => setDraft((current) => ({ ...current, platformId }))}
+            onRefreshSnapshot={refreshSnapshot}
+            platforms={platforms}
+            setToastMessage={setToastMessage}
+            value={draft.platformId}
+          />
+        ) : (
+          <PlatformDropdown
+            error={fieldErrors[row.job.id]?.platformId}
+            onChange={(platformId) => {
+              updateJobLocal(row.job.id, { platformId });
+              commitJob(row.job.id, { platformId });
+            }}
+            onRefreshSnapshot={refreshSnapshot}
+            platforms={platforms}
+            selectedLabel={platformNameById.get(row.job.platformId) ?? "Không rõ Platform"}
+            setToastMessage={setToastMessage}
+            value={row.job.platformId}
+          />
+        )
+    },
+    {
+      title: "Link",
+      key: "link",
+      width: 240,
+      sorter: true,
+      sortOrder: sortOrder("link"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <JobLinkInput
+            error={fieldErrors.draft?.link}
+            messages={linkMessages.draft ?? []}
+            onBlur={(link) => readLinkFor("draft", link)}
+            onChange={(link) => setDraft((current) => ({ ...current, link }))}
+            reading={Boolean(readingLinkByKey.draft)}
+            value={draft.link}
+          />
+        ) : (
+          <div className="job-link-cell">
+            <JobLinkInput
+              error={fieldErrors[row.job.id]?.link}
+              messages={linkMessages[row.job.id] ?? []}
+              onBlur={(link) => {
+                commitJob(row.job.id);
+                readLinkFor(row.job.id, link);
+              }}
+              onChange={(link) => updateJobLocal(row.job.id, { link })}
+              reading={Boolean(readingLinkByKey[row.job.id])}
+              value={row.job.link}
+            />
+            <Button href={row.job.link} rel="noreferrer" target="_blank" title="Mở link" type="text" icon={<ExternalLink size={15} />} />
+          </div>
+        )
+    },
+    {
+      title: "Trạng thái",
+      key: "status",
+      width: 160,
+      sorter: true,
+      sortOrder: sortOrder("status"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <StatusSelect onChange={(status) => setDraft((current) => ({ ...current, status }))} value={draft.status} />
+        ) : (
+          <StatusSelect
+            onChange={(status) => {
+              updateJobLocal(row.job.id, { status });
+              commitJob(row.job.id, { status });
+            }}
+            value={row.job.status}
+          />
+        )
+    },
+    {
+      title: "Ngày nộp hồ sơ",
+      key: "submittedAt",
+      width: 150,
+      render: (_, row) => (row.kind === "draft" ? "-" : formatDateTime(row.job.submittedAt) || "-")
+    },
+    {
+      title: "Ghi chú",
+      key: "note",
+      width: 220,
+      sorter: true,
+      sortOrder: sortOrder("note"),
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <JobNoteInput onChange={(note) => setDraft((current) => ({ ...current, note }))} value={draft.note} />
+        ) : (
+          <JobNoteInput onBlur={() => commitJob(row.job.id)} onChange={(note) => updateJobLocal(row.job.id, { note })} value={row.job.note ?? ""} />
+        )
+    },
+    {
+      title: "",
+      key: "actions",
+      width: 96,
+      render: (_, row) =>
+        row.kind === "draft" ? (
+          <Space>
+            <Button type="text" disabled={savingId === "draft"} onClick={saveDraft} title="Lưu job" icon={<Check size={16} />} />
+            <Button
+              type="text"
+              disabled={savingId === "draft"}
+              onClick={() => {
+                setAdding(false);
+                setDraft(EMPTY_JOB_FORM);
+                clearRowErrors("draft");
+                resetLinkReadState("draft");
+              }}
+              title="Hủy thêm job"
+              icon={<X size={16} />}
+            />
+          </Space>
+        ) : (
+          <Popconfirm
+            title="Xóa?"
+            okText="Xác nhận xóa"
+            cancelText="Hủy xóa"
+            open={confirmDeleteJobId === row.job.id}
+            onOpenChange={(open) => setConfirmDeleteJobId(open ? row.job.id : null)}
+            onConfirm={() => confirmDeleteJob(row.job.id)}
+          >
+            <Button type="text" danger disabled={savingId === row.job.id} title="Xóa job" icon={<Trash2 size={16} />} />
+          </Popconfirm>
+        )
+    }
+  ];
 
   return (
     <>
       <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
       <section className="section" id="job-tracker">
         <div className="container">
-          <article className="card panel job-tracker-panel">
+          <Card className="panel job-tracker-panel">
             <div className="section-head job-tracker-head">
               <div>
                 <span className="eyebrow">Ứng tuyển</span>
                 <h2>Theo dõi CV ứng tuyển</h2>
               </div>
-              <button className="btn primary" onClick={() => setAdding(true)} type="button">
-                <Plus size={18} />
+              <Button type="primary" onClick={() => setAdding(true)} icon={<Plus size={18} />}>
                 Thêm job
-              </button>
+              </Button>
             </div>
 
-            <div className="budget-table-wrap job-tracker-table-wrap">
-              <table className="job-tracker-table">
-                <thead>
-                  <tr>
-                    <SortableHeader label="Công ty" mark={renderSortMark("company")} onClick={() => toggleSort("company")} />
-                    <SortableHeader
-                      label="Ngày hết hạn"
-                      mark={renderSortMark("deadline")}
-                      onClick={() => toggleSort("deadline")}
-                    />
-                    <SortableHeader label="Platform" mark={renderSortMark("platformId")} onClick={() => toggleSort("platformId")} />
-                    <SortableHeader label="Link" mark={renderSortMark("link")} onClick={() => toggleSort("link")} />
-                    <SortableHeader label="Trạng thái" mark={renderSortMark("status")} onClick={() => toggleSort("status")} />
-                    <th>Ngày nộp hồ sơ</th>
-                    <SortableHeader label="Ghi chú" mark={renderSortMark("note")} onClick={() => toggleSort("note")} />
-                    <th aria-label="Thao tác"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adding && (
-                    <DraftJobRow
-                      draft={draft}
-                      errors={fieldErrors.draft ?? {}}
-                      linkMessages={linkMessages.draft ?? []}
-                      onCancel={() => {
-                        setAdding(false);
-                        setDraft(EMPTY_JOB_FORM);
-                        clearRowErrors("draft");
-                        resetLinkReadState("draft");
-                      }}
-                      onChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-                      onRefreshSnapshot={refreshSnapshot}
-                      onReadLink={(link) => readLinkFor("draft", link)}
-                      onSave={saveDraft}
-                      platforms={platforms}
-                      readingLink={Boolean(readingLinkByKey.draft)}
-                      saving={savingId === "draft"}
-                      setToastMessage={setToastMessage}
-                    />
-                  )}
-                  {sortedJobs.map((job) => (
-                    <JobRow
-                      confirmDelete={confirmDeleteJobId === job.id}
-                      errors={fieldErrors[job.id] ?? {}}
-                      job={job}
-                      key={job.id}
-                      linkMessages={linkMessages[job.id] ?? []}
-                      onCancelDelete={() => setConfirmDeleteJobId(null)}
-                      onChange={(patch) => updateJobLocal(job.id, patch)}
-                      onCommit={(patch) => commitJob(job.id, patch)}
-                      onConfirmDelete={() => confirmDeleteJob(job.id)}
-                      onReadLink={(link) => readLinkFor(job.id, link)}
-                      onRefreshSnapshot={refreshSnapshot}
-                      onStartDelete={() => setConfirmDeleteJobId(job.id)}
-                      platformName={platformNameById.get(job.platformId) ?? "Không rõ Platform"}
-                      platforms={platforms}
-                      readingLink={Boolean(readingLinkByKey[job.id])}
-                      saving={savingId === job.id}
-                      setToastMessage={setToastMessage}
-                    />
-                  ))}
-                  {!adding && sortedJobs.length === 0 && (
-                    <tr>
-                      <td className="job-empty" colSpan={8}>
-                        Chưa có job nào.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </article>
+            <Table<JobTableRow>
+              className="job-tracker-table"
+              columns={columns}
+              dataSource={tableRows}
+              locale={{ emptyText: "Chưa có job nào." }}
+              onChange={handleTableChange}
+              pagination={false}
+              rowKey="key"
+              scroll={{ x: "max-content" }}
+              sortDirections={["ascend", "descend"]}
+              sticky
+            />
+          </Card>
         </div>
       </section>
     </>
-  );
-}
-
-function SortableHeader({ label, mark, onClick }: { label: string; mark: string; onClick: () => void }) {
-  return (
-    <th>
-      <button className="job-sort-button" onClick={onClick} type="button">
-        <span>{label}</span>
-        <span aria-hidden="true">{mark}</span>
-      </button>
-    </th>
-  );
-}
-
-function DraftJobRow({
-  draft,
-  errors,
-  linkMessages,
-  onCancel,
-  onChange,
-  onRefreshSnapshot,
-  onReadLink,
-  onSave,
-  platforms,
-  readingLink,
-  saving,
-  setToastMessage
-}: {
-  draft: JobForm;
-  errors: FieldErrors;
-  linkMessages: string[];
-  onCancel: () => void;
-  onChange: (patch: Partial<JobForm>) => void;
-  onRefreshSnapshot: () => Promise<JobTrackerSnapshot>;
-  onReadLink: (link: string) => void;
-  onSave: () => void;
-  platforms: JobPlatformEntity[];
-  readingLink: boolean;
-  saving: boolean;
-  setToastMessage: (message: string) => void;
-}) {
-  return (
-    <tr>
-      <td>
-        <JobTextInput error={errors.company} onChange={(company) => onChange({ company })} value={draft.company} />
-      </td>
-      <td>
-        <JobDateInput error={errors.deadline} onChange={(deadline) => onChange({ deadline })} value={draft.deadline} />
-      </td>
-      <td>
-        <PlatformDropdown
-          error={errors.platformId}
-          onChange={(platformId) => onChange({ platformId })}
-          onRefreshSnapshot={onRefreshSnapshot}
-          platforms={platforms}
-          setToastMessage={setToastMessage}
-          value={draft.platformId}
-        />
-      </td>
-      <td>
-        <JobLinkInput
-          error={errors.link}
-          messages={linkMessages}
-          onBlur={onReadLink}
-          onChange={(link) => onChange({ link })}
-          reading={readingLink}
-          value={draft.link}
-        />
-      </td>
-      <td>
-        <StatusSelect onChange={(status) => onChange({ status })} value={draft.status} />
-      </td>
-      <td>-</td>
-      <td>
-        <JobNoteInput onChange={(note) => onChange({ note })} value={draft.note} />
-      </td>
-      <td>
-        <div className="job-row-actions">
-          <button className="icon-button" disabled={saving} onClick={onSave} title="Lưu job" type="button">
-            <Check size={16} />
-          </button>
-          <button className="icon-button" disabled={saving} onClick={onCancel} title="Hủy thêm job" type="button">
-            <X size={16} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function JobRow({
-  confirmDelete,
-  errors,
-  job,
-  linkMessages,
-  onCancelDelete,
-  onChange,
-  onCommit,
-  onConfirmDelete,
-  onReadLink,
-  onRefreshSnapshot,
-  onStartDelete,
-  platformName,
-  platforms,
-  readingLink,
-  saving,
-  setToastMessage
-}: {
-  confirmDelete: boolean;
-  errors: FieldErrors;
-  job: ClientJob;
-  linkMessages: string[];
-  onCancelDelete: () => void;
-  onChange: (patch: Partial<JobForm>) => void;
-  onCommit: (patch?: Partial<JobForm>) => void;
-  onConfirmDelete: () => void;
-  onReadLink: (link: string) => void;
-  onRefreshSnapshot: () => Promise<JobTrackerSnapshot>;
-  onStartDelete: () => void;
-  platformName: string;
-  platforms: JobPlatformEntity[];
-  readingLink: boolean;
-  saving: boolean;
-  setToastMessage: (message: string) => void;
-}) {
-  const form = toJobForm(job);
-  return (
-    <tr>
-      <td>
-        <JobTextInput
-          error={errors.company}
-          onBlur={() => onCommit()}
-          onChange={(company) => onChange({ company })}
-          value={job.company}
-        />
-      </td>
-      <td>
-        <JobDateInput
-          error={errors.deadline}
-          onBlur={() => onCommit()}
-          onChange={(deadline) => onChange({ deadline })}
-          title={formatDate(job.deadline)}
-          value={form.deadline}
-        />
-      </td>
-      <td>
-        <PlatformDropdown
-          error={errors.platformId}
-          onChange={(platformId) => {
-            onChange({ platformId });
-            onCommit({ platformId });
-          }}
-          onRefreshSnapshot={onRefreshSnapshot}
-          platforms={platforms}
-          selectedLabel={platformName}
-          setToastMessage={setToastMessage}
-          value={job.platformId}
-        />
-      </td>
-      <td>
-        <div className="job-link-cell">
-          <JobLinkInput
-            error={errors.link}
-            messages={linkMessages}
-            onBlur={(link) => {
-              onCommit();
-              onReadLink(link);
-            }}
-            onChange={(link) => onChange({ link })}
-            reading={readingLink}
-            value={job.link}
-          />
-          <a className="icon-button job-link-open" href={job.link} rel="noreferrer" target="_blank" title="Mở link">
-            <ExternalLink size={15} />
-          </a>
-        </div>
-      </td>
-      <td>
-        <StatusSelect
-          onChange={(status) => {
-            onChange({ status });
-            onCommit({ status });
-          }}
-          value={job.status}
-        />
-      </td>
-      <td>{formatDateTime(job.submittedAt) || "-"}</td>
-      <td>
-        <JobNoteInput onBlur={() => onCommit()} onChange={(note) => onChange({ note })} value={job.note ?? ""} />
-      </td>
-      <td>
-        {confirmDelete ? (
-          <div className="job-confirm-delete">
-            <span>Xóa?</span>
-            <button className="icon-button danger-inline" disabled={saving} onClick={onConfirmDelete} title="Xác nhận xóa" type="button">
-              <Check size={15} />
-            </button>
-            <button className="icon-button" disabled={saving} onClick={onCancelDelete} title="Hủy xóa" type="button">
-              <X size={15} />
-            </button>
-          </div>
-        ) : (
-          <button className="icon-button" disabled={saving} onClick={onStartDelete} title="Xóa job" type="button">
-            <Trash2 size={16} />
-          </button>
-        )}
-      </td>
-    </tr>
   );
 }
 
@@ -746,7 +662,7 @@ function JobTextInput({
 }) {
   return (
     <div className="job-field">
-      <input onBlur={onBlur} onChange={(event) => onChange(event.target.value)} value={value} />
+      <Input onBlur={onBlur} onChange={(event) => onChange(event.target.value)} value={value} />
       {error && <span className="job-field-error">{error}</span>}
     </div>
   );
@@ -765,7 +681,7 @@ function JobNoteInput({
 }) {
   return (
     <div className="job-field job-note-field">
-      <textarea onBlur={onBlur} onChange={(event) => onChange(event.target.value)} rows={3} value={value} />
+      <Input.TextArea onBlur={onBlur} onChange={(event) => onChange(event.target.value)} rows={3} value={value} />
       {error && <span className="job-field-error">{error}</span>}
     </div>
   );
@@ -786,7 +702,7 @@ function JobDateInput({
 }) {
   return (
     <div className="job-field">
-      <input onBlur={onBlur} onChange={(event) => onChange(event.target.value)} title={title} type="date" value={value} />
+      <Input onBlur={onBlur} onChange={(event) => onChange(event.target.value)} title={title} type="date" value={value} />
       {error && <span className="job-field-error">{error}</span>}
     </div>
   );
@@ -809,7 +725,7 @@ function JobLinkInput({
 }) {
   return (
     <div className="job-field">
-      <input onBlur={(event) => onBlur?.(event.target.value)} onChange={(event) => onChange(event.target.value)} value={value} />
+      <Input onBlur={(event) => onBlur?.(event.target.value)} onChange={(event) => onChange(event.target.value)} value={value} />
       {reading && <span className="job-link-read-status">Đang lấy thông tin...</span>}
       {messages.map((message) => (
         <span className="job-link-read-message" key={message}>
@@ -823,17 +739,12 @@ function JobLinkInput({
 
 function StatusSelect({ onChange, value }: { onChange: (value: JobApplicationStatus) => void; value: JobApplicationStatus }) {
   return (
-    <select
+    <Select
       className={`job-status-select ${STATUS_CLASS[value]}`}
-      onChange={(event) => onChange(event.target.value as JobApplicationStatus)}
+      onChange={onChange}
+      options={STATUS_OPTIONS.map((status) => ({ label: status, value: status }))}
       value={value}
-    >
-      {STATUS_OPTIONS.map((status) => (
-        <option key={status} value={status}>
-          {status}
-        </option>
-      ))}
-    </select>
+    />
   );
 }
 
@@ -857,28 +768,7 @@ function PlatformDropdown({
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const currentLabel = selectedLabel ?? platforms.find((platform) => platform.id === value)?.name ?? "Chọn Platform";
-
-  // Menu render qua portal (document.body) nên phải tự tính toạ độ từ nút trigger —
-  // đóng khi cuộn/resize thay vì đuổi theo, để tránh vị trí bị lệch (menu ngắn, đủ dùng
-  // cho một dropdown chọn/thêm/xóa Platform).
-  useEffect(() => {
-    if (!open) return;
-    const trigger = triggerRef.current;
-    if (trigger) {
-      const rect = trigger.getBoundingClientRect();
-      setMenuPosition({ top: rect.bottom + 6, left: rect.left });
-    }
-    const close = () => setOpen(false);
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [open]);
 
   const addPlatform = async () => {
     const name = newName.trim();
@@ -921,81 +811,61 @@ function PlatformDropdown({
 
   return (
     <div className="job-field">
-      <div className="platform-picker">
-        <button
-          aria-expanded={open}
-          className="platform-trigger"
-          onClick={() => setOpen((current) => !current)}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setOpen(false);
-          }}
-          ref={triggerRef}
-          type="button"
-        >
-          <span>{currentLabel}</span>
-          <ChevronDown size={16} />
-        </button>
-        {open &&
-          menuPosition &&
-          createPortal(
-            <>
-              <div className="platform-menu-backdrop" onClick={() => setOpen(false)} />
-              <div className="platform-menu" style={{ top: menuPosition.top, left: menuPosition.left }}>
-                {platforms.map((platform) => (
-                  <div className="platform-option" key={platform.id}>
-                    <button
-                      className={platform.id === value ? "selected" : ""}
-                      disabled={busy}
-                      onClick={() => {
-                        onChange(platform.id);
-                        setOpen(false);
-                      }}
-                      type="button"
-                    >
-                      {platform.name}
-                    </button>
-                    <button
-                      className="platform-delete"
-                      disabled={busy}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        removePlatform(platform);
-                      }}
-                      title={`Xóa ${platform.name}`}
-                      type="button"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-                <div className="platform-add">
-                  <input
-                    disabled={busy}
-                    onChange={(event) => setNewName(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        addPlatform();
-                      }
-                    }}
-                    placeholder="+ Thêm platform mới"
-                    value={newName}
-                  />
-                  <button
-                    className="icon-button"
-                    disabled={busy || !newName.trim()}
-                    onClick={addPlatform}
-                    title="Thêm platform"
-                    type="button"
-                  >
-                    <Plus size={15} />
-                  </button>
-                </div>
+      <Dropdown
+        open={open}
+        onOpenChange={setOpen}
+        trigger={["click"]}
+        menu={{ items: [] }}
+        popupRender={() => (
+          <div className="platform-menu">
+            {platforms.map((platform) => (
+              <div className="platform-option" key={platform.id}>
+                <Button
+                  className={platform.id === value ? "selected" : ""}
+                  disabled={busy}
+                  onClick={() => {
+                    onChange(platform.id);
+                    setOpen(false);
+                  }}
+                  type="text"
+                >
+                  {platform.name}
+                </Button>
+                <Button
+                  className="platform-delete"
+                  disabled={busy}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removePlatform(platform);
+                  }}
+                  title={`Xóa ${platform.name}`}
+                  type="text"
+                  icon={<X size={14} />}
+                />
               </div>
-            </>,
-            document.body
-          )}
-      </div>
+            ))}
+            <div className="platform-add">
+              <Input
+                disabled={busy}
+                onChange={(event) => setNewName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addPlatform();
+                  }
+                }}
+                placeholder="+ Thêm platform mới"
+                value={newName}
+              />
+              <Button disabled={busy || !newName.trim()} onClick={addPlatform} title="Thêm platform" icon={<Plus size={15} />} />
+            </div>
+          </div>
+        )}
+      >
+        <Button className="platform-trigger" aria-expanded={open}>
+          <span>{currentLabel}</span>
+        </Button>
+      </Dropdown>
       {error && <span className="job-field-error">{error}</span>}
     </div>
   );

@@ -14,13 +14,13 @@ tags: [kb/ba/wiki/reports]
 
 | Loại trang | Số lượng |
 | --- | --- |
-| Feature (nested) | 19 (17 `Active`; `US-009` + `US-022` `Draft`, spec chưa viết; `US-013` gộp vào `US-006`, không tính riêng) |
+| Feature (nested) | 20 (19 `Active` gồm `US-022`/`US-023`; chỉ `US-009` `Draft`; `US-013` gộp vào `US-006`, không tính riêng) |
 | Epic | 4 (US-018, US-020, US-021 không gắn epic — xem mục 2; US-022 gắn `EPC-004`, cross-cutting `EPC-002`/`EPC-003`; `EPC-004` (F4) nay có `US-007`, `US-008`, `US-022`) |
 | Concept | 0 |
-| Business rule | 37 (mới của `US-022`: `BR-033` thu nhập tháng = tổng nguồn thu, `BR-034` insight tách 2 chỉ số tiết kiệm, `BR-035` tháng mặc định hiện tại/gần nhất, `BR-036` item cần mua tháng không quá khứ — thay `BR-024` (nay `Superseded`), `BR-037` tháng mới rỗng nguồn thu) |
+| Business rule | 38 (mới: `BR-038` khung layout Ant Design + responsive toàn app — US-023. Của `US-022`: `BR-033` thu nhập tháng = tổng nguồn thu, `BR-034` insight tách 2 chỉ số tiết kiệm, `BR-035` tháng mặc định hiện tại/gần nhất, `BR-036` item cần mua tháng không quá khứ — thay `BR-024` (nay `Superseded`), `BR-037` tháng mới rỗng nguồn thu) |
 | Workflow | 0 |
 | Entity | 7 (mới: `ENT-007-nguon-thu` — entity mới của `US-022`, chưa có model Prisma) |
-| PBI | 15 đã đồng bộ (US-002 5 AC, US-003 3 AC, US-004 11 AC, US-005 6 AC, US-006 7 AC — gồm 2 AC gộp từ US-013, US-007 4 AC, US-010 7 AC, US-012 5 AC, US-014 5 AC, US-015 6 AC, US-016 8 AC, US-017 8 AC, US-018 11 AC, US-019 10 AC, US-020 9 AC) |
+| PBI | 15 đã đồng bộ (US-002 5 AC, US-003 3 AC, US-004 11 AC, US-005 6 AC, US-006 7 AC — gồm 2 AC gộp từ US-013, US-007 4 AC, US-010 7 AC, US-012 5 AC, US-014 5 AC, US-015 6 AC, US-016 8 AC, US-017 8 AC, US-018 11 AC, US-019 10 AC, US-020 9 AC, US-021 8 AC, US-022 13 AC, US-023 8 AC) |
 
 ## 2. Trang Thiếu Nguồn
 

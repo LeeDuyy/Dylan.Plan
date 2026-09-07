@@ -1,9 +1,10 @@
 # DEV index
 
-Updated: 2026-09-07 (US-022 plan Ready for task-breakdown — đổi schema: model mới `IncomeSource` + migration backfill; `budget-snapshot-service` tính `income` = tổng nguồn thu; `assertMonthNotPast` thay `assertMonthIsCurrent`; `BudgetApp.tsx` thêm bảng Nguồn thu + insight mới)
+Updated: 2026-09-07 (US-023 plan Ready for task-breakdown — thuần tầng trình bày, KHÔNG đổi schema: nền Ant Design v5 + AppShell responsive + gộp /budget vào khung chung + primitive 6 tab → antd. Trước đó: US-022 plan Ready for task-breakdown — đổi schema: model mới `IncomeSource` + migration backfill; `budget-snapshot-service` tính `income` = tổng nguồn thu; `assertMonthNotPast` thay `assertMonthIsCurrent`; `BudgetApp.tsx` thêm bảng Nguồn thu + insight mới)
 
 | Mã | Tên | File |
 | --- | --- | --- |
+| US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | `docs/kb/dev/wiki/US-023-layout-antd-responsive-toan-app.md` |
 | US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | `docs/kb/dev/wiki/US-022-nguon-thu-va-insight-tab-thu-chi.md` |
 | US-021 | Tự điền thông tin job từ link tin tuyển dụng | `docs/kb/dev/wiki/US-021-tu-dien-thong-tin-job-link.md` |
 | US-001 | Lưu trữ chi tiêu bền vững và liên kết giao dịch theo danh mục cố định | `docs/kb/dev/wiki/US-001-luu-tru-chi-tieu-ben-vung.md` |

@@ -1,6 +1,6 @@
 # judgement-log.md — Nhận định và kết luận sau phân tích
 
-Updated: 2026-09-07 (JDG-035)
+Updated: 2026-09-07 (JDG-036)
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Nhận định bị bác bỏ thì đổi `Status: Refuted` và thêm bản ghi mới trỏ ngược lại.
@@ -10,6 +10,17 @@ Ghi vào đây khi: kết thúc một lượt điều tra, review, hoặc phân 
 Khác `decisions.md`: nhận định **có thể sai**. Một nhận định được xác nhận đủ chắc thì nâng thành `DEC-###` bên `decisions.md`.
 
 ---
+
+### JDG-036 — Function cross-cutting toàn giao diện (US-023) neo vào quyết định user tường minh, không gán ép vào mục tiêu Business Flow
+
+- Ngày: 2026-09-07
+- Status: Applied — áp cho `docs/features/US-023-.../spec.md` mục 2/14, wiki feature mục 9, `business-flow.md` mục 6
+- Độ tin cậy: Đã xác nhận từ knowledge — `po-expert` xác nhận `Aligned` sau khi framing sửa; cùng tiền lệ `DEC-088` (US-018 ngoài Business Flow)
+- Feature liên quan: US-023 (tiền lệ cho các hạng mục UX/kỹ thuật toàn app sau)
+- Bối cảnh: Business Flow "Hệ Thống Quản Lý Chi Tiêu" chỉ mô tả tab Thu chi (F1–F4). US-023 chạm cả 6 tab; 5 tab sự nghiệp/freelance/sản phẩm không nằm trong luồng nào của Business Flow đó. `po-expert` lần 1 chỉ ra việc spec gán "M2" / "cross-cutting F1–F4" là mô tả sai phạm vi.
+- Lập luận: Khi một requirement vượt ra ngoài phạm vi Business Flow hiện có và user đã chốt hướng + phạm vi trực tiếp qua dialog, căn cứ định hướng là chính quyết định đó (ghi `DEC-###`), không phải một mục tiêu M gán ép. Vẫn cần bookkeeping append-only cho các `DEC` bị nới (ở đây `DEC-002`/M2 phần "tách shell/nav").
+- Hệ quả nếu đúng: Các hạng mục cross-cutting toàn app sau này (vd nâng cấp hạ tầng, đổi bộ component) neo vào `DEC` user chốt, `po-expert` đối chiếu mâu thuẫn `DEC` Active thay vì đòi map M-goal.
+- Cái gì sẽ chứng minh nó sai: Nếu Business Flow được `ssr-po` mở rộng để bao cả 6 tab (một mục tiêu M cho toàn Dylan Plan app), khi đó các function loại này nên neo vào M mới đó.
 
 ### JDG-035 — Cột `MonthBudget.income` giữ lại làm vestigial sau US-022 thay vì drop trong cùng migration
 

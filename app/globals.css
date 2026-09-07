@@ -62,12 +62,16 @@ body.dark {
 }
 
 html {
+  max-width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -95,8 +99,63 @@ a {
 }
 
 .container {
-  width: min(1220px, calc(100% - 32px));
+  width: min(2000px, calc(100% - 48px));
   margin: 0 auto;
+}
+
+.app-content {
+  width: 100%;
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: 24px clamp(12px, 4vw, 32px);
+}
+
+.app-content .container {
+  width: 100%;
+}
+
+/* Vùng chuyển tab: dải ngang riêng dưới thanh tiêu đề (spec §8.1). Có trọn bề ngang
+   nên cả 6 nhãn nằm một hàng; máy tính bảng chỉ thu nhỏ chữ + khoảng cách (AC-04, A8). */
+.app-shell-brand span:last-child {
+  white-space: nowrap;
+}
+
+.app-shell-nav-bar {
+  position: sticky;
+  top: 64px;
+  z-index: 20;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.app-shell-nav.ant-menu.ant-menu-horizontal {
+  max-width: min(2000px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 0 4px;
+  border-bottom: none;
+  background: transparent;
+  line-height: 46px;
+}
+
+@media (max-width: 992px) {
+  .app-shell-nav.ant-menu.ant-menu-horizontal {
+    max-width: 100%;
+    padding: 0;
+    line-height: 42px;
+  }
+
+  .app-shell-nav.ant-menu-horizontal > .ant-menu-item {
+    padding-inline: 10px;
+    font-size: 13px;
+  }
+
+  .app-shell-nav.ant-menu-horizontal > .ant-menu-item svg {
+    display: none;
+  }
+
+  .app-shell-nav.ant-menu-horizontal .ant-menu-title-content {
+    margin-inline-start: 0;
+  }
 }
 
 .topbar {
@@ -409,6 +468,39 @@ a {
   background: var(--surface);
 }
 
+.ant-card {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.ant-card .ant-card-body {
+  color: var(--text);
+}
+
+.ant-row.targets,
+.ant-row.service-grid,
+.ant-row.module-grid,
+.ant-row.product-roadmap,
+.ant-row.priority-grid,
+.ant-row.overview-pipeline {
+  display: flex;
+  grid-template-columns: none;
+  gap: 0;
+}
+
+.overview-phase .ant-card-body {
+  display: grid;
+  gap: 12px;
+}
+
+.phase .ant-card-body {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 18px;
+}
+
 .hero-main {
   max-width: 860px;
 }
@@ -627,19 +719,14 @@ h3 {
   padding-left: 18px;
 }
 
-.bar {
-  height: 8px;
+.priority-bar {
+  display: block;
   margin-top: 16px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: var(--line);
 }
 
-.bar i {
+.hybrid-ratio.ant-progress,
+.income-track.ant-progress {
   display: block;
-  height: 100%;
-  border-radius: 99px;
-  background: var(--primary);
 }
 
 .two-col {
@@ -654,7 +741,7 @@ h3 {
   gap: 10px;
 }
 
-.card.spotlight {
+.spotlight {
   border: 1.5px solid var(--primary);
   background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 75%, var(--surface)), var(--surface) 70%);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent), var(--shadow);
@@ -669,7 +756,7 @@ h3 {
   font-weight: 800;
 }
 
-.card.spotlight select {
+.spotlight .ant-select-selector {
   min-height: 48px;
   border-color: var(--primary);
   font-size: 15px;
@@ -801,26 +888,9 @@ h3 {
 }
 
 .hybrid-ratio {
-  display: grid;
-  grid-template-columns: 4fr 1fr;
-  gap: 8px;
-  height: 18px;
   margin: 18px 0 12px;
 }
 
-.hybrid-ratio span,
-.income-track i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
-
-.buy-build {
-  background: var(--warning);
-}
-
-.build-buy,
-.product-bar,
 .success-stick {
   background: var(--success);
 }
@@ -902,18 +972,7 @@ h3 {
 }
 
 .income-track {
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--line);
-}
-
-.salary-bar {
-  background: var(--primary);
-}
-
-.freelance-bar {
-  background: var(--warning);
+  min-width: 0;
 }
 
 .round-grid {
@@ -1034,28 +1093,28 @@ select:focus {
   border-radius: 12px;
 }
 
-table {
+.budget-table-wrap table {
   width: 100%;
   min-width: 820px;
   border-collapse: collapse;
   background: var(--surface);
 }
 
-th,
-td {
+.budget-table-wrap th,
+.budget-table-wrap td {
   padding: 13px;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
   text-align: left;
 }
 
-th {
+.budget-table-wrap th {
   background: var(--surface-2);
   color: var(--muted);
   font-weight: 850;
 }
 
-tfoot td {
+.budget-table-wrap tfoot td {
   border-bottom: 0;
   font-weight: 850;
 }
@@ -1345,70 +1404,24 @@ tfoot td {
   margin-bottom: 0;
 }
 
-.job-tracker-table-wrap {
-  border-radius: 14px;
+/* Bảng "Theo dõi CV ứng tuyển" là antd Table với `scroll={{x}}`: bảng rộng cuộn ngang
+   BÊN TRONG `.ant-table-body`, không đẩy trang. Cần `min-width: 0` xuyên chuỗi flex
+   (Layout.Content → .app-content → .container) để khung bảng bị kẹp đúng bề ngang cha,
+   khi đó antd mới bật thanh cuộn trong của bảng (AC-05). */
+.ant-layout-content,
+.app-content,
+.app-content .container,
+.job-tracker-panel .ant-card-body,
+.job-tracker-table {
+  min-width: 0;
 }
 
 .job-tracker-table {
   width: 100%;
-  min-width: 0;
-  table-layout: fixed;
 }
 
-.job-tracker-table th,
-.job-tracker-table td {
-  padding: 10px;
+.job-tracker-table .ant-table-cell {
   vertical-align: top;
-  overflow: hidden;
-}
-
-.job-tracker-table th:nth-child(1),
-.job-tracker-table td:nth-child(1) {
-  width: 13%;
-}
-
-.job-tracker-table th:nth-child(2),
-.job-tracker-table td:nth-child(2) {
-  width: 10%;
-}
-
-.job-tracker-table th:nth-child(3),
-.job-tracker-table td:nth-child(3) {
-  width: 11%;
-}
-
-.job-tracker-table th:nth-child(4),
-.job-tracker-table td:nth-child(4) {
-  width: 14%;
-}
-
-.job-tracker-table th:nth-child(5),
-.job-tracker-table td:nth-child(5) {
-  width: 12%;
-}
-
-.job-tracker-table th:nth-child(6),
-.job-tracker-table td:nth-child(6) {
-  width: 12%;
-}
-
-.job-tracker-table th:nth-child(7),
-.job-tracker-table td:nth-child(7) {
-  width: 20%;
-}
-
-.job-tracker-table th:nth-child(8),
-.job-tracker-table td:nth-child(8) {
-  width: 8%;
-}
-
-.job-tracker-table input,
-.job-tracker-table .job-status-select,
-.job-tracker-table .platform-trigger {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .job-tracker-table .platform-trigger span {
@@ -1616,12 +1629,7 @@ tfoot td {
 }
 
 .platform-menu {
-  /* position: fixed + toạ độ inline (top/left) tính từ getBoundingClientRect của nút
-     trigger, gán qua JavaScript và render bằng createPortal vào document.body — tránh
-     bị cắt bởi .budget-table-wrap (overflow-x: auto khiến overflow-y cũng thành auto,
-     cắt mọi phần tử position: absolute vượt khỏi khung bảng cuộn ngang). */
-  position: fixed;
-  z-index: 30;
+  position: relative;
   display: grid;
   width: min(260px, 80vw);
   max-height: 280px;
@@ -1770,6 +1778,10 @@ tfoot td {
   }
 
   .phase {
+    grid-template-columns: 1fr;
+  }
+
+  .phase .ant-card-body {
     grid-template-columns: 1fr;
   }
 

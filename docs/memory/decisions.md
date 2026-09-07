@@ -26,7 +26,7 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 ### DEC-002 — Tách route riêng cho Quản lý chi tiêu, dùng chung codebase
 
 - Ngày: 2026-07-28
-- Status: Active
+- Status: Active — phần "route/module riêng" giữ nguyên; phần "tách khỏi shell/nav chung" được nới lại bởi `DEC-132` (2026-09-07): `/budget` vẫn là route riêng nhưng dùng chung khung `AppShell` + thanh chuyển tab với các tab còn lại (chuẩn hóa giao diện toàn app US-023)
 - Feature liên quan: Không (thuộc Business Flow, chưa có function)
 - Bối cảnh: Hiện tab "Thu chi" đang gộp chung shell/nav với roadmap sự nghiệp, freelance và sản phẩm trong cùng một trang `DylanPlanApp.tsx`.
 - Quyết định: Hệ thống quản lý chi tiêu sẽ có route/module riêng trong cùng dự án Next.js (`Dylan.Plan`), tách khỏi các tab còn lại, nhưng không tách thành dự án độc lập.
@@ -1589,10 +1589,11 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 - Feature liên quan: US-023
 - Bối cảnh: App dùng CSS thuần (`app/globals.css` 1784 dòng), nội dung bó ở 1220px, không có hệ breakpoint thống nhất, `/budget` có khung riêng tách khỏi `AppShell`. Dylan yêu cầu "thay đổi layout", "tận dụng đầy đủ khoảng không gian", "dùng antd", "responsive mobile/tablet".
 - Quyết định: Áp dụng Ant Design v5 cho **toàn bộ app** (mọi tab), gộp `/budget` vào `AppShell` chung, nới trần bề ngang để nội dung dùng phần lớn màn hình rộng, làm responsive theo hệ breakpoint của antd. Giữ bảng màu + chế độ tối hiện tại bằng cách map biến CSS vào theme token của antd. Chỉ đổi tầng trình bày — không đụng data model, không đổi nội dung/luồng nghiệp vụ các tab.
-- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Toàn bộ app (mọi tab)".
-- Phương án đã loại: "Chỉ /budget"; "/budget + Tổng quan".
-- Hệ quả: `ssr-ba` cân nhắc tách US-023a (nền antd + AppShell + tab Thu chi) / US-023b (các tab còn lại) để giữ INVEST-Small; `ssr-plan` chốt thứ tự làm sau US-022 vì cùng chạm `components/BudgetApp.tsx`.
-- Bằng chứng: `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` mục 4, mục 5
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Toàn bộ app (mọi tab)"; xác nhận lại "làm trọn 6 tab trong một phiên" (`AskUserQuestion` 2026-09-07).
+- Phương án đã loại: "Chỉ /budget"; "/budget + Tổng quan"; "Chia US-023a/US-023b hai phiên"; "Dừng ở US-022".
+- Điều chỉnh canon: nới lại phần "tách shell/nav" của `DEC-002`/mục tiêu `M2` — `/budget` giữ route riêng nhưng dùng chung `AppShell` + thanh chuyển tab với 5 tab còn lại. US-023 là hạng mục **cross-cutting UX/kỹ thuật cho toàn bộ Dylan Plan app** (6 tab), không neo vào `M1`–`M4` của Business Flow "Hệ Thống Quản Lý Chi Tiêu" (Business Flow đó chỉ mô tả `/budget`); căn cứ định hướng là chính `DEC-132` do user chốt tường minh — cùng tiền lệ `DEC-088` (function ngoài Business Flow).
+- Hệ quả: `ssr-plan` chốt thứ tự làm sau US-022 vì cùng chạm `components/BudgetApp.tsx`; `menu người dùng` ở topbar là menu đăng xuất đã có (`components/shared/UserMenu.tsx`), không phải khái niệm tài khoản mới (lưu ý: app đã thêm đăng nhập bằng danh sách email cho phép sau `DEC-004`; `DEC-004` "không đăng nhập" nay lỗi thời, ngoài phạm vi US-023).
+- Bằng chứng: `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` mục 4, mục 5; `docs/memory/decisions.md#dec-002`, `#dec-088`
 
 ### DEC-133 — US-022: Nguồn thu chỉ thêm/sửa/xóa/sắp xếp được ở tháng hiện tại và tương lai; tháng đã kết thúc chỉ xem
 
