@@ -94,10 +94,6 @@ a {
   text-decoration: none;
 }
 
-.app-shell {
-  min-height: 100vh;
-}
-
 .container {
   width: min(2000px, calc(100% - 48px));
   margin: 0 auto;
@@ -158,23 +154,6 @@ a {
   }
 }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(16px);
-}
-
-.nav {
-  display: flex;
-  min-height: 70px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
 .brand {
   display: flex;
   align-items: center;
@@ -190,54 +169,6 @@ a {
   border-radius: 10px;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: #fff;
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 6px;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-2);
-}
-
-.tab-button,
-.icon-button,
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.tab-button {
-  min-height: 36px;
-  padding: 0 12px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.tab-button.active {
-  border-color: transparent;
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.icon-button {
-  width: 40px;
-  height: 40px;
 }
 
 .user-menu {
@@ -256,27 +187,6 @@ a {
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.btn {
-  min-height: 40px;
-  padding: 0 15px;
-}
-
-.btn.primary {
-  border-color: transparent;
-  background: var(--primary);
-  color: #fff;
-}
-
-.btn.danger {
-  border-color: color-mix(in srgb, var(--danger) 25%, var(--line));
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.btn.ghost {
-  background: var(--surface-2);
 }
 
 .auth-shell {
@@ -462,12 +372,6 @@ a {
   padding: 36px 0 4px;
 }
 
-.card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
 .ant-card {
   border-color: var(--line);
   background: var(--surface);
@@ -495,19 +399,12 @@ a {
   gap: 12px;
 }
 
-.phase .ant-card-body {
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 18px;
-}
-
 .hero-main {
   max-width: 860px;
 }
 
 .panel,
 .summary,
-.phase,
 .priority,
 .insight,
 .rule,
@@ -606,11 +503,6 @@ h3 {
   margin: 0;
 }
 
-.overview-phase .btn {
-  justify-self: start;
-  margin-top: 4px;
-}
-
 .targets,
 .service-grid,
 .module-grid,
@@ -641,7 +533,6 @@ h3 {
 
 .summary p,
 .priority p,
-.phase p,
 .insight span,
 .rule p,
 .metric-card span,
@@ -783,31 +674,30 @@ h3 {
   font-weight: 700;
 }
 
-.timeline {
-  display: grid;
-  gap: 16px;
+/* Lộ trình roadmap: antd Timeline, mỗi mốc là một item (EL-18) */
+.roadmap-timeline {
+  margin-top: 4px;
 }
 
-.phase {
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 18px;
+.roadmap-phase-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.phase-date {
-  height: max-content;
-  padding: 14px;
-  border-radius: 10px;
-  background: var(--surface-2);
-}
-
-.phase-date strong {
-  display: block;
-  color: var(--text);
+.roadmap-phase-head strong {
   font-size: 15px;
 }
 
-.phase-date span,
+.roadmap-phase h3 {
+  margin-top: 6px;
+}
+
+.roadmap-phase .deliverables {
+  margin-top: 12px;
+}
+
 .tag,
 .small {
   color: var(--muted);
@@ -1721,21 +1611,6 @@ select:focus {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .nav {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 14px 0;
-  }
-
-  .nav-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .nav-tabs {
-    overflow-x: auto;
-  }
-
   .user-menu-email {
     display: none;
   }
@@ -1777,20 +1652,8 @@ select:focus {
     grid-template-columns: 1fr;
   }
 
-  .phase {
-    grid-template-columns: 1fr;
-  }
-
-  .phase .ant-card-body {
-    grid-template-columns: 1fr;
-  }
-
   .section-head {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
   }
 }

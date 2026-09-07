@@ -164,7 +164,7 @@ Cần đổi schema: **Không**. US-023 thuần tầng trình bày. Không có t
 
 | Rủi ro | Mức | Giảm thiểu | Rollback |
 | --- | --- | --- | --- |
-| Nháy giao diện (FOUC) do CSS-in-JS SSR | Trung bình | `AntdRegistry` xử lý; verify `next build` + xem HTML nguồn có style antd | Revert `layout.tsx` |
+| Nháy giao diện (FOUC) do CSS-in-JS SSR | Trung bình | `AntdRegistry` xử lý — **phải dùng `@ant-design/nextjs-registry@1.2.x` cho antd v5** (1.3.0 là bản antd v6, kéo `@ant-design/cssinjs@2.x` không dùng chung cache → không flush style server-side). Verify: HTML nguồn `/` có `<style id="antd-cssinjs">` | Revert `layout.tsx` + `package.json` |
 | `JobTrackerBoard` sang antd `Table` làm hồi quy sort/inline-edit/xóa (US-018/US-020/US-021) | Cao | Giữ nguyên toàn bộ handler/state; `Table` chỉ đổi vỏ; smoke AC-07 + kiểm sort 2 chiều + inline edit + xóa từng bước | Revert `JobTrackerBoard.tsx` (các file khác độc lập) |
 | Bảng antd tự thêm phân trang / chu kỳ sắp xếp 3 trạng thái | Trung bình | `pagination={false}`; `sortDirections={['ascend','descend']}` | — |
 | Kéo-thả sắp xếp danh mục / nguồn thu (US-017/US-022) hỏng khi bảng đổi vỏ | Cao | **Giữ thẻ bảng HTML thuần cho các bảng có kéo-thả inline** (danh mục chi, nguồn thu, items cần mua trong `BudgetApp`), chỉ bọc `Card` antd + giữ `.budget-table-wrap` — không chuyển sang antd Table (DnD + inline edit của antd Table rủi ro cao). AC-08 với các bảng này đạt ở mức "trong Card antd, đầu bảng cố định bằng CSS", ghi rõ ở report | Revert phần bảng trong `BudgetApp.tsx` |

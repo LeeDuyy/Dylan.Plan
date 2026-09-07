@@ -13,7 +13,7 @@ aliases: ["US-023", "Layout Ant Design responsive toàn app (DEV)"]
 
 ## 1. Tổng Quan Kỹ Thuật
 
-Thuần tầng trình bày, không đụng `server/`, Prisma, Server Action, migration. Ant Design v5 (`antd@5.29.3`) + `@ant-design/nextjs-registry` (trích xuất CSS-in-JS phía server, tránh FOUC với App Router) + `@ant-design/v5-patch-for-react-19` (tương thích React 19) + `@ant-design/icons`. `app/layout.tsx` bọc `AntdRegistry` + component client mới `AppThemeProvider` (`ConfigProvider` token map từ biến CSS trong `globals.css` + `theme.darkAlgorithm`, `App` cho `message`, context sáng/tối dùng chung). `AppShell` dựng lại bằng `Layout`/`Menu`/`Drawer` + `Grid.useBreakpoint()`; `/budget` gộp vào `AppShell` (bỏ topbar riêng của `BudgetApp`). Primitive 6 tab → component antd; bảng có kéo-thả inline (`BudgetApp`) giữ thẻ bảng HTML trong `Card`; bảng CV (`JobTrackerBoard`) → antd `Table`. `globals.css` nới `.container` → 2000px căn giữa, giữ token + lớp biểu đồ.
+Thuần tầng trình bày, không đụng `server/`, Prisma, Server Action, migration. Ant Design v5 (`antd@5.29.3`) + `@ant-design/nextjs-registry@~1.2.0` (trích xuất CSS-in-JS phía server, tránh FOUC với App Router — **phải là dòng 1.2.x cho antd v5**: 1.3.0 dành cho antd v6 và kéo theo `@ant-design/cssinjs@2.x` không dùng chung cache với antd v5, khiến style không được flush server-side) + `@ant-design/v5-patch-for-react-19` (tương thích React 19) + `@ant-design/icons`. `app/layout.tsx` bọc `AntdRegistry` + component client mới `AppThemeProvider` (`ConfigProvider` token map từ biến CSS trong `globals.css` + `theme.darkAlgorithm`, `App` cho `message`, context sáng/tối dùng chung). `AppShell` dựng lại bằng `Layout`/`Menu`/`Drawer` + `Grid.useBreakpoint()`; `/budget` gộp vào `AppShell` (bỏ topbar riêng của `BudgetApp`). Primitive 6 tab → component antd; bảng có kéo-thả inline (`BudgetApp`) giữ thẻ bảng HTML trong `Card`; bảng CV (`JobTrackerBoard`) → antd `Table`. `globals.css` nới `.container` → 2000px căn giữa, giữ token + lớp biểu đồ.
 
 ## 2. Luồng End-To-End
 
@@ -78,6 +78,8 @@ Không áp dụng — US-023 không đụng data model. Không migration, DBML k
 | `./node_modules/.bin/next build` | Pass — "Compiled successfully", 7 route (`/`, `/budget`, `/freelance`, `/product`, `/roadmap`, `/timetable`, `/signin`) | 2026-09-07 |
 | `next lint` / test | N/A — dự án chưa có eslint config / test suite | 2026-09-07 |
 | Smoke Playwright headless (chromium-1234, Host `plan.localhost`) — 6 tab × 375/768/820/1440/2560px + sáng/tối | Pass — xem bảng AC dưới | 2026-09-07 |
+| FOUC — HTML nguồn `/` chứa thẻ style antd | Pass (sau khi hạ `@ant-design/nextjs-registry` → `~1.2.0`) — HTML có `<style id="antd-cssinjs" data-rc-order="prepend" data-rc-priority="-1000">`; style CSS-in-JS được flush server-side | 2026-09-07 |
+| Dead CSS — không còn phần tử dùng lớp cũ | Pass — smoke `deadClass` (`.topbar/.nav-tabs/button.btn/article.card`) = 0 mọi tab; `horiz=0` mọi kích thước | 2026-09-07 |
 
 ### 7.1. Đối chiếu AC (smoke 2026-09-07)
 
@@ -105,6 +107,18 @@ Verdict round 0 = **Fail** (F-01 High: antd `Menu` ngang trong `Header` bị g�
 | F-04 EL-18 | Thanh tiến độ PlanViews (`.bar`/`.income-track`/`.hybrid-ratio`) → antd `Progress` |
 | F-07 EL-17 | Xác nhận xóa giao dịch `BudgetApp` → `Popconfirm` (giữ câu chữ) |
 | F-06 | `UserMenu.tsx` bổ sung vào plan mục 11; dọn `dropdownRender` → `popupRender` (`JobTrackerBoard`) |
+
+### 7.3. Vòng dọn "còn thiếu so với plan" (2026-09-07, cùng phiên)
+
+| Mục | Plan | Xử lý |
+| --- | --- | --- |
+| FOUC (plan §13 / TB-01) | HTML nguồn có thẻ style antd, không FOUC | **Root cause**: `@ant-design/nextjs-registry@1.3.0` là bản cho antd **v6**, kéo `@ant-design/cssinjs@2.x` — không dùng chung style cache với `@ant-design/cssinjs@1.24.0` của antd v5, nên `AntdRegistry` không thu được style để flush (`extractStyle` chỉ ra cache-path rỗng → không render `<style>`). Sửa: `package.json` `@ant-design/nextjs-registry` → `~1.2.0`; `npm install` dedupe về một `@ant-design/cssinjs@1.24.0`. Verify: HTML nguồn `/` có `<style id="antd-cssinjs">`. |
+| Dead CSS (TB-07) | Cắt lớp CSS hết dùng | Cắt hẳn `.app-shell/.topbar/.nav/.nav-actions/.nav-tabs/.tab-button(+.active)/.icon-button/.btn(+.primary/.danger/.ghost)/.card bare/.overview-phase .btn/.phase*/.timeline` + dòng tương ứng trong `@media`. Giữ `.brand/.logo/.user-menu/.user-menu-email/.summary/.target-card/.deliverable*` (còn dùng). |
+| Roadmap Timeline (TB-04) | Roadmap phases → `Steps`/`Timeline` | `RoadmapSections`: `Card` → antd `Timeline` (4 item = 4 mốc). Smoke: `.ant-timeline-item` × 4 ở `/roadmap`. |
+| `<Link><Button>` (PlanViews) | "Link giữ, bọc Button khi cần dáng nút" | 3 CTA render `<a><button>` lồng nhau → antd `Button` + `useRouter().push` (SPA nav, HTML hợp lệ). Smoke: `a button` = 0; bấm "Xem roadmap" → điều hướng `/roadmap`. |
+| Follow-up spec US-002 §8.2 | Cập nhật EL-04 sau khi US-023 Ready for DEV | `docs/features/US-002-.../spec.md`: `EL-04` + `AC-03` + `A3` + bullet §3 đánh dấu bị thay thế bởi US-023 (liên kết "← Dylan Plan Dashboard" ở `/budget` không còn — điều hướng qua thanh chuyển tab chung). |
+
+**Còn tồn (thấp, không do US-023)**: một số lần nạp trang xuất hiện cảnh báo React hydration "some attributes … didn't match" (không lặp lại đều, chỉ ở tầng thuộc tính `id`/`aria-describedby` do antd `Menu`/`rc-*` sinh id — không phá vỡ tương tác; điều hướng, nút, drawer đều chạy đúng).
 
 ## 8. Rủi Ro Và Rollback
 

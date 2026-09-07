@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Card, Col, Progress, Row } from "antd";
+import { Button, Card, Col, Progress, Row, Timeline } from "antd";
 import { CalendarDays, WalletCards } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { JobTrackerBoard } from "@/components/JobTrackerBoard";
 import { AppShell } from "@/components/shared/AppShell";
@@ -169,6 +169,7 @@ export function OverviewView({
 }: {
   initialJobTracker?: JobTrackerSnapshot;
 }) {
+  const router = useRouter();
   const jobs = initialJobTracker.jobs;
   const activePhase = resolveActivePhase(new Date());
   const pipelineCards: [string, string, string][] = [
@@ -193,16 +194,12 @@ export function OverviewView({
               nhập nhanh chi tiêu.
             </p>
             <div className="hero-actions">
-              <Link href="/roadmap">
-                <Button type="primary" icon={<CalendarDays size={18} />}>
-                  Xem roadmap
-                </Button>
-              </Link>
-              <Link href="/budget">
-                <Button icon={<WalletCards size={18} />}>
-                  Nhập thu chi
-                </Button>
-              </Link>
+              <Button type="primary" icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
+                Xem roadmap
+              </Button>
+              <Button icon={<WalletCards size={18} />} onClick={() => router.push("/budget")}>
+                Nhập thu chi
+              </Button>
             </div>
           </div>
         </div>
@@ -230,11 +227,9 @@ export function OverviewView({
                 </div>
               ))}
             </div>
-            <Link href="/roadmap">
-              <Button icon={<CalendarDays size={18} />}>
-                Xem chi tiết roadmap
-              </Button>
-            </Link>
+            <Button icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
+              Xem chi tiết roadmap
+            </Button>
           </Card>
 
           <Row className="overview-pipeline" gutter={[16, 16]}>
@@ -345,14 +340,15 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
             </div>
             <p>Mỗi giai đoạn có đầu ra rõ ràng trước khi chuyển sang ứng tuyển số lượng lớn.</p>
           </div>
-          <div className="timeline">
-            {roadmapPhases.map((phase) => (
-              <Card className="phase" key={phase.date}>
-                <div className="phase-date">
-                  <strong>{phase.date}</strong>
-                  <span>{phase.label}</span>
-                </div>
-                <div>
+          <Timeline
+            className="roadmap-timeline"
+            items={roadmapPhases.map((phase) => ({
+              children: (
+                <div className="roadmap-phase">
+                  <div className="roadmap-phase-head">
+                    <strong>{phase.date}</strong>
+                    <span className="muted">{phase.label}</span>
+                  </div>
                   <h3>{phase.title}</h3>
                   <p>{phase.desc}</p>
                   <div className="deliverables">
@@ -364,9 +360,9 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
                     ))}
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
+              )
+            }))}
+          />
         </div>
       </section>
 

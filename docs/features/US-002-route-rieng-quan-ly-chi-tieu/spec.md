@@ -3,7 +3,7 @@
 Status: Ready for DEV
 Feature: US-002
 Created: 2026-08-05
-Updated: 2026-08-05
+Updated: 2026-09-07 (EL-04 / AC-03 bị thay thế bởi US-023 — xem ghi chú tại mục 8.2)
 Raw Source: `docs/kb/ba/raw/US-002-route-rieng-quan-ly-chi-tieu.md`
 BA Wiki: `docs/kb/ba/wiki/knowledge/feature/US-002-route-rieng-quan-ly-chi-tieu.md`
 Owner: ssr-ba
@@ -34,7 +34,7 @@ Memory đã đối chiếu: `rules.md`, `language.md`, `decisions.md`, `glossary
 - Địa chỉ trang riêng `/budget` hiển thị đầy đủ nội dung quản lý Thu chi hiện có: chọn/tạo tháng và lịch sử các tháng, ô nhập nhanh chi tiêu, bảng danh mục và ngân sách, bảng chi tiết chi tiêu, phân tích, quy tắc kiểm soát ngân sách (nội dung tĩnh), xuất dữ liệu, thông báo di trú dữ liệu cũ nếu có — nội dung bên trong giữ nguyên như hiện tại, chỉ đổi vị trí hiển thị
 - Trên trang chủ Dylan Plan Dashboard, mục "Thu chi" trong thanh điều hướng và nút "Nhập thu chi" ở khu giới thiệu đầu trang đổi thành liên kết đưa Dylan sang `/budget`
 - Trên trang chủ, khi Dylan chọn "Tổng quan", nội dung Thu chi không còn hiển thị cùng Roadmap/Freelance/Sản phẩm nữa; riêng thẻ "Còn lại tháng này" (tính từ số liệu Thu chi) cũng bị bỏ khỏi khối 4 thẻ tổng quan ở đầu trang, chỉ còn 3 thẻ: Mục tiêu offer, Thu nhập hiện tại, Chi phí cố định
-- Trang `/budget` có một liên kết ở đầu trang để Dylan quay lại trang chủ Dylan Plan Dashboard
+- Trang `/budget` có một liên kết ở đầu trang để Dylan quay lại trang chủ Dylan Plan Dashboard *(bị thay thế bởi US-023: `/budget` dùng chung khung `AppShell` + thanh chuyển tab với các tab khác, không còn liên kết quay lại riêng)*
 - Dylan vào được `/budget` trực tiếp (gõ địa chỉ, mở từ bookmark, mở tab mới) mà không bắt buộc phải đi qua trang chủ trước
 
 ## 4. Ngoài Phạm Vi
@@ -67,7 +67,7 @@ Ngoại lệ: Không có — đây là thay đổi cấu trúc điều hướng,
 | --- | --- | --- | --- | --- |
 | AC-01 | Dylan đang ở trang chủ Dylan Plan Dashboard, bất kể tab nào đang chọn | Dylan bấm mục "Thu chi" trên thanh điều hướng, hoặc bấm nút "Nhập thu chi" ở khu giới thiệu đầu trang | Địa chỉ trang trên trình duyệt đổi thành `/budget`; trang mới hiển thị đúng 7 khối theo thứ tự: chọn/tạo tháng và lịch sử tháng, ô nhập nhanh chi tiêu, bảng danh mục và ngân sách, bảng chi tiết chi tiêu, phân tích, quy tắc kiểm soát ngân sách, nút xuất dữ liệu — không thiếu khối nào so với trước đây từng nằm trong tab "Thu chi" của trang chủ | Xem ASCII Mockup mục 8.1 |
 | AC-02 | Dylan đang ở trang chủ, tab "Tổng quan" đang chọn | Dylan xem nội dung trang chủ | Chỉ thấy các khối Roadmap, Freelance, Sản phẩm; khối tổng quan ở đầu trang chỉ còn đúng 3 thẻ: Mục tiêu offer, Thu nhập hiện tại, Chi phí cố định — không còn thẻ "Còn lại tháng này", không còn bảng danh mục, ô nhập nhanh, hay bất kỳ nội dung Thu chi nào khác trên trang chủ | Xem ASCII Mockup mục 8.1 |
-| AC-03 | Dylan đang ở trang `/budget` | Dylan bấm liên kết quay lại ở đầu trang | Trình duyệt chuyển về địa chỉ trang chủ, hiển thị lại Dylan Plan Dashboard (mặc định tab "Tổng quan") | Xem ASCII Mockup mục 8.2 |
+| AC-03 | ~~Dylan đang ở trang `/budget`~~ | ~~Dylan bấm liên kết quay lại ở đầu trang~~ | ~~Trình duyệt chuyển về địa chỉ trang chủ~~ — **Bị thay thế bởi US-023 (2026-09-07)**: `/budget` nay dùng chung thanh chuyển tab của `AppShell`, việc quay lại trang chủ đi qua tab "Tổng quan" như mọi tab khác | — |
 | AC-04 | Trước khi có thay đổi này, Dylan đã có sẵn dữ liệu Thu chi (tháng, danh mục, giao dịch đã lưu) hiển thị trong tab "Thu chi" của trang chủ | Dylan mở `/budget` lần đầu sau khi thay đổi này có hiệu lực | Bảng danh mục hiển thị đúng số dòng, đúng số tiền ngân sách và Chi thực tế như trước; bảng chi tiết chi tiêu liệt kê đúng số giao dịch đã có trước đó, không thiếu hay thừa dòng nào so với khi còn hiển thị trong tab "Thu chi" của trang chủ | Xem ASCII Mockup mục 8.2 |
 | AC-05 | Dylan chưa mở trang chủ trong phiên làm việc hiện tại | Dylan gõ trực tiếp địa chỉ `/budget` vào trình duyệt, hoặc mở từ bookmark đã lưu | Trang tải xong hiển thị ngay đúng 7 khối liệt kê ở AC-01 (mục 3) — không có bước chuyển hướng trung gian nào về trang chủ trước khi hiển thị các khối này | Xem ASCII Mockup mục 8.2 |
 
@@ -121,7 +121,7 @@ Bấm "Thu chi" hoặc "Nhập thu chi ->" đưa Dylan sang trang riêng ở m�
 
 | ID | Element | Loại | Nhãn hiển thị | Nguồn dữ liệu | Ràng buộc / hành vi | Vai trò thấy được | AC | Liên kết PBI/US |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| EL-04 | Liên kết quay lại trang chủ | Link | ← Dylan Plan Dashboard | — | **Mới thêm** — nằm cố định ở đầu trang `/budget`; bấm vào điều hướng về trang chủ | Dylan | AC-03 | Không |
+| EL-04 | ~~Liên kết quay lại trang chủ~~ | ~~Link~~ | ~~← Dylan Plan Dashboard~~ | — | **Bị thay thế bởi US-023 (2026-09-07)** — `/budget` bỏ khung riêng, dùng chung `AppShell` (thanh tiêu đề + thanh chuyển tab chung với các tab khác); không còn liên kết quay lại riêng của trang `/budget`. Điều hướng giữa các tab (kể cả về "Tổng quan") qua thanh chuyển tab chung — xem US-023 EL-03/EL-05. | Dylan | ~~AC-03~~ | [`US-023`](../US-023-layout-antd-responsive-toan-app/spec.md) |
 | EL-05 | Khối nội dung quản lý Thu chi | Table | (giữ nguyên nhãn như trước khi chuyển vị trí) | Dữ liệu ngân sách tháng đang chọn (tháng, danh mục, giao dịch — đã có từ `US-001`) | Toàn bộ nội dung (chọn/tạo tháng và lịch sử tháng, nhập nhanh, bảng danh mục và ngân sách, bảng chi tiết chi tiêu, phân tích, quy tắc kiểm soát ngân sách, xuất dữ liệu, thông báo di trú dữ liệu cũ) hiển thị đầy đủ, hành vi bên trong không đổi so với trước — chỉ đổi từ hiển thị tại trang chủ sang hiển thị tại `/budget`; truy cập được cả khi vào trực tiếp bằng địa chỉ trang, không chỉ khi điều hướng từ trang chủ | Dylan | AC-01, AC-04, AC-05 | [`US-001` mục 8](../US-001-luu-tru-chi-tieu-ben-vung/spec.md), [`US-004` mục 8](../US-004-sua-xoa-tung-giao-dich/spec.md) — Screen Element chi tiết bên trong khối này đã mô tả đầy đủ ở hai spec đó, không lặp lại ở đây |
 
 **ASCII Mockup**
@@ -207,5 +207,5 @@ Memory cần ghi: 3 quyết định user chốt qua dialog (cách điều hướ
 | --- | --- | --- | --- |
 | A1 | Mục "Thu chi" trên thanh điều hướng và nút "Nhập thu chi" ở khu giới thiệu đầu trang chủ đổi thành liên kết điều hướng hẳn sang trang riêng (đổi địa chỉ trang), không còn hiển thị nội dung Thu chi tại chỗ trên trang chủ | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-05 (`DEC-049`) | Nếu sai, cần giữ nội dung Thu chi hiển thị song song tại trang chủ, chỉ thêm lối vào phụ tới trang riêng, ảnh hưởng mục 6, 7 (AC-01), 8 (EL-01, EL-02) |
 | A2 | Khi Dylan chọn "Tổng quan" trên trang chủ, khối nội dung Thu chi không còn hiển thị cùng Roadmap/Freelance/Sản phẩm | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-05 (`DEC-050`) | Nếu sai, cần thiết kế thêm một bản tóm tắt Thu chi riêng cho "Tổng quan", ảnh hưởng mục 6, 7 (AC-02), 8 (EL-03) |
-| A3 | Trang Thu chi riêng có một liên kết cố định ở đầu trang để quay lại trang chủ, không chỉ dựa vào nút Back của trình duyệt | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-05 (`DEC-051`) | Nếu sai, cần bỏ `EL-04` khỏi mục 8.2 và `AC-03`, Dylan chỉ dùng nút Back trình duyệt hoặc gõ lại địa chỉ để quay về trang chủ |
+| A3 | ~~Trang Thu chi riêng có một liên kết cố định ở đầu trang để quay lại trang chủ~~ | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-05 (`DEC-051`); **hết hiệu lực từ US-023 (2026-09-07)**: `/budget` dùng chung thanh chuyển tab của `AppShell`, `EL-04` + `AC-03` bị thay thế | Không còn liên kết quay lại riêng; Dylan điều hướng qua thanh chuyển tab chung (US-023) |
 | A4 | Thẻ "Còn lại tháng này" (tính trực tiếp từ số liệu Thu chi) bị bỏ khỏi khối 4 thẻ tổng quan ở đầu trang chủ; chỉ còn 3 thẻ Mục tiêu offer, Thu nhập hiện tại, Chi phí cố định | Đã xác nhận từ knowledge — user xác nhận qua dialog ngày 2026-08-05 (`DEC-052`), sau khi `ba-expert` phát hiện mâu thuẫn giữa `DEC-050` và bản nháp spec giữ nguyên cả 4 thẻ | Nếu sai, cần khôi phục thẻ "Còn lại tháng này" trong khối tổng quan, ảnh hưởng mục 3, 7 (AC-02), 8 (EL-03, EL-06 — bỏ EL-06, sửa lại ràng buộc của EL-03) |
