@@ -20,15 +20,19 @@ import {
   migrateLegacyData,
   recordQuickTransaction,
   removeCategory as removeCategoryAction,
+  removeIncomeSource as removeIncomeSourceAction,
   reorderCategories,
+  reorderIncomeSources as reorderIncomeSourcesAction,
   resetAllBudgetData,
   updatePurchaseItem as updatePurchaseItemAction,
   updateTransaction,
-  upsertCategory
+  upsertCategory,
+  upsertIncomeSource as upsertIncomeSourceAction
 } from "@/server/budget/actions";
 import type {
   BudgetCategorySnapshot,
   BudgetSnapshot,
+  IncomeSourceSnapshot,
   LegacyMigrationPayload,
   MonthBudgetSnapshot,
   PurchaseItemSnapshot,
@@ -40,6 +44,7 @@ import type {
 // nên type của UI dùng lại đúng DTO server trả về (BudgetCategory.actual chỉ đọc,
 // Transaction tham chiếu categoryId thay vì tên chuỗi).
 type BudgetCategory = BudgetCategorySnapshot;
+type IncomeSource = IncomeSourceSnapshot;
 type Transaction = TransactionSnapshot;
 type PurchaseItem = PurchaseItemSnapshot;
 type MonthBudget = MonthBudgetSnapshot;
@@ -115,6 +120,28 @@ function formatMonthLabel(id: string) {
 
 function formatMonthId(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthDiff(monthId: string, referenceMonthId: string) {
+  const [year, month] = monthId.split("-").map(Number);
+  const [referenceYear, referenceMonth] = referenceMonthId.split("-").map(Number);
+  return year * 12 + month - (referenceYear * 12 + referenceMonth);
+}
+
+function pickInitialMonthId(months: MonthBudget[]): string {
+  if (!months.length) return "";
+  const currentMonthId = formatMonthId(new Date());
+  if (months.some((month) => month.id === currentMonthId)) return currentMonthId;
+
+  return [...months].sort((a, b) => {
+    const aDiff = monthDiff(a.id, currentMonthId);
+    const bDiff = monthDiff(b.id, currentMonthId);
+    const distance = Math.abs(aDiff) - Math.abs(bDiff);
+    if (distance !== 0) return distance;
+    if (aDiff < 0 && bDiff >= 0) return -1;
+    if (bDiff < 0 && aDiff >= 0) return 1;
+    return a.id.localeCompare(b.id);
+  })[0]?.id ?? "";
 }
 
 function buildMonthPeriods(referenceDate: Date, months: MonthBudget[]): MonthPeriod[] {
@@ -220,7 +247,8 @@ function findQuickCategoryMatch(categories: BudgetCategory[], ruleLabel: string)
 const EMPTY_MONTH: MonthBudget = {
   id: "",
   label: "Chưa có dữ liệu",
-  income: DEFAULT_INCOME,
+  income: 0,
+  incomeSources: [],
   categories: [],
   transactions: [],
   purchaseItems: []
@@ -232,8 +260,16 @@ type PurchaseItemDraft = PurchaseItem & {
   priceText: string;
 };
 
+type IncomeSourceDraft = IncomeSource & {
+  amountText: string;
+};
+
 function formatPurchasePriceInput(price: number | null) {
   return price == null ? "" : price.toLocaleString("en-US");
+}
+
+function formatIncomeAmountInput(amount: number) {
+  return amount.toLocaleString("en-US");
 }
 
 function toPurchaseItemDrafts(items: PurchaseItem[]): PurchaseItemDraft[] {
@@ -243,14 +279,28 @@ function toPurchaseItemDrafts(items: PurchaseItem[]): PurchaseItemDraft[] {
   }));
 }
 
+function toIncomeSourceDrafts(items: IncomeSource[]): IncomeSourceDraft[] {
+  return items.map((item) => ({
+    ...item,
+    amountText: formatIncomeAmountInput(item.amount)
+  }));
+}
+
 function parseOptionalPurchasePrice(value: string) {
   return value.trim() ? safeNumber(value) : null;
+}
+
+function parseRequiredIncomeAmount(value: string) {
+  const raw = value.replace(/[,\s]/g, "");
+  if (!raw) return null;
+  const amount = Number(raw);
+  return Number.isInteger(amount) && amount >= 0 ? amount : null;
 }
 
 export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) {
   const [dark, setDark] = useState(false);
   const [months, setMonths] = useState<MonthBudget[]>(initialBudget.months);
-  const [selectedMonthId, setSelectedMonthId] = useState(initialBudget.months.at(-1)?.id ?? "");
+  const [selectedMonthId, setSelectedMonthId] = useState(() => pickInitialMonthId(initialBudget.months));
   const [newMonth, setNewMonth] = useState(() => pickDefaultPeriod(buildMonthPeriods(new Date(), initialBudget.months)));
   const [quickText, setQuickText] = useState("");
   const [quickCategory, setQuickCategory] = useState(defaultCategories[2]?.name ?? "");
@@ -291,7 +341,7 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
   const refreshSnapshot = async () => {
     const snapshot = await getBudgetSnapshot();
     setMonths(snapshot.months);
-    setSelectedMonthId((current) => (snapshot.months.some((month) => month.id === current) ? current : snapshot.months.at(-1)?.id ?? ""));
+    setSelectedMonthId((current) => (snapshot.months.some((month) => month.id === current) ? current : pickInitialMonthId(snapshot.months)));
   };
 
   // Luồng di trú một lần từ localStorage sang DB (TB-09): tự động thử lại mỗi lần
@@ -356,19 +406,19 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
   }, [monthPeriods]);
 
   const totals = useMemo(() => {
+    const totalIncome = selectedMonth.income;
     const totalBudget = selectedMonth.categories.reduce((sum, item) => sum + item.budget, 0);
     const totalActual = selectedMonth.categories.reduce((sum, item) => sum + item.actual, 0);
-    const remaining = selectedMonth.income - totalActual;
-    const plannedRemaining = selectedMonth.income - totalBudget;
-    const ratio = selectedMonth.income ? totalActual / selectedMonth.income : 0;
-    const saving = selectedMonth.categories
-      .filter((item) => /tiết|đầu tư|dự phòng|tích/i.test(`${item.name} ${item.type}`))
-      .reduce((sum, item) => sum + item.actual, 0);
-    const flexible = selectedMonth.categories
-      .filter((item) => item.type === "Khác")
+    const netSaving = totalIncome - totalActual;
+    const remaining = netSaving;
+    const plannedRemaining = totalIncome - totalBudget;
+    const ratio = totalIncome ? totalActual / totalIncome : 0;
+    const savingRate = totalIncome > 0 ? netSaving / totalIncome : null;
+    const allocatedToSaving = selectedMonth.categories
+      .filter((item) => item.type === "Tích lũy")
       .reduce((sum, item) => sum + item.actual, 0);
     const topCategory = [...selectedMonth.categories].sort((a, b) => b.actual - a.actual)[0];
-    return { totalBudget, totalActual, remaining, plannedRemaining, ratio, saving, flexible, topCategory };
+    return { totalIncome, totalBudget, totalActual, netSaving, remaining, plannedRemaining, ratio, savingRate, allocatedToSaving, topCategory };
   }, [selectedMonth]);
 
   // "Chi tiêu khác" chỉ hiển thị khi đang có giao dịch — bản ghi vẫn giữ nguyên
@@ -570,7 +620,7 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
     await resetAllBudgetData();
     const snapshot = await getBudgetSnapshot();
     setMonths(snapshot.months);
-    setSelectedMonthId(snapshot.months.at(-1)?.id ?? "");
+    setSelectedMonthId(pickInitialMonthId(snapshot.months));
   };
 
   return (
@@ -667,13 +717,15 @@ type BudgetProps = {
   toastMessage: string | null;
   onDismissToast: () => void;
   totals: {
+    totalIncome: number;
     totalBudget: number;
     totalActual: number;
+    netSaving: number;
     remaining: number;
     plannedRemaining: number;
     ratio: number;
-    saving: number;
-    flexible: number;
+    savingRate: number | null;
+    allocatedToSaving: number;
     topCategory: BudgetCategory;
   };
   updateCategoryLocal: (id: string, patch: Partial<Pick<BudgetCategory, "name" | "type" | "budget">>) => void;
@@ -732,15 +784,32 @@ function BudgetSections({
   const [purchaseItemsDraft, setPurchaseItemsDraft] = useState<PurchaseItemDraft[]>(() =>
     toPurchaseItemDrafts(selectedMonth.purchaseItems)
   );
+  const [newIncomeName, setNewIncomeName] = useState("");
+  const [newIncomeAmount, setNewIncomeAmount] = useState("");
+  const [incomeSourcesDraft, setIncomeSourcesDraft] = useState<IncomeSourceDraft[]>(() =>
+    toIncomeSourceDrafts(selectedMonth.incomeSources)
+  );
+  const [draggedIncomeId, setDraggedIncomeId] = useState<string | null>(null);
+  const [dragOverIncomeId, setDragOverIncomeId] = useState<string | null>(null);
 
   const currentMonthId = formatMonthId(new Date());
-  const canEditPurchaseItems = selectedMonth.id === currentMonthId;
+  const canEditMonth = selectedMonth.id >= currentMonthId;
+  const canEditPurchaseItems = canEditMonth;
+  const newIncomeAmountValue = parseRequiredIncomeAmount(newIncomeAmount);
 
   useEffect(() => {
     setPurchaseItemsDraft(toPurchaseItemDrafts(selectedMonth.purchaseItems));
     setNewPurchaseName("");
     setNewPurchasePrice("");
   }, [selectedMonth.id, selectedMonth.purchaseItems]);
+
+  useEffect(() => {
+    setIncomeSourcesDraft(toIncomeSourceDrafts(selectedMonth.incomeSources));
+    setNewIncomeName("");
+    setNewIncomeAmount("");
+    setDraggedIncomeId(null);
+    setDragOverIncomeId(null);
+  }, [selectedMonth.id, selectedMonth.incomeSources]);
 
   const resetTransactionRowState = () => {
     setActiveTransactionId(null);
@@ -801,6 +870,139 @@ function BudgetSections({
     await deleteTransaction(id);
     await refreshSnapshot();
     resetTransactionRowState();
+  };
+
+  const updateIncomeSourceLocal = (id: string, patch: Partial<Pick<IncomeSourceDraft, "name" | "amountText">>) => {
+    setIncomeSourcesDraft((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
+
+  const restoreIncomeSourceLocal = (id: string) => {
+    const original = selectedMonth.incomeSources.find((item) => item.id === id);
+    if (!original) {
+      setIncomeSourcesDraft((current) => current.filter((item) => item.id !== id));
+      return;
+    }
+    setIncomeSourcesDraft((current) =>
+      current.map((item) =>
+        item.id === id
+          ? {
+              ...original,
+              amountText: formatIncomeAmountInput(original.amount)
+            }
+          : item
+      )
+    );
+  };
+
+  const commitIncomeSourceName = async (id: string) => {
+    if (!canEditMonth) return;
+    const draft = incomeSourcesDraft.find((item) => item.id === id);
+    const original = selectedMonth.incomeSources.find((item) => item.id === id);
+    if (!draft || !original) return;
+
+    const name = draft.name.trim();
+    if (!name) {
+      restoreIncomeSourceLocal(id);
+      return;
+    }
+    if (name === original.name) return;
+
+    try {
+      await upsertIncomeSourceAction({ id, monthId: selectedMonth.id, name, amount: original.amount });
+      await refreshSnapshot();
+    } catch {
+      showToast("Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
+  };
+
+  const commitIncomeSourceAmount = async (id: string) => {
+    if (!canEditMonth) return;
+    const draft = incomeSourcesDraft.find((item) => item.id === id);
+    const original = selectedMonth.incomeSources.find((item) => item.id === id);
+    if (!draft || !original) return;
+
+    const amount = parseRequiredIncomeAmount(draft.amountText);
+    if (amount == null) {
+      restoreIncomeSourceLocal(id);
+      return;
+    }
+    if (amount === original.amount) {
+      updateIncomeSourceLocal(id, { amountText: formatIncomeAmountInput(original.amount) });
+      return;
+    }
+
+    try {
+      await upsertIncomeSourceAction({ id, monthId: selectedMonth.id, name: original.name, amount });
+      await refreshSnapshot();
+    } catch {
+      showToast("Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
+  };
+
+  const addIncomeSource = async () => {
+    const name = newIncomeName.trim();
+    if (!name || newIncomeAmountValue == null || !canEditMonth) return;
+
+    try {
+      await upsertIncomeSourceAction({ monthId: selectedMonth.id, name, amount: newIncomeAmountValue });
+      setNewIncomeName("");
+      setNewIncomeAmount("");
+      await refreshSnapshot();
+    } catch {
+      showToast("Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
+  };
+
+  const deleteIncomeSource = async (id: string) => {
+    if (!canEditMonth) return;
+    setIncomeSourcesDraft((current) => current.filter((item) => item.id !== id));
+    try {
+      await removeIncomeSourceAction(id);
+      await refreshSnapshot();
+    } catch {
+      showToast("Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
+  };
+
+  const resetIncomeDragState = () => {
+    setDraggedIncomeId(null);
+    setDragOverIncomeId(null);
+  };
+
+  const dropIncomeSource = async (targetId: string) => {
+    if (!draggedIncomeId || !canEditMonth) return;
+
+    const fromIndex = incomeSourcesDraft.findIndex((item) => item.id === draggedIncomeId);
+    const toIndex = incomeSourcesDraft.findIndex((item) => item.id === targetId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+      resetIncomeDragState();
+      await refreshSnapshot();
+      return;
+    }
+
+    const nextSources = [...incomeSourcesDraft];
+    const [movedSource] = nextSources.splice(fromIndex, 1);
+    if (!movedSource) {
+      resetIncomeDragState();
+      await refreshSnapshot();
+      return;
+    }
+    nextSources.splice(toIndex, 0, movedSource);
+    const orderedIds = nextSources.map((item) => item.id);
+
+    resetIncomeDragState();
+    setIncomeSourcesDraft(nextSources);
+    try {
+      await reorderIncomeSourcesAction({ monthId: selectedMonth.id, orderedIds });
+      await refreshSnapshot();
+    } catch {
+      showToast("Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
   };
 
   const updatePurchaseItemLocal = (id: string, patch: Partial<Pick<PurchaseItemDraft, "name" | "priceText">>) => {
@@ -934,9 +1136,9 @@ function BudgetSections({
         eyebrow="Nguyên tắc"
         title="Quy tắc kiểm soát"
         items={[
-          ["01", "Trả tiền cho bản thân trước: tách tối thiểu 5M vào tiết kiệm hoặc đầu tư trước khi chi linh hoạt."],
-          ["02", "Giữ quỹ linh hoạt 7.5M sau tiền nhà, chi phí cố định và tiết kiệm."],
-          ["03", "Cảnh báo ở mốc 90%: khi tổng chi vượt 31.5M cần dừng chi không cần thiết."],
+          ["01", "Tách phần tích lũy trước khi chi linh hoạt."],
+          ["02", "Giữ chi linh hoạt trong phạm vi thu nhập thật của tháng."],
+          ["03", "Khi tổng chi tiến sát thu nhập, dừng các khoản không cần thiết."],
           ["04", "Review mỗi Chủ nhật: cập nhật chi thực tế và điều chỉnh danh mục trước tuần mới."]
         ]}
       />
@@ -1016,7 +1218,7 @@ function BudgetSections({
               </div>
               <div className={`result ${totals.remaining >= 0 ? "positive" : "negative"}`}>
                 {totals.remaining >= 0 ? `Còn lại ${formatMoney(totals.remaining)}` : `Vượt thu nhập ${formatMoney(Math.abs(totals.remaining))}`}
-                <small>{totals.ratio >= 0.9 ? "Cảnh báo: đã dùng hơn 90% thu nhập." : "Tình trạng vẫn trong vùng kiểm soát."}</small>
+                <small>{totals.ratio >= 0.9 ? "Mức sử dụng thu nhập đang cao." : "Tình trạng vẫn trong vùng kiểm soát."}</small>
               </div>
             </article>
           </div>
@@ -1055,14 +1257,31 @@ function BudgetSections({
           <div className="insight-grid">
             {(
               [
-                ["Chi nhiều nhất", totals.topCategory?.name ?? "-", formatMoney(totals.topCategory?.actual ?? 0), LineChart, false],
-                ["Chi khác", formatMoney(totals.flexible), "Mục tiêu nên giữ quanh 7.5M", Filter, false],
+                ["Thu nhập tháng", formatMoney(totals.totalIncome), "Tổng nguồn thu đã khai báo", PiggyBank, false],
+                ["Tổng chi", formatMoney(totals.totalActual), "Chi thực tế trong tháng", LineChart, false],
+                ["Số dư còn lại", formatMoney(totals.remaining), "Thu nhập tháng trừ tổng chi", Filter, false],
+                ["Tiết kiệm ròng", formatMoney(totals.netSaving), "Thu nhập tháng trừ tổng chi", PiggyBank, false],
                 [
-                  "Tiết kiệm / tích lũy",
-                  formatMoney(totals.saving),
-                  `${((totals.saving / selectedMonth.income) * 100).toFixed(1)}% thu nhập`,
+                  "Tỷ lệ tiết kiệm",
+                  totals.savingRate == null ? "—" : `${(totals.savingRate * 100).toFixed(1)}%`,
+                  "Tiết kiệm ròng trên thu nhập",
+                  PiggyBank,
+                  false
+                ],
+                ["Chi nhiều nhất", totals.topCategory?.name ?? "-", formatMoney(totals.topCategory?.actual ?? 0), LineChart, false],
+                [
+                  "Đã phân bổ vào tích lũy",
+                  formatMoney(totals.allocatedToSaving),
+                  "Từ các danh mục loại Tích lũy",
                   PiggyBank,
                   true
+                ],
+                [
+                  "Tỷ lệ sử dụng thu nhập",
+                  totals.totalIncome ? `${(totals.ratio * 100).toFixed(1)}%` : "—",
+                  "Tổng chi trên thu nhập",
+                  Filter,
+                  false
                 ]
               ] as [string, string, string, typeof LineChart, boolean][]
             ).map(([title, value, desc, Icon, maskable]) => (
@@ -1130,8 +1349,8 @@ function BudgetSections({
                 })}
               </div>
               <div className="legend">
-                <span style={{ "--legend-color": "var(--success)" } as React.CSSProperties}>Mục tiêu: tổng chi ≤ 30M</span>
-                <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Cảnh báo nếu vượt 90%</span>
+                <span style={{ "--legend-color": "var(--success)" } as React.CSSProperties}>Tổng chi thực tế theo tháng</span>
+                <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Thu nhập lấy từ nguồn thu đã khai báo</span>
               </div>
             </article>
           </div>
@@ -1148,6 +1367,163 @@ function BudgetSections({
             <p>Gõ tự nhiên như "cafe 45k", "grab 80k", "ăn trưa 65000"; app tự nhận diện số tiền và danh mục.</p>
           </div>
           <article className="card panel">
+            <div className="quick-panel">
+              <span className="eyebrow">{canEditMonth ? "Nguồn thu" : "Nguồn thu chỉ xem"}</span>
+              <h3>Nguồn thu</h3>
+              {canEditMonth && (
+                <div className="quick-grid">
+                  <label>
+                    Tên nguồn
+                    <input
+                      type="text"
+                      value={newIncomeName}
+                      onChange={(event) => setNewIncomeName(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && newIncomeName.trim() && newIncomeAmountValue != null) addIncomeSource();
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Số tiền
+                    <input
+                      inputMode="numeric"
+                      placeholder="VD: 25,000,000"
+                      type="text"
+                      value={newIncomeAmount}
+                      onChange={(event) => setNewIncomeAmount(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && newIncomeName.trim() && newIncomeAmountValue != null) addIncomeSource();
+                      }}
+                    />
+                  </label>
+                  <button
+                    className="btn primary"
+                    disabled={!newIncomeName.trim() || newIncomeAmountValue == null}
+                    onClick={addIncomeSource}
+                    type="button"
+                  >
+                    <Plus size={18} />
+                    Thêm nguồn thu
+                  </button>
+                </div>
+              )}
+
+              <div className="budget-table-wrap" style={{ marginTop: canEditMonth ? 14 : 0 }}>
+                <table>
+                  <thead>
+                    <tr>
+                      {canEditMonth && <th aria-label="Sắp xếp"></th>}
+                      <th>Tên nguồn</th>
+                      <th>Số tiền</th>
+                      {canEditMonth && <th></th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {incomeSourcesDraft.length ? (
+                      incomeSourcesDraft.map((item) => (
+                        <tr
+                          key={item.id}
+                          onDragOver={
+                            canEditMonth
+                              ? (event) => {
+                                  event.preventDefault();
+                                  if (draggedIncomeId && draggedIncomeId !== item.id) setDragOverIncomeId(item.id);
+                                }
+                              : undefined
+                          }
+                          onDrop={
+                            canEditMonth
+                              ? (event) => {
+                                  event.preventDefault();
+                                  dropIncomeSource(item.id);
+                                }
+                              : undefined
+                          }
+                          style={{
+                            background: dragOverIncomeId === item.id ? "var(--primary-soft)" : undefined,
+                            opacity: draggedIncomeId === item.id ? 0.55 : 1
+                          }}
+                        >
+                          {canEditMonth && (
+                            <td>
+                              <button
+                                aria-label="Sắp xếp nguồn thu"
+                                className="icon-button"
+                                draggable
+                                onDragEnd={resetIncomeDragState}
+                                onDragStart={(event) => {
+                                  event.dataTransfer.effectAllowed = "move";
+                                  event.dataTransfer.setData("text/plain", item.id);
+                                  setDraggedIncomeId(item.id);
+                                }}
+                                style={{ cursor: "grab" }}
+                                title="Sắp xếp nguồn thu"
+                                type="button"
+                              >
+                                <GripVertical size={16} />
+                              </button>
+                            </td>
+                          )}
+                          <td>
+                            <input
+                              readOnly={!canEditMonth}
+                              value={item.name}
+                              onChange={canEditMonth ? (event) => updateIncomeSourceLocal(item.id, { name: event.target.value }) : undefined}
+                              onBlur={canEditMonth ? () => commitIncomeSourceName(item.id) : undefined}
+                              onKeyDown={
+                                canEditMonth
+                                  ? (event) => {
+                                      if (event.key === "Enter") event.currentTarget.blur();
+                                    }
+                                  : undefined
+                              }
+                            />
+                          </td>
+                          <td>
+                            <input
+                              inputMode="numeric"
+                              readOnly={!canEditMonth}
+                              type="text"
+                              value={item.amountText}
+                              onChange={canEditMonth ? (event) => updateIncomeSourceLocal(item.id, { amountText: event.target.value }) : undefined}
+                              onBlur={canEditMonth ? () => commitIncomeSourceAmount(item.id) : undefined}
+                              onKeyDown={
+                                canEditMonth
+                                  ? (event) => {
+                                      if (event.key === "Enter") event.currentTarget.blur();
+                                    }
+                                  : undefined
+                              }
+                            />
+                          </td>
+                          {canEditMonth && (
+                            <td>
+                              <button className="icon-button" onClick={() => deleteIncomeSource(item.id)} title="Xóa nguồn thu" type="button">
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="muted small" colSpan={canEditMonth ? 4 : 2}>
+                          Tháng này chưa có nguồn thu nào.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={canEditMonth ? 2 : 1}>Thu nhập tháng</td>
+                      <td className="money">{formatMoney(selectedMonth.income)}</td>
+                      {canEditMonth && <td></td>}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
             <div className="quick-panel">
               <span className="eyebrow">Quick input</span>
               <h3>Nhập nhanh chi tiêu</h3>

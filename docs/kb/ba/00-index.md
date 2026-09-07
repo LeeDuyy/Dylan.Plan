@@ -1,6 +1,6 @@
 # BA index
 
-Updated: 2026-08-28 (US-021 spec Ready for DEV, 8 AC — tự điền thông tin job từ link, mở rộng US-018; đã sync wiki)
+Updated: 2026-09-07 (US-022 + US-023 raw intake — nguồn thu/insight/tháng mặc định/item mọi tháng tại tab Thu chi; chuẩn hóa layout toàn app bằng Ant Design + responsive)
 
 | Mã | Tên | File |
 | --- | --- | --- |
@@ -27,3 +27,5 @@ Updated: 2026-08-28 (US-021 spec Ready for DEV, 8 AC — tự điền thông tin
 | US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | [`docs/kb/ba/wiki/knowledge/feature/US-019-danh-sach-can-mua.md`](wiki/knowledge/feature/US-019-danh-sach-can-mua.md) (nested — spec `Ready for DEV`, 10 AC, gắn `F3`/`M3` qua `DEC-105`) |
 | US-020 | Lịch sử thay đổi trạng thái job ứng tuyển (Expired tự động, No Response tự động sau 7 ngày) | [`docs/kb/ba/wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md`](wiki/knowledge/feature/US-020-lich-su-trang-thai-job.md) (nested — spec `Ready for DEV`, 9 AC) |
 | US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | [`docs/kb/ba/wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md`](wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) (nested — spec `Ready for DEV`, 8 AC; rule `BR-031`, `BR-032`) |
+| US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` (Raw — chờ `ssr-ingest` + `ssr-ba`) |
+| US-023 | Chuẩn hóa layout toàn app bằng Ant Design, tận dụng không gian và responsive cho mobile/tablet | `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` (Raw — chờ `ssr-ingest` + `ssr-ba`) |

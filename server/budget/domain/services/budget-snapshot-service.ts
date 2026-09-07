@@ -3,6 +3,7 @@
 // đọc được cho UI. Không import Prisma — chỉ phụ thuộc interface repository.
 
 import type { CategoryRepository } from "../repositories/category-repository";
+import type { IncomeSourceRepository } from "../repositories/income-source-repository";
 import type { MonthBudgetRepository } from "../repositories/month-budget-repository";
 import type { PurchaseItemRepository } from "../repositories/purchase-item-repository";
 import type { TransactionRepository } from "../repositories/transaction-repository";
@@ -34,10 +35,18 @@ export type PurchaseItemSnapshot = {
   status: "Pending" | "Purchased";
 };
 
+export type IncomeSourceSnapshot = {
+  id: string;
+  name: string;
+  amount: number;
+  order: number;
+};
+
 export type MonthBudgetSnapshot = {
   id: string;
   label: string;
   income: number;
+  incomeSources: IncomeSourceSnapshot[];
   categories: BudgetCategorySnapshot[];
   transactions: TransactionSnapshot[];
   purchaseItems: PurchaseItemSnapshot[];
@@ -52,16 +61,18 @@ export type BudgetSnapshotServiceDeps = {
   categoryRepository: CategoryRepository;
   transactionRepository: TransactionRepository;
   purchaseItemRepository: PurchaseItemRepository;
+  incomeSourceRepository: IncomeSourceRepository;
 };
 
 export function createBudgetSnapshotService(deps: BudgetSnapshotServiceDeps) {
   return {
     async getSnapshot(): Promise<BudgetSnapshot> {
-      const [months, categories, transactions, purchaseItems, actualByCategory] = await Promise.all([
+      const [months, categories, transactions, purchaseItems, incomeSources, actualByCategory] = await Promise.all([
         deps.monthBudgetRepository.findAll(),
         deps.categoryRepository.findAll(),
         deps.transactionRepository.findAll(),
         deps.purchaseItemRepository.findAll(),
+        deps.incomeSourceRepository.findAll(),
         deps.transactionRepository.sumAmountGroupedByCategory()
       ]);
 
@@ -105,17 +116,33 @@ export function createBudgetSnapshotService(deps: BudgetSnapshotServiceDeps) {
         purchaseItemsByMonth.set(item.monthId, list);
       }
 
+      const incomeSourcesByMonth = new Map<string, IncomeSourceSnapshot[]>();
+      for (const source of incomeSources) {
+        const list = incomeSourcesByMonth.get(source.monthId) ?? [];
+        list.push({
+          id: source.id,
+          name: source.name,
+          amount: source.amount,
+          order: source.order
+        });
+        incomeSourcesByMonth.set(source.monthId, list);
+      }
+
       const monthSnapshots = months
-        .map((month) => ({
-          id: month.id,
-          label: month.label,
-          income: month.income,
-          categories: categoriesByMonth.get(month.id) ?? [],
-          transactions: (transactionsByMonth.get(month.id) ?? []).sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          ),
-          purchaseItems: purchaseItemsByMonth.get(month.id) ?? []
-        }))
+        .map((month) => {
+          const monthIncomeSources = (incomeSourcesByMonth.get(month.id) ?? []).sort((a, b) => a.order - b.order);
+          return {
+            id: month.id,
+            label: month.label,
+            income: monthIncomeSources.reduce((sum, source) => sum + source.amount, 0),
+            incomeSources: monthIncomeSources,
+            categories: categoriesByMonth.get(month.id) ?? [],
+            transactions: (transactionsByMonth.get(month.id) ?? []).sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            ),
+            purchaseItems: purchaseItemsByMonth.get(month.id) ?? []
+          };
+        })
         .sort((a, b) => a.id.localeCompare(b.id));
 
       return { months: monthSnapshots };

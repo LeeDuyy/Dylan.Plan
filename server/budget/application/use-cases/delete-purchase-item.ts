@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { PurchaseItemRepository } from "../../domain/repositories/purchase-item-repository";
-import { assertMonthIsCurrent, CurrentMonthViolationError } from "../../domain/rules/current-month-rule";
+import { assertMonthNotPast, MonthInPastError } from "../../domain/rules/current-month-rule";
 
 export class DeletePurchaseItemError extends Error {}
 
@@ -11,10 +11,10 @@ export function createDeletePurchaseItemUseCase(repository: PurchaseItemReposito
     if (!current) return;
 
     try {
-      assertMonthIsCurrent(current.monthId);
+      assertMonthNotPast(current.monthId);
     } catch (error) {
-      if (error instanceof CurrentMonthViolationError) {
-        throw new DeletePurchaseItemError(error.message);
+      if (error instanceof MonthInPastError) {
+        throw new DeletePurchaseItemError("Chỉ được thao tác item cần mua từ tháng hiện tại trở đi.");
       }
       throw error;
     }

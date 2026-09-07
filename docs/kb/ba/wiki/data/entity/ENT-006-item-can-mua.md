@@ -1,6 +1,6 @@
 ---
 status: Draft
-updated: 2026-08-14
+updated: 2026-09-07
 owner: ssr-ingest
 tags: [kb/ba/wiki/data/entity]
 aliases: ["ENT-006", "Item cần mua"]
@@ -24,7 +24,8 @@ Một dòng trong danh sách mua sắm gắn theo một tháng ngân sách cụ 
 
 | Function | Cách dùng |
 | --- | --- |
-| [`US-019`](../../knowledge/feature/US-019-danh-sach-can-mua.md) | Tạo, Đọc, Sửa, Xóa, Đổi trạng thái — chỉ trong phạm vi tháng đang được chọn xem |
+| [`US-019`](../../knowledge/feature/US-019-danh-sach-can-mua.md) | Tạo, Đọc, Sửa, Xóa, Đổi trạng thái — theo điều kiện tháng của `BR-024` (nay được `BR-036` thay thế) |
+| [`US-022`](../../knowledge/feature/US-022-nguon-thu-va-insight-tab-thu-chi.md) | Nới điều kiện tháng được thao tác: cho cả tháng tương lai, chỉ chặn tháng đã qua ([`BR-036`](../../knowledge/business-rule/BR-036-item-can-mua-thang-khong-qua-khu.md)) |
 
 ## 4. Ràng Buộc
 
@@ -32,4 +33,4 @@ Một dòng trong danh sách mua sắm gắn theo một tháng ngân sách cụ 
 | --- | --- |
 | Giá không cộng vào Ngân sách/Chi thực tế/Số dư còn lại của tháng | [`BR-022`](../../knowledge/business-rule/BR-022-gia-item-khong-cong-ngan-sach.md) |
 | Item còn Pending được chuyển hẳn sang tháng mới khi Dylan tạo tháng mới, không giữ lại ở tháng gốc | [`BR-023`](../../knowledge/business-rule/BR-023-item-chuyen-thang-khi-tao-thang-moi.md) |
-| Chỉ thêm/sửa/xóa/đổi trạng thái được ở tháng đang chọn; tháng khác chỉ xem | [`BR-024`](../../knowledge/business-rule/BR-024-item-chi-thao-tac-thang-dang-chon.md) |
+| Thao tác được ở tháng hiện tại và tương lai; tháng đã kết thúc chỉ xem | [`BR-036`](../../knowledge/business-rule/BR-036-item-can-mua-thang-khong-qua-khu.md) (thay [`BR-024`](../../knowledge/business-rule/BR-024-item-chi-thao-tac-thang-dang-chon.md)) |

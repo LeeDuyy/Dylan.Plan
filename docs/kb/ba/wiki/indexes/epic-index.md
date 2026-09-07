@@ -1,6 +1,6 @@
 ---
 status: Draft
-updated: 2026-08-28
+updated: 2026-09-07
 owner: ssr-ingest
 tags: [kb/ba/wiki/indexes]
 ---
@@ -16,13 +16,14 @@ tags: [kb/ba/wiki/indexes]
 | `EPC-001` | Ghi nhận chi tiêu | `F1` | [`../knowledge/epic/EPC-001-ghi-nhan-chi-tieu.md`](../knowledge/epic/EPC-001-ghi-nhan-chi-tieu.md) | 4 (US-001 legacy, US-003 `Ready for DEV`, US-004, US-012 `Ready for DEV`) |
 | `EPC-002` | Lập và điều chỉnh ngân sách theo danh mục | `F2` | [`../knowledge/epic/EPC-002-lap-dieu-chinh-ngan-sach.md`](../knowledge/epic/EPC-002-lap-dieu-chinh-ngan-sach.md) | 6 (US-005 `Ready for DEV`, US-010 `Ready for DEV`, US-014 `Ready for DEV`, US-016 `Ready for DEV`, US-017 `Ready for DEV`, US-009 `Draft`, spec chưa viết) |
 | `EPC-003` | Quản lý theo chu kỳ tháng | `F3` | [`../knowledge/epic/EPC-003-quan-ly-chu-ky-thang.md`](../knowledge/epic/EPC-003-quan-ly-chu-ky-thang.md) | 3 (US-006 `Ready for DEV`, US-015 `Ready for DEV`, US-019 `Ready for DEV`) |
-| `EPC-004` | Phân tích và báo cáo chi tiêu | `F4` | [`../knowledge/epic/EPC-004-phan-tich-bao-cao-chi-tieu.md`](../knowledge/epic/EPC-004-phan-tich-bao-cao-chi-tieu.md) | 2 (US-007 `Ready for DEV`, US-008 `Ready for DEV`) |
+| `EPC-004` | Phân tích và báo cáo chi tiêu | `F4` | [`../knowledge/epic/EPC-004-phan-tich-bao-cao-chi-tieu.md`](../knowledge/epic/EPC-004-phan-tich-bao-cao-chi-tieu.md) | 2 (US-007 `Ready for DEV`, US-008 `Ready for DEV`) — US-022 chạm F4 nhưng là cross-cutting, xem mục 1b |
 
 ## 1b. Function Không Thuộc Epic Nào (Cross-cutting)
 
 | Mã | Tên function | Lý do không gắn epic |
 | --- | --- | --- |
 | `US-002` | Route/module riêng cho Quản lý chi tiêu (spec `Ready for DEV`) | Hạ tầng route/điều hướng dùng chung cho cả 4 luồng (F1, F2, F3, F4) — không thuộc riêng một luồng nào theo mô hình ánh xạ 1:1 epic↔luồng hiện tại |
+| `US-022` | Nguồn thu, sửa insight, tháng mặc định, item cần mua mọi tháng tại tab Thu chi (`Draft`) | Cross-cutting ba luồng, không gắn 1 epic: F2 (khai báo/điều chỉnh nguồn thu — phục vụ `M4`), F3 (tháng mặc định + nới giới hạn tháng item cần mua — Impacts `US-019`, phục vụ `M3`), F4 (sửa insight tiết kiệm cho đúng — phục vụ `M4`). Business Flow đã sync 2026-09-07 theo `DEC-127`..`DEC-131` |
 
 ## 1c. Function Ngoài Business Flow "Hệ Thống Quản Lý Chi Tiêu" (mảng Roadmap/tuyển dụng)
 

@@ -1,6 +1,6 @@
 # glossary.md — Từ điển thuật ngữ của dự án
 
-Updated: 2026-08-14
+Updated: 2026-09-07
 Scope: Dự án `DylanPlan`.
 Kế thừa: `${CLAUDE_PLUGIN_ROOT}/memory/glossary.md` (thuật ngữ kit + Next.js + Prisma + SQLite).
 
@@ -26,6 +26,8 @@ Quy tắc: mỗi thuật ngữ có **đúng một** định nghĩa. Nếu một 
 | Platform (tuyển dụng) | Danh sách kênh/nền tảng tuyển dụng (vd ITViec, LinkedIn, VietNamWork) Dylan tự quản lý cho mỗi Job ứng tuyển — cho thêm/xóa option linh động, khác combobox cố định của "Loại danh mục" (US-018, ENT-005) | Chưa có model — entity mới, chờ `ssr-data` (`ENT-005`) | "Platform" (cột trong bảng Theo dõi CV ứng tuyển) | Loại danh mục — đó là combobox cố định 3 giá trị, không cho thêm/xóa; Platform cho thêm/xóa option tự do |
 | Item cần mua | Một dòng trong danh sách mua sắm gắn theo tháng, gồm tên sản phẩm, giá (tùy chọn, chỉ tham khảo — không cộng vào Ngân sách/Chi thực tế, DEC-092) và trạng thái Pending/Purchased. Khi tạo tháng mới, item còn Pending của tháng nguồn được chuyển hẳn sang tháng mới (không giữ bản gốc, DEC-095); tháng khác tháng đang chọn xem chỉ xem, không thêm/sửa/xóa (DEC-094, DEC-096) (US-019) | Chưa có model — entity mới, chờ `ssr-data` | "Items cần mua" (khu vực trong bảng thu chi) | Danh mục, Giao dịch — không liên kết `Category`/`Transaction`, chỉ gắn theo `MonthBudget` |
 | Ngày nộp hồ sơ | Mốc thời gian ghi nhận khi một Job ứng tuyển chuyển từ Interested sang Waiting; dùng làm mốc tính luật tự động "quá 7 ngày ở Waiting mà không đổi trạng thái khác → tự chuyển No Response". Bị xoá khi job chuyển ngược từ Waiting về Interested (US-020, DEC-099) | Chưa có cột — chờ `ssr-data` mở rộng `JobApplication` | "Ngày nộp hồ sơ" (mốc mới trong bảng Theo dõi CV ứng tuyển) | Ngày hết hạn — đó là hạn chót tuyển dụng do nhà tuyển dụng đặt ra, không phải thời điểm Dylan nộp CV |
+| Nguồn thu | Một dòng thu nhập gắn theo tháng ngân sách, gồm tên (vd Lương, Freelance, Thưởng) và số tiền (số nguyên đồng ≥ 0, không cho âm — DEC-134); Dylan tự thêm/sửa/xóa/kéo-thả sắp xếp — đối xứng với Danh mục ở phần chi, chỉ thao tác được ở tháng hiện tại hoặc tương lai (BR-036, DEC-133). Tháng tạo mới bắt đầu không có nguồn thu nào (DEC-131). Không ảnh hưởng `Category.budget`/`Category.actual` (US-022, DEC-127) | Chưa có model — entity mới, chờ `ssr-data` (dự kiến `IncomeSource` liên kết `MonthBudget`) | "Nguồn thu" (bảng trong tab Thu chi) | Danh mục — đó là nhóm ở phần chi; Nguồn thu ở phần thu, không có Loại cố định |
+| Thu nhập tháng | Tổng số tiền tất cả Nguồn thu của một tháng ngân sách. Trước US-022 là một số cứng 35.000.000đ không sửa được (`MonthBudget.income`, `DEFAULT_INCOME`) (US-022, DEC-127) | Tổng `IncomeSource.amount` theo `monthId` (đường đọc); `MonthBudget.income` có thể giữ làm cache — `ssr-data` chốt | "Thu nhập tháng" | Nguồn thu — đó là từng dòng; Thu nhập tháng là tổng |
 
 ## 2. Vai trò người dùng
 
@@ -45,8 +47,11 @@ Job ứng tuyển (US-018, mở rộng US-020) có 8 trạng thái: Interested (
 
 | Chỉ số | Công thức | Đơn vị | Nguồn dữ liệu |
 | --- | --- | --- | --- |
-| Tỷ lệ sử dụng thu nhập | Tổng chi thực tế / Thu nhập tháng | % | `MonthBudget.income`, tổng `Category.actual` |
-| Số dư còn lại (mức tổng tháng — không nhầm với "Còn lại" theo từng danh mục ở mục 1) | Thu nhập tháng - Tổng chi thực tế | VND | `MonthBudget.income`, tổng `Category.actual` |
+| Tỷ lệ sử dụng thu nhập | Tổng chi thực tế / Thu nhập tháng | % | Thu nhập tháng (tổng `IncomeSource.amount`), tổng `Category.actual` |
+| Số dư còn lại (mức tổng tháng — không nhầm với "Còn lại" theo từng danh mục ở mục 1) | Thu nhập tháng - Tổng chi thực tế | VND | Thu nhập tháng, tổng `Category.actual` |
+| Tiết kiệm ròng | Thu nhập tháng − Tổng chi thực tế (được phép âm khi chi vượt thu). Cùng công thức với "Số dư còn lại (mức tổng tháng)"; user chốt giữ cả hai ô hiển thị song song (US-022, DEC-128, DEC-135) | VND | Thu nhập tháng, tổng `Category.actual` |
+| Đã phân bổ vào tích lũy | Tổng Chi thực tế của các danh mục có Loại = "Tích lũy" (lọc theo `Category.type`, không dùng regex tên) | VND | `Category.type = "Tích lũy"`, `Category.actual` |
+| Tỷ lệ tiết kiệm | Tiết kiệm ròng / Thu nhập tháng (`ssr-ba` chốt hiển thị khi Thu nhập tháng = 0) | % | Tiết kiệm ròng, Thu nhập tháng |
 | Ngưỡng cảnh báo vượt ngân sách | Tỷ lệ sử dụng thu nhập ≥ giá trị ngưỡng (mặc định 90%) | % | Hiện cố định trong code (`components/DylanPlanApp.tsx`); sẽ chuyển thành giá trị Dylan tự cấu hình được (DEC-006, chưa qua `ssr-data`) |
 
 ## 5. Viết tắt

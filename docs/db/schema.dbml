@@ -1,13 +1,30 @@
 // Đồng bộ thủ công từ prisma/schema.prisma — không có generator DBML cài sẵn trong dự án.
 // Nguồn sự thật là prisma/schema.prisma. Không sửa ngược từ file này.
-// Cập nhật lần cuối: 2026-08-14 (US-019 — thêm bảng PurchaseItem, thêm quan hệ purchaseItems trên MonthBudget)
+// Cập nhật lần cuối: 2026-09-07 (US-022 — thêm bảng IncomeSource, thêm quan hệ incomeSources trên MonthBudget)
 
 Table MonthBudget {
   id text [pk, note: 'Dạng YYYY-MM, client cung cấp']
   label text [not null]
-  income integer [not null]
+  income integer [not null, note: 'VESTIGIAL sau US-022 — "Thu nhập tháng" nay tính bằng tổng IncomeSource.amount; cột này giữ lại chỉ để backfill migration 20260907005635_add_income_source và làm đường rollback (JDG-035). Không có đường ghi/đọc nào từ UI.']
   createdAt timestamp [not null]
   updatedAt timestamp [not null]
+}
+
+Table IncomeSource {
+  id text [pk]
+  monthId text [not null, ref: > MonthBudget.id]
+  name text [not null, note: 'Tên nguồn thu (Lương, Freelance, Thưởng...) — cho phép trùng tên trong cùng tháng, khác Category (không áp BR-017)']
+  amount integer [not null, note: 'Số nguyên đồng >= 0 — ràng buộc ở tầng ứng dụng (DEC-134), không phải CHECK constraint của DB']
+  order integer [not null, default: 0, note: 'Vị trí hiển thị trong bảng "Nguồn thu" — Dylan kéo-thả sắp xếp (BR-035, AC-10)']
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Nguồn thu — "Thu nhập tháng" của MonthBudget = tổng amount các dòng của tháng (BR-033). Chỉ thêm/sửa/xóa/sắp xếp được ở tháng hiện tại hoặc tương lai theo đồng hồ hệ thống (BR-036, DEC-133). Không cộng vào / không đụng Ngân sách hay Chi thực tế của Category (DEC-127). Tháng tạo mới bắt đầu không có dòng nào (BR-037); các tháng có trước US-022 được backfill 1 dòng "Lương" = MonthBudget.income cũ.'
+
+  indexes {
+    monthId
+    (monthId, order)
+  }
 }
 
 Table Category {

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { DEFAULT_INCOME, defaultCategories } from "@/lib/budget-defaults";
 
 import type { CategoryRepository } from "../../domain/repositories/category-repository";
+import type { IncomeSourceRepository } from "../../domain/repositories/income-source-repository";
 import type { MonthBudgetRepository } from "../../domain/repositories/month-budget-repository";
 
 // 3 tháng mặc định ban đầu của app (khớp hiệu ứng quan sát được trước đây: luôn có
@@ -19,6 +20,7 @@ function formatMonthLabel(id: string): string {
 export type ResetAllBudgetDataDeps = {
   monthBudgetRepository: MonthBudgetRepository;
   categoryRepository: CategoryRepository;
+  incomeSourceRepository: IncomeSourceRepository;
 };
 
 export function createResetAllBudgetDataUseCase(deps: ResetAllBudgetDataDeps) {
@@ -29,7 +31,13 @@ export function createResetAllBudgetDataUseCase(deps: ResetAllBudgetDataDeps) {
       await deps.monthBudgetRepository.create({
         id: monthId,
         label: formatMonthLabel(monthId),
-        income: DEFAULT_INCOME
+        income: 0
+      });
+      await deps.incomeSourceRepository.create({
+        monthId,
+        name: "Lương",
+        amount: DEFAULT_INCOME,
+        order: 0
       });
       for (const category of defaultCategories) {
         await deps.categoryRepository.create({

@@ -1,12 +1,14 @@
 ---
-status: Active
-updated: 2026-08-14
+status: Superseded
+updated: 2026-09-07
 owner: ssr-ingest
 tags: [kb/ba/wiki/knowledge/business-rule]
 aliases: ["BR-024"]
 ---
 
 # BR-024 — Chỉ thêm/sửa/xóa item cần mua ở tháng hiện tại; tháng khác chỉ xem
+
+> **Bị thay thế bởi [`BR-036`](BR-036-item-can-mua-thang-khong-qua-khu.md) từ 2026-09-07 (US-022, `DEC-130`).** Điều kiện tháng được thao tác nới từ "đúng tháng hiện tại" thành "tháng không ở quá khứ" (tháng hiện tại hoặc tương lai). Trang này giữ lại để truy vết lịch sử quyết định US-019.
 
 > Trang dùng lại được xuyên function. Một rule chỉ có một trang; function nào áp dụng thì liên kết tới đây thay vì chép lại nội dung.
 
@@ -20,7 +22,7 @@ Khác với quy tắc đã áp dụng cho giao dịch chi tiêu ([`BR-003`](BR-0
 
 | Function | Áp dụng ở đâu |
 | --- | --- |
-| [`US-019`](../feature/US-019-danh-sach-can-mua.md) | Khu vực "Items cần mua" trong bảng thu chi — ẩn/vô hiệu mọi thao tác khi tháng đang xem khác tháng hiện tại |
+| [`US-019`](../feature/US-019-danh-sach-can-mua.md) | Khu vực "Items cần mua" trong bảng thu chi — ẩn/vô hiệu mọi thao tác khi tháng đang xem khác tháng hiện tại (**đã bị `BR-036` thay thế** — nay cho cả tháng tương lai) |
 
 ## 3. Ngoại Lệ
 

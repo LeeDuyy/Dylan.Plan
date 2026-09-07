@@ -1,6 +1,6 @@
 ---
 status: Agreed
-updated: 2026-08-14
+updated: 2026-09-07
 agreed_with: Dylan (user, chủ dự án)
 owner: ssr-po
 tags: [business-flow]
@@ -10,9 +10,11 @@ aliases: ["Business Flow", "Hệ Thống Quản Lý Chi Tiêu (Dylan Expense Man
 # Business Flow — Hệ Thống Quản Lý Chi Tiêu (Dylan Expense Manager)
 
 Status: Agreed
-Updated: 2026-08-14
+Updated: 2026-09-07
 Chốt với: Dylan (user, chủ dự án)
 Owner: ssr-po
+
+> Cập nhật 2026-09-07 (US-022): thêm mục tiêu `M4` (thu nhập tháng phản ánh nguồn thu thật); F2 thêm bước quản lý nguồn thu; F3 cập nhật tháng mặc định (`DEC-129`) và nới điều kiện tháng cho "Items cần mua" (`DEC-130`, thay `DEC-094`/`DEC-096`); F4 định nghĩa lại khu vực insight tiết kiệm (`DEC-128`, `DEC-131`). Các quyết định nền (`DEC-127`..`DEC-131`) đã chốt trực tiếp với user qua dialog ngày 2026-09-07; bản cập nhật này đồng bộ tài liệu canon theo các quyết định đó.
 
 > Tài liệu này mô tả **tổng thể** hệ thống làm gì và đi về đâu. Mọi spec đều phải quy chiếu về đây.
 > Nội dung ở đây chỉ được ghi sau khi đã trao đổi và **chốt với user** — không suy đoán định hướng.
@@ -27,6 +29,7 @@ Hệ thống tồn tại để: giúp Dylan ghi nhận và kiểm soát chi tiê
 | M1 | Dữ liệu chi tiêu (tháng, danh mục, giao dịch) được lưu trữ bền vững, không phụ thuộc trình duyệt | Dữ liệu vẫn còn sau khi xóa cache/đổi máy — kiểm chứng bằng cách đọc lại từ nguồn lưu trữ độc lập với `localStorage` | Chưa chốt mốc thời gian cụ thể | Có (DEC-001) |
 | M2 | Trang quản lý chi tiêu tách khỏi các mục khác của Dylan Plan Dashboard (roadmap, freelance, sản phẩm) | Có route/module riêng, điều hướng độc lập trong cùng dự án Next.js | Chưa chốt mốc thời gian cụ thể | Có (DEC-002) |
 | M3 | Hỗ trợ Dylan lên kế hoạch mua sắm theo tháng ngay trong bảng thu chi, giảm nguy cơ quên hoặc mua trùng đồ cần mua | Dylan mở bảng thu chi là thấy ngay danh sách sản phẩm cần mua của tháng đang xem, không cần ghi ở nơi khác ngoài ứng dụng; tách rõ khỏi M1 vì đây không phải dữ liệu chi tiêu thật (giá không cộng vào Ngân sách/Chi thực tế) | Chưa chốt mốc thời gian cụ thể | Có (DEC-105) |
+| M4 | Thu nhập tháng phản ánh đúng các nguồn thu thật của Dylan, để mọi chỉ số suy ra từ thu nhập (số dư còn lại, tỷ lệ dùng thu nhập, tiết kiệm) chính xác | Dylan tự khai báo các nguồn thu có tên cho từng tháng; "Thu nhập tháng" bằng tổng các nguồn thu đó — không còn là một con số cố định gán sẵn không sửa được | Chưa chốt mốc thời gian cụ thể | Có (DEC-127, DEC-128, DEC-131) |
 
 Không theo đuổi (nêu rõ để chặn scope creep):
 
@@ -111,9 +114,9 @@ flowchart LR
 | Luồng | Tên | Vai trò chính | Đầu vào | Kết quả |
 | --- | --- | --- | --- | --- |
 | F1 | Ghi nhận chi tiêu | Dylan | Nội dung + số tiền giao dịch | Giao dịch được lưu, chi thực tế của danh mục cập nhật |
-| F2 | Lập và điều chỉnh ngân sách theo danh mục | Dylan | Danh mục, số tiền ngân sách | Bảng ngân sách theo danh mục được cập nhật |
-| F3 | Quản lý theo chu kỳ tháng | Dylan | Chọn tháng mới / tháng hiện có | Dữ liệu tháng (ngân sách, giao dịch, danh sách sản phẩm cần mua) sẵn sàng để thao tác |
-| F4 | Phân tích và báo cáo chi tiêu | Dylan | Dữ liệu các tháng đã có | Insight (danh mục chi nhiều nhất, tiết kiệm, xu hướng) và file xuất dữ liệu |
+| F2 | Lập và điều chỉnh ngân sách theo danh mục | Dylan | Danh mục, số tiền ngân sách; các nguồn thu và số tiền từng nguồn | Bảng ngân sách theo danh mục và bảng nguồn thu được cập nhật; "Thu nhập tháng" = tổng các nguồn thu |
+| F3 | Quản lý theo chu kỳ tháng | Dylan | Chọn tháng mới / tháng hiện có | Dữ liệu tháng (ngân sách, giao dịch, nguồn thu, danh sách sản phẩm cần mua) sẵn sàng để thao tác; khi mở bảng thu chi, tháng hiện tại (hoặc gần nhất) được chọn sẵn |
+| F4 | Phân tích và báo cáo chi tiêu | Dylan | Dữ liệu các tháng đã có | Insight (danh mục chi nhiều nhất, tiết kiệm ròng, đã phân bổ vào tích lũy, xu hướng) và file xuất dữ liệu |
 
 ## 4. Chi Tiết Từng Luồng
 
@@ -162,7 +165,7 @@ Trường hợp hỏng:
 
 ### F2 — Lập và điều chỉnh ngân sách theo danh mục
 
-Mục tiêu phục vụ: `M1`
+Mục tiêu phục vụ: `M1`, `M4`
 
 | Bước | Ai làm | Làm gì | Kết quả | Function |
 | --- | --- | --- | --- | --- |
@@ -170,6 +173,7 @@ Mục tiêu phục vụ: `M1`
 | 2 | Dylan | Sửa trực tiếp tên, loại hoặc ngân sách của một danh mục | Bảng và các số tổng cập nhật ngay; riêng "Chi thực tế" không còn sửa tay được — luôn tính lại từ tổng giao dịch (DEC-007); nếu tên mới trùng (không phân biệt hoa/thường, đã bỏ khoảng trắng thừa) với một danh mục khác trong cùng tháng, chặn lưu và báo lỗi (DEC-020, DEC-021, DEC-022); không áp dụng cho "Chi tiêu khác" vì dòng này chỉ đọc (DEC-027) | Chưa có |
 | 3 | Dylan | Thêm danh mục mới | Danh mục trống được thêm vào bảng; nếu tên trùng (theo cùng quy tắc chuẩn hóa) với một danh mục đã có trong tháng đang chọn, chặn thêm và báo lỗi (DEC-020, DEC-021, DEC-022) | Chưa có |
 | 4 | Dylan | Xóa một danh mục không khóa (`locked`) | Toàn bộ giao dịch của danh mục chuyển sang danh mục "Chi tiêu khác" (tự sinh và hiện ra trên bảng nếu tháng chưa có — DEC-026, DEC-029); danh mục vừa xóa biến mất khỏi bảng, chi thực tế "Chi tiêu khác" tính lại từ tổng giao dịch (DEC-024, DEC-007). Riêng "Chi tiêu khác" luôn bị khóa vĩnh viễn, không hiện nút xóa trong mọi trường hợp (DEC-027); nếu sau đó giao dịch cuối cùng của nó cũng bị chuyển đi/xóa, nó tự ẩn khỏi bảng (DEC-029) | Chưa có |
+| 5 | Dylan | Xem bảng "Nguồn thu" của tháng đang xem; thêm, sửa tên/số tiền, sắp xếp hoặc xóa từng nguồn thu (Lương, Freelance, Thưởng…) | "Thu nhập tháng" bằng tổng số tiền tất cả nguồn thu của tháng, cập nhật ngay mỗi khi danh sách nguồn thu đổi; mọi chỉ số suy ra từ thu nhập (số dư còn lại, tỷ lệ dùng thu nhập, tiết kiệm ròng, tỷ lệ tiết kiệm) tính lại theo. Tháng chưa có nguồn thu nào thì "Thu nhập tháng" bằng 0. Tháng tạo mới bắt đầu không có nguồn thu nào, kể cả khi "Clone tháng đang xem" (DEC-127, DEC-131) | US-022 |
 
 Điều kiện rẽ nhánh:
 
@@ -193,20 +197,21 @@ Mục tiêu phục vụ: `M2`, `M3`
 
 | Bước | Ai làm | Làm gì | Kết quả | Function |
 | --- | --- | --- | --- | --- |
-| 1 | Dylan | Chọn một tháng đã có từ danh sách | Bảng ngân sách và giao dịch của tháng đó hiển thị | Chưa có |
+| 1 | Dylan | Mở bảng thu chi; chọn một tháng đã có từ danh sách | Khi vừa mở, hệ thống chọn sẵn tháng hiện tại theo đồng hồ hệ thống nếu tháng đó đã có dữ liệu; nếu chưa, chọn tháng có khoảng cách theo số tháng tới tháng hiện tại nhỏ nhất (hai tháng cách đều thì ưu tiên tháng ở quá khứ) — `DEC-129`. Bảng ngân sách, nguồn thu và giao dịch của tháng được chọn hiển thị | US-022 (phần chọn tháng mặc định) |
 | 2 | Dylan | Chọn kỳ tháng mới cần tạo | Hệ thống kiểm tra tháng đó đã tồn tại chưa | Chưa có |
-| 3 | Dylan | Chọn "Tạo tháng" (trống) hoặc "Clone tháng hiện tại" | Tháng mới được tạo với danh mục tương ứng; toàn bộ sản phẩm còn "chưa mua" trong danh sách "Items cần mua" của tháng hiện tại (tháng thực tế theo đồng hồ hệ thống tại thời điểm bấm nút — `DEC-107`) được chuyển sang tháng mới | US-019 (phần chuyển sản phẩm cần mua); phần tạo danh mục: Chưa có |
-| 4 | Dylan | Xem, thêm, sửa, đánh dấu đã mua, hoặc xóa sản phẩm trong danh sách "Items cần mua" của tháng hiện tại | Danh sách sản phẩm cần mua cập nhật ngay; ở tháng khác tháng hiện tại (kể cả khi đang được chọn xem qua dropdown "Chọn tháng xem") thì chỉ xem, không thao tác được — độc lập với khái niệm "tháng đang được chọn xem" dùng cho phần ngân sách/giao dịch (`DEC-107`) | US-019 |
+| 3 | Dylan | Chọn "Tạo tháng" (trống) hoặc "Clone tháng đang xem" | Tháng mới được tạo với danh mục tương ứng; danh sách nguồn thu của tháng mới bắt đầu trống (`DEC-131`); toàn bộ sản phẩm còn "chưa mua" trong danh sách "Items cần mua" của tháng hiện tại (tháng thực tế theo đồng hồ hệ thống tại thời điểm bấm nút — `DEC-107`) được chuyển sang tháng mới | US-019 (chuyển sản phẩm cần mua), US-022 (nguồn thu bắt đầu trống); phần tạo danh mục: Chưa có |
+| 4 | Dylan | Xem, thêm, sửa, đánh dấu đã mua, hoặc xóa sản phẩm trong danh sách "Items cần mua" | Danh sách sản phẩm cần mua cập nhật ngay khi tháng đang xem là tháng hiện tại **hoặc bất kỳ tháng nào sau tháng hiện tại** (`DEC-130`, thay `DEC-094`/`DEC-096`); ở tháng đã kết thúc thì chỉ xem, không thao tác được | US-019, US-022 (nới điều kiện tháng) |
 
 Điều kiện rẽ nhánh:
 
 | Điều kiện | Đi tiếp tới | Ghi chú |
 | --- | --- | --- |
 | Tháng mới trùng với tháng đã tồn tại | Không tạo, không báo lỗi rõ ràng cho người dùng | Khoảng trống UX — nên có thông báo |
-| Chọn "Clone tháng hiện tại" | Sao chép nguyên danh mục + ngân sách, chi thực tế = 0 | — |
-| Chọn "Tạo tháng" (trống) | Dùng danh mục mặc định của hệ thống, chi thực tế = 0 | — |
-| Tạo tháng mới (dù "Tạo tháng" hay "Clone tháng hiện tại") | Toàn bộ sản phẩm còn "chưa mua" (Pending) trong "Items cần mua" của tháng hiện tại (theo đồng hồ hệ thống, không phải tháng đang chọn xem trên dropdown nếu khác nhau — `DEC-107`) chuyển hẳn sang tháng mới, ẩn khỏi tháng gốc; sản phẩm đã mua (Purchased) không bị chuyển | US-019 |
-| Xem một tháng khác tháng hiện tại (kể cả khi tháng đó đang được chọn xem qua dropdown "Chọn tháng xem") | Danh sách "Items cần mua" của tháng đó hiển thị đầy đủ nhưng chỉ xem — không thêm/sửa/xóa/đánh dấu đã mua | US-019 |
+| Chọn "Clone tháng đang xem" | Sao chép nguyên danh mục + ngân sách, chi thực tế = 0; nguồn thu KHÔNG được sao chép — danh sách nguồn thu tháng mới bắt đầu trống (`DEC-131`) | US-022 |
+| Chọn "Tạo tháng" (trống) | Dùng danh mục mặc định của hệ thống, chi thực tế = 0; danh sách nguồn thu trống (`DEC-131`) | US-022 |
+| Tạo tháng mới (dù "Tạo tháng" hay "Clone tháng đang xem") | Toàn bộ sản phẩm còn "chưa mua" (Pending) trong "Items cần mua" của tháng hiện tại (theo đồng hồ hệ thống, không phải tháng đang chọn xem trên dropdown nếu khác nhau — `DEC-107`) chuyển hẳn sang tháng mới, ẩn khỏi tháng gốc; sản phẩm đã mua (Purchased) không bị chuyển | US-019 |
+| Xem một tháng đã kết thúc (trước tháng hiện tại theo đồng hồ hệ thống) | Danh sách "Items cần mua" của tháng đó hiển thị đầy đủ nhưng chỉ xem — không thêm/sửa/xóa/đánh dấu đã mua (`DEC-130`) | US-019, US-022 |
+| Xem tháng hiện tại hoặc một tháng ở tương lai | Danh sách "Items cần mua" cho thêm/sửa/xóa/đánh dấu đã mua bình thường (`DEC-130`, nới từ `DEC-094`/`DEC-096`) | US-022 |
 
 Trường hợp hỏng:
 
@@ -216,11 +221,11 @@ Trường hợp hỏng:
 
 ### F4 — Phân tích và báo cáo chi tiêu
 
-Mục tiêu phục vụ: `M1`
+Mục tiêu phục vụ: `M1`, `M4`
 
 | Bước | Ai làm | Làm gì | Kết quả | Function |
 | --- | --- | --- | --- | --- |
-| 1 | Dylan | Xem các thẻ insight (danh mục chi nhiều nhất, tiết kiệm, chi linh hoạt) | Nắm nhanh tình hình tài chính tháng | Chưa có |
+| 1 | Dylan | Xem các thẻ insight | Nắm nhanh tình hình tài chính tháng. Khu vực insight hiển thị: "Thu nhập tháng" (tổng nguồn thu), "Tổng chi", "Số dư còn lại", "Tiết kiệm ròng" (Thu nhập tháng trừ Tổng chi thực tế, được phép âm) kèm "Tỷ lệ tiết kiệm", "Đã phân bổ vào tích lũy" (tổng Chi thực tế của các danh mục Loại "Tích lũy"), và các chỉ số chi khác. Không còn câu chữ nêu mốc mục tiêu cố định (5M/7.5M/31.5M/30M/90%) — `DEC-128`, `DEC-131` | US-022 |
 | 2 | Dylan | Xem biểu đồ cơ cấu chi theo danh mục và xu hướng chi qua các tháng đang có trong bộ nhớ | So sánh chi tiêu giữa các danh mục và giữa các tháng | Chưa có |
 | 3 | Dylan | Mở mini dashboard, chọn khoảng thời gian 3/6/9/12 tháng gần đây (DEC-032, DEC-033) | Xem biểu đồ tổng chi thực tế theo từng tháng trong khoảng đã chọn, so sánh với tổng ngân sách/thu nhập tháng đó; khoảng thời gian tính từ tháng hiện tại theo đồng hồ hệ thống, lùi về trước (DEC-034) | Chưa có |
 | 4 | Dylan | Xuất dữ liệu ra file JSON | Có bản sao dữ liệu tải về máy | Chưa có |
@@ -229,7 +234,7 @@ Mục tiêu phục vụ: `M1`
 
 | Điều kiện | Đi tiếp tới | Ghi chú |
 | --- | --- | --- |
-| Tổng chi ≥ 90% thu nhập tháng | Hiển thị cảnh báo màu cảnh báo trên thanh tiến độ | Ngưỡng cố định trong code |
+| Tổng chi cao so với Thu nhập tháng | Thanh tiến độ đổi màu cảnh báo khi tỷ lệ dùng thu nhập lên cao | Ngưỡng hiện cố định trong code; các câu chữ nêu con số mốc cụ thể đã gỡ khỏi giao diện (`DEC-131`); việc cho Dylan tự cấu hình ngưỡng thuộc US-009 |
 | Trong khoảng 3/6/9/12 tháng gần đây có tháng chưa được tạo (không có `MonthBudget`) | Bỏ qua tháng đó trên biểu đồ, không hiển thị cột/điểm trống | DEC-036 |
 
 Trường hợp hỏng:
@@ -248,6 +253,7 @@ Nơi hai luồng dùng chung dữ liệu hoặc chặn nhau — đây là chỗ 
 | 1 | F1 (Ghi nhận chi tiêu) | F2 (Ngân sách theo danh mục) | Giao dịch được gán vào danh mục theo tên hiển thị; "chi thực tế" trên bảng ngân sách sẽ là số tính lại tự động từ tổng giao dịch (DEC-007), không còn ô sửa tay riêng | Đổi tên hoặc xóa danh mục ở F2 có thể làm giao dịch cũ ở F1 mất liên kết hoặc số liệu không còn khớp nhau; sửa/xóa giao dịch ở F1 (mục 7 #3) phải trừ/cộng đúng danh mục để bảng ngân sách ở F2 luôn khớp |
 | 2 | F3 (Quản lý theo chu kỳ tháng) | F1 + F2 | Việc tạo tháng mới (trống hay clone) quyết định trạng thái ban đầu của danh mục và ngân sách cho toàn bộ thao tác ghi nhận/điều chỉnh trong tháng đó | Nếu logic tạo tháng thay đổi (vd đổi danh mục mặc định) mà không đồng bộ, dữ liệu giữa các tháng sẽ không nhất quán |
 | 3 | F4 (Phân tích) | F1 + F2 + F3 | Toàn bộ số liệu insight và biểu đồ được tính lại từ dữ liệu của tất cả các tháng đang có | Nếu F1-F3 chuyển sang lưu trữ bền vững (DB) mà F4 vẫn đọc từ state cũ, insight sẽ sai lệch với dữ liệu thật |
+| 4 | F2 (Nguồn thu) | F4 (Phân tích) | "Thu nhập tháng" = tổng các nguồn thu Dylan khai báo ở F2; F4 dùng con số này làm mẫu số cho "Số dư còn lại", "Tỷ lệ dùng thu nhập", "Tiết kiệm ròng", "Tỷ lệ tiết kiệm" | Nếu cách tính "Thu nhập tháng" ở F2 đổi mà F4 không đồng bộ, hoặc tháng chưa có nguồn thu nào (Thu nhập tháng = 0), các chỉ số F4 phải xử lý đúng trường hợp chia cho 0 (`DEC-128`) |
 
 ## 6. Bản Đồ Function
 
@@ -266,7 +272,9 @@ Nơi hai luồng dùng chung dữ liệu hoặc chặn nhau — đây là chỗ 
 | US-012 | Sửa lỗi ghi nhận âm thầm thất bại khi tên danh mục bị đổi (defect PO-01) | F1 | M1 | Delivered With Notes (2026-08-06) |
 | US-015 | Giới hạn khu vực "Lịch sử thu chi" chỉ hiển thị 3 thẻ tháng quick view (opportunity PO-02) | F3 | M2 | Delivered With Notes (2026-08-11) |
 | US-016 | Chuẩn hóa "Loại" chi tiêu (danh mục) thành combobox cố định (defect + opportunity PO-03) | F2 | M1 | Raw (2026-08-11) |
-| US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | F3 | M3 (mục tiêu mới, `DEC-105`) | Spec đang hoàn thiện (2026-08-14) |
+| US-019 | Danh sách items cần mua theo tháng tại bảng thu chi | F3 | M3 (mục tiêu mới, `DEC-105`) | Delivered With Notes (2026-08-14) — điều kiện tháng thao tác được nới bởi US-022 (`DEC-130`) |
+| US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định, và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | F2 (nguồn thu), F3 (tháng mặc định, item cần mua), F4 (insight tiết kiệm) | M4 (mục tiêu mới, `DEC-127`); M3 (nới item cần mua) | Spec đang hoàn thiện (2026-09-07) |
+| US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | Toàn bộ giao diện (cross-cutting F1–F4) | M2 (trải nghiệm) | Raw (2026-09-07) |
 
 Trạng thái `Raw`: `ssr-raw` đã cấp mã và tạo raw + BA wiki stub cho toàn bộ 11 US (2026-08-03, sau khi user duyệt "DUYỆT TẠO CHO 11 US"). Tính đến 2026-08-06, US-001, US-002, US-003, US-004, US-005 đã đi hết pipeline (`ba → plan → data (khi cần) → task → implement → review/test → report`), đều verdict `Pass`/`Pass With Notes` — xem `report.md` tương ứng trong `docs/features/`. 6 US còn lại (US-006 đến US-011, trừ US-010 đã liệt kê ở trên) vẫn dừng ở `Raw`, chưa có spec. Chi tiết từng mã xem `docs/requirements-index.md`.
 

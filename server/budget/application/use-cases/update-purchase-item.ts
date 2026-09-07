@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 
 import type { PurchaseItemEntity } from "../../domain/entities/purchase-item";
 import type { PurchaseItemRepository, UpdatePurchaseItemInput } from "../../domain/repositories/purchase-item-repository";
-import { assertMonthIsCurrent, CurrentMonthViolationError } from "../../domain/rules/current-month-rule";
+import { assertMonthNotPast, MonthInPastError } from "../../domain/rules/current-month-rule";
 import {
   assertValidPurchaseItemName,
   assertValidPurchaseItemPrice,
@@ -52,10 +52,10 @@ export function createUpdatePurchaseItemUseCase(repository: PurchaseItemReposito
     if (!current) return null;
 
     try {
-      assertMonthIsCurrent(current.monthId);
+      assertMonthNotPast(current.monthId);
     } catch (error) {
-      if (error instanceof CurrentMonthViolationError) {
-        throw new UpdatePurchaseItemError(error.message);
+      if (error instanceof MonthInPastError) {
+        throw new UpdatePurchaseItemError("Chỉ được thao tác item cần mua từ tháng hiện tại trở đi.");
       }
       throw error;
     }

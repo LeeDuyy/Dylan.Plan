@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 
-import { DEFAULT_INCOME, defaultCategories } from "@/lib/budget-defaults";
+import { defaultCategories } from "@/lib/budget-defaults";
 
 import type { MonthBudgetEntity } from "../../domain/entities/month-budget";
 import type { CategoryRepository } from "../../domain/repositories/category-repository";
@@ -43,7 +43,7 @@ export function createCreateMonthUseCase(deps: CreateMonthDeps) {
     const month = await deps.monthBudgetRepository.create({
       id: monthId,
       label: formatMonthLabel(monthId),
-      income: DEFAULT_INCOME
+      income: 0
     });
 
     // Không kế thừa "Chi tiêu khác" khi sao chép tháng — chỉ tự sinh khi tháng mới

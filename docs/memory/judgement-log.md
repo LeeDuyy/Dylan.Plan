@@ -1,6 +1,6 @@
 # judgement-log.md — Nhận định và kết luận sau phân tích
 
-Updated: 2026-08-28 (JDG-033)
+Updated: 2026-09-07 (JDG-035)
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Nhận định bị bác bỏ thì đổi `Status: Refuted` và thêm bản ghi mới trỏ ngược lại.
@@ -10,6 +10,28 @@ Ghi vào đây khi: kết thúc một lượt điều tra, review, hoặc phân 
 Khác `decisions.md`: nhận định **có thể sai**. Một nhận định được xác nhận đủ chắc thì nâng thành `DEC-###` bên `decisions.md`.
 
 ---
+
+### JDG-035 — Cột `MonthBudget.income` giữ lại làm vestigial sau US-022 thay vì drop trong cùng migration
+
+- Ngày: 2026-09-07
+- Status: Open — chờ `ssr-data` xác nhận và implementation thật
+- Độ tin cậy: Giả định hợp lý — kết luận kỹ thuật của `ssr-plan` khi khảo sát US-022; chưa chạy `prisma migrate dev` thật
+- Feature liên quan: US-022
+- Bối cảnh: US-022 chuyển "Thu nhập tháng" từ cột `MonthBudget.income` (Int, cố định 35tr) sang tổng `IncomeSource.amount`. Migration cần chính cột `income` đó để backfill 1 nguồn thu "Lương" cho mỗi tháng đang có. Sau backfill, `budget-snapshot-service` không đọc cột này nữa.
+- Lập luận: Drop cột trong cùng migration vừa dùng nó để backfill là thao tác dễ sai thứ tự; SQLite + Prisma migrate xử lý drop-column bằng table-rebuild, thêm rủi ro không tương xứng với lợi ích. Giữ cột (repo vẫn map, `create-month` ghi 0, `reset` ghi `DEFAULT_INCOME`) là an toàn và cho một đường rollback (số liệu thu nhập cũ vẫn còn trong DB nếu backfill hỏng). Cột trở thành "vestigial" — không có đường ghi nào từ UI, không có đường đọc nào cho snapshot.
+- Hệ quả nếu đúng: `ssr-data` giữ cột trong `data-model.md`; `ssr-dev` thêm comment trong `month-budget-prisma-repository.ts` nêu rõ cột vestigial; một migration dọn cột riêng có thể làm sau khi US-022 chạy ổn định vài chu kỳ.
+- Cái gì sẽ chứng minh nó sai: Nếu để cột lại gây nhầm lẫn thực tế (có người viết code mới đọc `MonthBudget.income` tưởng là thu nhập thật) hoặc `ssr-data` xác nhận drop-column trong migration này an toàn và rẻ — khi đó nên drop luôn.
+
+### JDG-034 — Khi mọi quyết định định hướng đã chốt trực tiếp với user, Business Flow được đồng bộ ngay trong luồng làm việc thay vì chờ một phiên `ssr-po` riêng
+
+- Ngày: 2026-09-07
+- Status: Applied — đã áp dụng cho `docs/kb/ba/business-flow.md` (cập nhật 2026-09-07 cho US-022)
+- Độ tin cậy: Giả định hợp lý — hợp với tinh thần "Business Flow chỉ ghi sau khi chốt với user", vì `DEC-127`..`DEC-131` đều do user chốt qua dialog cùng ngày; `po-expert` xác nhận "không có câu hỏi định hướng mới cho user"
+- Feature liên quan: US-022 (tiền lệ cho US-023 và các function cross-cutting sau)
+- Bối cảnh: `po-expert` trả `Needs Adjustment` cho spec US-022 với lý do chính: Business Flow (Updated 2026-08-14) chưa phản ánh nguồn thu / insight mới / nới tháng item cần mua, và tiền lệ `DEC-105` (US-019) từng yêu cầu chạy `ssr-po mode=business-flow` trước khi sang DEV. Nhưng US-019 khác ở chỗ lúc đó user còn phải *quyết định* có mở rộng Business Flow hay không; với US-022 mọi lựa chọn đã chốt.
+- Lập luận: Khi không còn điểm định hướng nào cần user quyết, việc chạy một phiên `ssr-po` riêng chỉ để chép các `DEC` đã chốt vào tài liệu canon là chi phí quy trình không tạo thêm giá trị. Đồng bộ ngay giữ tài liệu không bị lệch mà không chặn pipeline.
+- Hệ quả nếu đúng: Với function cross-cutting mà toàn bộ `DEC` đã chốt trực tiếp, orchestrator (hoặc `ssr-ba` khi được phép) cập nhật Business Flow ngay và ghi rõ trong report; `ssr-po` chỉ cần vào cuộc khi phát sinh lựa chọn định hướng mới.
+- Cái gì sẽ chứng minh nó sai: Nếu về sau phát hiện bản đồ function / mục tiêu trong Business Flow bị mâu thuẫn nội bộ do cập nhật rời rạc không qua `ssr-po`, cần quay lại quy tắc "mọi thay đổi Business Flow đi qua một phiên `ssr-po`".
 
 ### JDG-033 — Đọc link tin tuyển dụng nên dùng fetch phía máy chủ + bóc JSON-LD JobPosting / OpenGraph, không thêm thư viện, không scrape DOM riêng từng nền tảng
 

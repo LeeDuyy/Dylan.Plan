@@ -1,6 +1,6 @@
 # decisions.md — Quyết định đã chốt của dự án
 
-Updated: 2026-08-27
+Updated: 2026-09-07
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Đảo quyết định = thêm bản ghi mới có `Thay thế: DEC-xxx`, đồng thời đổi bản cũ thành `Status: Superseded`.
@@ -1120,7 +1120,7 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 ### DEC-094 — US-019: "Tháng cũ" (chỉ xem) là mọi tháng khác tháng đang được chọn xem trên UI
 
 - Ngày: 2026-08-14
-- Status: Active
+- Status: Superseded một phần bởi `DEC-107` (mốc theo đồng hồ hệ thống) rồi `DEC-130` (nới sang tháng hiện tại + tương lai; chỉ chặn tháng đã qua) — 2026-09-07
 - Feature liên quan: US-019
 - Bối cảnh: Raw yêu cầu khi quay về "tháng cũ" thì chỉ xem, không thêm/sửa item — nhưng không nói rõ "tháng cũ" xác định theo ngày hệ thống thực tế hay theo tháng đang được chọn xem trên UI. Vì dự án đã có tiền lệ tương tự cho giao dịch chi tiêu (`DEC-010`: chỉ sửa/xóa được giao dịch của tháng đang chọn, tháng khác chỉ xem), suy luận này được dùng làm giả định ban đầu khi ghi raw, chưa hỏi lại user trực tiếp cho riêng tính năng này.
 - Quyết định (giả định, áp theo tiền lệ DEC-010): "Tháng cũ" là bất kỳ tháng nào khác tháng đang được Dylan chọn xem hiện tại trên UI (`selectedMonthId`), không xác định theo ngày hệ thống thực tế.
@@ -1144,7 +1144,7 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 ### DEC-096 — US-019: Cho xóa item ở tháng đang hoạt động; chặn hoàn toàn ở tháng cũ
 
 - Ngày: 2026-08-14
-- Status: Active
+- Status: Superseded một phần bởi `DEC-130` (2026-09-07) — "tháng đang hoạt động" nới thành "tháng hiện tại hoặc tương lai"; vẫn chặn hoàn toàn ở tháng đã qua
 - Feature liên quan: US-019
 - Bối cảnh: Raw nêu tháng cũ "không được thêm mới hoặc chỉnh sửa thông tin gì" nhưng không nói rõ hành động xóa item có được phép ở tháng đang hoạt động hay không, và có bị chặn ở tháng cũ cùng các hành động khác hay không.
 - Quyết định: Cho phép xóa item ở tháng đang hoạt động (tháng đang được chọn xem). Chặn hoàn toàn việc xóa (cũng như thêm/sửa) ở tháng cũ — khớp nguyên tắc đã áp dụng cho giao dịch chi tiêu (`DEC-010`).
@@ -1204,8 +1204,8 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 ### DEC-107 — US-019: "Tháng được phép thêm/sửa/xóa Items cần mua" là tháng hiện tại theo đồng hồ hệ thống, độc lập với dropdown "Chọn tháng xem"
 
 - Ngày: 2026-08-14
-- Status: Active
-- Feature liên quan: US-019
+- Status: Active — vẫn giữ cách xác định "theo đồng hồ hệ thống, độc lập dropdown"; riêng phạm vi "được phép thao tác" nới từ "đúng tháng hiện tại" thành "tháng hiện tại hoặc tương lai" bởi `DEC-130` (2026-09-07)
+- Feature liên quan: US-019, US-022
 - Bối cảnh: `ssr-plan` khi khảo sát kỹ thuật phát hiện mâu thuẫn nội bộ thật trong spec: AC-05 mô tả khi Dylan đổi dropdown "Chọn tháng xem" sang một tháng cũ, danh sách Items cần mua của tháng đó phải chuyển thành chỉ xem. Nhưng "tháng đang được chọn" trong toàn bộ ứng dụng vốn được định nghĩa chính là giá trị đang chọn ở dropdown "Chọn tháng xem" (`selectedMonthId`) — nếu Dylan vừa đổi dropdown sang tháng đó, nó lập tức trở thành "tháng đang được chọn", nên theo `BR-024` (bản trước khi sửa) lẽ ra phải vẫn sửa được, mâu thuẫn trực tiếp với AC-05.
 - Quyết định: Tháng được phép thêm/sửa/xóa/đánh dấu đã mua Items cần mua là **tháng hiện tại theo đồng hồ hệ thống** (ví dụ hôm nay là 2026-08-14 thì luôn là tháng "2026-08"), hoàn toàn độc lập với việc Dylan đang xem tháng nào qua dropdown "Chọn tháng xem". Đây là khái niệm tách biệt khỏi "tháng đang được chọn xem" (dùng cho toàn bộ phần xem ngân sách/giao dịch còn lại của trang Thu chi) — chỉ áp dụng riêng cho Items cần mua. Cùng cách tính "tháng hiện tại theo đồng hồ hệ thống" đã dùng cho mini dashboard (`DEC-034`), không phải khái niệm mới trong dự án.
 - Người chốt: User, qua `AskUserQuestion` trong `ssr-plan` (2026-08-14).
@@ -1518,3 +1518,126 @@ Không ghi vào đây: nhận định chưa chốt (`judgement-log.md`), luật 
 - Phương án đã loại: "Không tự điền nếu ngày đã qua — để trống + báo nhẹ" và "Vẫn điền nhưng bỏ qua luật tự chuyển Expired cho lần thêm này" — không chọn (thêm ngoại lệ cho `BR-025`, phức tạp; điền đúng dữ liệu thật đơn giản và nhất quán hơn).
 - Hệ quả: Spec US-021 không có AC hay quy tắc riêng cho ngày quá khứ; mục 14 (A15) ghi rõ hành vi này là có chủ đích. Không đổi `BR-025`.
 - Bằng chứng: `docs/features/US-021-tu-dien-thong-tin-job-link/spec.md` mục 14 (A15); `docs/memory/decisions.md#dec-117`, `#dec-119`, `#dec-124`
+
+### DEC-127 — US-022: Thu nhập tháng là tổng nhiều "Nguồn thu" có tên, Dylan tự quản lý
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: Tab Thu chi hiện chỉ có phần chi; "Thu nhập tháng" là một số nguyên duy nhất `MonthBudget.income` seed cứng 35.000.000đ (`DEFAULT_INCOME`), không có UI hay Server Action nào sửa được — mọi chỉ số tổng (số dư còn lại, tỷ lệ dùng thu nhập, % tiết kiệm) tính trên con số ảo này nên sai.
+- Quyết định: Thêm entity "Nguồn thu" gắn theo `MonthBudget` (tên + số tiền + thứ tự sắp xếp), cho Dylan thêm/sửa/xóa/kéo-thả sắp xếp — đối xứng với bảng danh mục chi. "Thu nhập tháng" = tổng số tiền các Nguồn thu của tháng đó. Nguồn thu không ảnh hưởng `Category.budget`/`Category.actual`.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07).
+- Phương án đã loại: "Một ô thu nhập tháng chỉnh tay" (không đủ diễn tả nhiều nguồn); "Nhiều nguồn thu + phân loại cố định/biến động" (chưa cần, thêm phức tạp).
+- Hệ quả: Cần `ssr-data` tạo model + migration + đồng bộ DBML; `budget-snapshot-service` bổ sung `incomeSources` và tính `income` = tổng; `ssr-ingest` thêm thuật ngữ "Nguồn thu" vào glossary.
+- Bằng chứng: `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` mục 4 (Q1), mục 5
+
+### DEC-128 — US-022: Insight tiết kiệm tách thành hai chỉ số — Tiết kiệm ròng và Đã phân bổ vào tích lũy
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `components/BudgetApp.tsx` tính "Tiết kiệm / tích lũy" bằng regex tên danh mục `/tiết|đầu tư|dự phòng|tích/i` rồi hiển thị `% thu nhập` trên income cứng — vừa mong manh vừa sai gốc.
+- Quyết định: Hiển thị hai chỉ số riêng: (1) **Tiết kiệm ròng** = Thu nhập tháng − Tổng chi thực tế (được phép âm khi chi vượt thu); (2) **Đã phân bổ vào tích lũy** = tổng Chi thực tế của các danh mục có Loại = "Tích lũy" (lọc theo `Category.type`, bỏ regex tên). Kèm **Tỷ lệ tiết kiệm** = Tiết kiệm ròng / Thu nhập tháng.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07).
+- Phương án đã loại: "Chỉ tiết kiệm ròng"; "Chỉ tiền đưa vào danh mục tích lũy" — user muốn thấy cả hai, tách bạch.
+- Hệ quả: `ssr-ingest` thêm ba thuật ngữ vào glossary mục 4 và rà trùng nghĩa với "Số dư còn lại (mức tổng tháng)"; `ssr-ba` chốt cách hiển thị khi Thu nhập tháng = 0.
+- Bằng chứng: `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` mục 4 (Q2)
+
+### DEC-129 — US-022: Tab Thu chi mặc định mở tháng hiện tại, không có thì tháng gần nhất
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `selectedMonthId` khởi tạo bằng `initialBudget.months.at(-1)?.id` — tháng cuối cùng có dữ liệu, không liên quan đồng hồ hệ thống.
+- Quyết định: Khi mở tab, mặc định chọn tháng hiện tại theo đồng hồ hệ thống nếu tháng đó đã có dữ liệu; nếu chưa, chọn tháng có khoảng cách số tháng tới hiện tại nhỏ nhất. Khi hai tháng cách đều (một quá khứ, một tương lai): ưu tiên tháng quá khứ gần nhất (`ssr-ba` xác nhận lại khi viết spec).
+- Người chốt: User, nêu trực tiếp trong raw + `AskUserQuestion` (2026-09-07).
+- Phương án đã loại: Giữ hành vi "tháng cuối có dữ liệu".
+- Hệ quả: `ssr-plan` bổ sung helper chọn tháng mặc định; không đụng data model.
+- Bằng chứng: `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` mục 4 (Q3)
+
+### DEC-130 — US-022: Item cần mua thao tác được ở tháng hiện tại và tương lai, chặn tháng đã qua
+
+- Ngày: 2026-09-07
+- Status: Active
+- Thay thế (một phần): `DEC-094`, `DEC-096` (phạm vi tháng được thao tác); tinh chỉnh `DEC-107` (giữ cách xác định theo đồng hồ hệ thống, nới phạm vi)
+- Feature liên quan: US-022 (đảo một phần US-019)
+- Bối cảnh: US-019 chốt (`DEC-094`, `DEC-096`) rằng chỉ tháng đang chọn xem = tháng hiện tại mới cho thêm/sửa/xóa item cần mua (`assertMonthIsCurrent` + `canEditPurchaseItems`). Dylan muốn nhập item cho các tháng khác.
+- Quyết định: Cho thêm/sửa/xóa/đánh dấu đã mua item ở tháng hiện tại **và mọi tháng tương lai**; vẫn **chặn** thao tác ở các tháng đã kết thúc (chỉ xem). Thay điều kiện "đúng tháng hiện tại" bằng điều kiện "tháng không ở quá khứ". Hành vi tự chuyển item Pending sang tháng mới khi tạo tháng (`DEC-095`) giữ nguyên.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Hiện tại + tương lai, chặn tháng đã qua".
+- Phương án đã loại: "Mở hoàn toàn mọi tháng" (mất ý nghĩa khóa lịch sử); "Chỉ cho THÊM ở mọi tháng" (giữ nửa vời).
+- Hệ quả: `ssr-data`/`ssr-plan` đổi `current-month-rule.ts` (giữ `getCurrentMonthId`, thay `assertMonthIsCurrent` bằng luật tháng-không-quá-khứ ở 4 use-case purchase item); `ssr-ingest mode=sync` cập nhật wiki feature US-019, BR liên quan và glossary "Item cần mua".
+- Bằng chứng: `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` mục 4 (Q4), mục 5; `docs/memory/decisions.md#dec-094`, `#dec-095`, `#dec-096`
+
+### DEC-131 — US-022: Tháng tạo mới bắt đầu với danh sách nguồn thu rỗng; bỏ hẳn số mục tiêu cứng khỏi insight
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: Cần chốt (a) tháng mới seed nguồn thu thế nào, (b) các mốc cứng 5M/7.5M/31.5M/30M/90% trong "Quy tắc kiểm soát" và text insight xử lý ra sao.
+- Quyết định:
+  1. **Tháng tạo mới bắt đầu rỗng nguồn thu** — không seed, không clone kể cả khi bấm "Clone tháng đang xem"; Thu nhập tháng = 0 cho tới khi Dylan tự thêm. Migration backfill các tháng **đang tồn tại** với một nguồn "Lương" = `MonthBudget.income` hiện tại để không hồi quy tháng lịch sử (không mâu thuẫn: backfill chỉ cho tháng cũ, quy tắc rỗng cho tháng mới).
+  2. **Bỏ hẳn các mốc số cứng khỏi giao diện** — chỉ hiển thị chỉ số thực tế. Việc cấu hình ngưỡng dành cho US-009, ngoài phạm vi US-022.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07).
+- Phương án đã loại: (1) "Clone nguồn thu từ tháng đang xem", "Luôn 1 dòng Lương = 35.000.000đ"; (2) "Giữ chữ, ghi rõ là mục tiêu tham khảo", "Chuyển thành cấu hình Dylan tự sửa".
+- Hệ quả: `ssr-ba` mô tả AC seed rỗng + AC bỏ số cứng; `ssr-data` viết migration backfill; `TargetGrid` "Quy tắc kiểm soát" bị gỡ hoặc thay bằng chỉ số động.
+- Bằng chứng: `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` mục 4 (Q5, Q6)
+
+### DEC-132 — US-023: Chuẩn hóa layout toàn app bằng Ant Design, giữ nhận diện màu hiện tại
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-023
+- Bối cảnh: App dùng CSS thuần (`app/globals.css` 1784 dòng), nội dung bó ở 1220px, không có hệ breakpoint thống nhất, `/budget` có khung riêng tách khỏi `AppShell`. Dylan yêu cầu "thay đổi layout", "tận dụng đầy đủ khoảng không gian", "dùng antd", "responsive mobile/tablet".
+- Quyết định: Áp dụng Ant Design v5 cho **toàn bộ app** (mọi tab), gộp `/budget` vào `AppShell` chung, nới trần bề ngang để nội dung dùng phần lớn màn hình rộng, làm responsive theo hệ breakpoint của antd. Giữ bảng màu + chế độ tối hiện tại bằng cách map biến CSS vào theme token của antd. Chỉ đổi tầng trình bày — không đụng data model, không đổi nội dung/luồng nghiệp vụ các tab.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Toàn bộ app (mọi tab)".
+- Phương án đã loại: "Chỉ /budget"; "/budget + Tổng quan".
+- Hệ quả: `ssr-ba` cân nhắc tách US-023a (nền antd + AppShell + tab Thu chi) / US-023b (các tab còn lại) để giữ INVEST-Small; `ssr-plan` chốt thứ tự làm sau US-022 vì cùng chạm `components/BudgetApp.tsx`.
+- Bằng chứng: `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` mục 4, mục 5
+
+### DEC-133 — US-022: Nguồn thu chỉ thêm/sửa/xóa/sắp xếp được ở tháng hiện tại và tương lai; tháng đã kết thúc chỉ xem
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `ba-expert` khi rà spec US-022 nêu điểm mờ A4 — spec ban đầu giả định nguồn thu sửa được cho mọi tháng đang xem (đối xứng bảng danh mục chi, `DEC-127`), nhưng chưa có quyết định riêng và có rủi ro Dylan sửa nhầm số liệu tháng lịch sử đang dùng cho biểu đồ xu hướng (F4).
+- Quyết định: Áp cùng quy tắc tháng với "Items cần mua" (`BR-036`): thêm/sửa/xóa/sắp xếp nguồn thu chỉ khi tháng đang xem là tháng hiện tại theo đồng hồ hệ thống hoặc bất kỳ tháng nào sau đó; tháng đã kết thúc hiển thị bảng nguồn thu ở chế độ chỉ xem.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Chỉ cho sửa tháng hiện tại + tương lai".
+- Phương án đã loại: "Cho sửa mọi tháng, kể cả tháng đã qua" (đối xứng bảng danh mục chi nhưng rủi ro lệch số liệu lịch sử).
+- Hệ quả: `BR-036` mở rộng phạm vi áp dụng gồm cả bảng "Nguồn thu"; spec US-022 mục 3/5/6/7 (AC-13)/8.1 phản ánh; `ssr-plan`/`ssr-data` áp luật tháng-không-quá-khứ cho các thao tác nguồn thu.
+- Bằng chứng: `docs/features/US-022-nguon-thu-va-insight-tab-thu-chi/spec.md` mục 14 (A4); `docs/memory/decisions.md#dec-127`, `#dec-130`
+
+### DEC-134 — US-022: Số tiền một nguồn thu là số nguyên đồng từ 0 trở lên, không cho số âm
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `ba-expert` nêu điểm mờ A5 — `ENT-007` ghi "số nguyên đồng" nhưng không nêu cận dưới; cần chốt để khóa cứng ở tầng nhập liệu.
+- Quyết định: Ô nhập số tiền nguồn thu nhận số nguyên đồng từ 0 trở lên. Không nhận số âm. Cho nhận số 0 để Dylan tạo dòng nháp rồi điền số sau.
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Cho phép từ 0 trở lên (không cho âm)".
+- Phương án đã loại: "Bắt buộc lớn hơn 0" (không tạo được dòng nháp); "Cho cả số âm" (để ghi khoản khấu trừ thu nhập — phức tạp, có thể vô tình làm âm Thu nhập tháng).
+- Hệ quả: `EL-06`/`EL-03` spec US-022 nêu cận dưới 0; `ssr-data`/`ssr-plan` validate `amount >= 0` ở tầng use-case.
+- Bằng chứng: `docs/features/US-022-nguon-thu-va-insight-tab-thu-chi/spec.md` mục 14 (A5)
+
+### DEC-135 — US-022: Giữ đồng thời hai ô "Số dư còn lại" và "Tiết kiệm ròng" ở khu vực insight
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `ba-expert` nêu điểm mờ A6 — "Số dư còn lại (mức tổng tháng)" đã có sẵn và "Tiết kiệm ròng" (`DEC-128`) dùng cùng công thức Thu nhập tháng − Tổng chi thực tế; `DEC-128` giao `ssr-ingest` rà trùng nghĩa nhưng chưa chốt có gộp hai nhãn hay không.
+- Quyết định: Giữ cả hai ô hiển thị song song trong khu vực insight, dù cùng giá trị — "Số dư còn lại" là nhãn quen thuộc với bố cục hiện tại, "Tiết kiệm ròng" là góc nhìn tiết kiệm đi kèm "Tỷ lệ tiết kiệm" và "Đã phân bổ vào tích lũy".
+- Người chốt: User, qua `AskUserQuestion` (2026-09-07) — chọn "Giữ cả hai ô".
+- Phương án đã loại: "Gộp làm một, tên Tiết kiệm ròng" (gọn hơn nhưng đổi bố cục quen thuộc); "Giữ Số dư còn lại, bỏ nhãn Tiết kiệm ròng".
+- Hệ quả: `EL-11` và `EL-23` spec US-022 giữ cả hai, trỏ chéo nhau; glossary giữ hai dòng "Số dư còn lại (mức tổng tháng)" và "Tiết kiệm ròng" nhưng ghi rõ cùng công thức.
+- Bằng chứng: `docs/features/US-022-nguon-thu-va-insight-tab-thu-chi/spec.md` mục 14 (A6); `docs/memory/decisions.md#dec-128`
+
+### DEC-136 — US-022: `IncomeSource` cho phép trùng tên trong cùng tháng; không áp luật chống trùng như `Category`
+
+- Ngày: 2026-09-07
+- Status: Active
+- Feature liên quan: US-022
+- Bối cảnh: `ssr-data` khi mô hình hóa `IncomeSource` cần chốt có tái dùng luật chống trùng tên của `Category` (`BR-017`) hay không.
+- Quyết định: Không. Hai nguồn thu cùng tên trong một tháng (ví dụ hai dòng "Thưởng") được lưu bình thường và cộng cả hai vào "Thu nhập tháng". Lý do nghiệp vụ: trùng tên danh mục chi gây mơ hồ khi nhập nhanh gán giao dịch (`BR-013`), còn nguồn thu không có luồng nhập nhanh gán theo tên — mỗi dòng là một khoản độc lập.
+- Người chốt: Kết luận mô hình hóa của `ssr-data`, khớp spec US-022 mục 6 ("Dữ liệu trùng") và AC-11 do `ba-expert` bổ sung.
+- Phương án đã loại: Tái dùng `assertCategoryNameNotDuplicate` cho nguồn thu.
+- Hệ quả: `income-source-rule.ts` chỉ validate tên không rỗng + `amount >= 0`; không có `findByMonth` để so trùng như `upsert-category`. DBML ghi chú rõ "cho phép trùng".
+- Bằng chứng: `docs/features/US-022-nguon-thu-va-insight-tab-thu-chi/spec.md` mục 6, AC-11; `docs/db/schema.dbml` (`Table IncomeSource`)

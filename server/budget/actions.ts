@@ -23,6 +23,9 @@ import { createAddPurchaseItemUseCase } from "./application/use-cases/add-purcha
 import { createUpdatePurchaseItemUseCase } from "./application/use-cases/update-purchase-item";
 import { createMarkPurchaseItemPurchasedUseCase } from "./application/use-cases/mark-purchase-item-purchased";
 import { createDeletePurchaseItemUseCase } from "./application/use-cases/delete-purchase-item";
+import { createUpsertIncomeSourceUseCase } from "./application/use-cases/upsert-income-source";
+import { createRemoveIncomeSourceUseCase } from "./application/use-cases/remove-income-source";
+import { createReorderIncomeSourcesUseCase } from "./application/use-cases/reorder-income-sources";
 
 import { createBudgetSnapshotService } from "./domain/services/budget-snapshot-service";
 import { createLegacyMigrationService } from "./domain/services/legacy-migration-service";
@@ -33,6 +36,7 @@ import { createCategoryPrismaRepository } from "./infrastructure/repositories/ca
 import { createTransactionPrismaRepository } from "./infrastructure/repositories/transaction-prisma-repository";
 import { createLegacyMigrationPrismaRepository } from "./infrastructure/repositories/legacy-migration-prisma-repository";
 import { createPurchaseItemPrismaRepository } from "./infrastructure/repositories/purchase-item-prisma-repository";
+import { createIncomeSourcePrismaRepository } from "./infrastructure/repositories/income-source-prisma-repository";
 
 import type { BudgetSnapshot } from "./application/use-cases/get-budget-snapshot";
 import type { RecordQuickTransactionInput } from "./application/use-cases/record-quick-transaction";
@@ -43,10 +47,13 @@ import type { CreateMonthInput } from "./application/use-cases/create-month";
 import type { ReorderCategoriesInput } from "./application/use-cases/reorder-categories";
 import type { AddPurchaseItemInput } from "./application/use-cases/add-purchase-item";
 import type { UpdatePurchaseItemUseCaseInput } from "./application/use-cases/update-purchase-item";
+import type { UpsertIncomeSourceInput } from "./application/use-cases/upsert-income-source";
+import type { ReorderIncomeSourcesInput } from "./application/use-cases/reorder-income-sources";
 import type { LegacyMigrationOutcome, LegacyMigrationPayload } from "./domain/services/legacy-migration-service";
 import type { CategoryEntity } from "./domain/entities/category";
 import type { TransactionEntity } from "./domain/entities/transaction";
 import type { PurchaseItemEntity } from "./domain/entities/purchase-item";
+import type { IncomeSourceEntity } from "./domain/entities/income-source";
 import type { MonthBudgetEntity } from "./domain/entities/month-budget";
 import type { LegacyMigrationEntity } from "./domain/entities/legacy-migration";
 
@@ -55,12 +62,14 @@ const categoryRepository = createCategoryPrismaRepository(prisma);
 const transactionRepository = createTransactionPrismaRepository(prisma);
 const legacyMigrationRepository = createLegacyMigrationPrismaRepository(prisma);
 const purchaseItemRepository = createPurchaseItemPrismaRepository(prisma);
+const incomeSourceRepository = createIncomeSourcePrismaRepository(prisma);
 
 const budgetSnapshotService = createBudgetSnapshotService({
   monthBudgetRepository,
   categoryRepository,
   transactionRepository,
-  purchaseItemRepository
+  purchaseItemRepository,
+  incomeSourceRepository
 });
 
 const legacyMigrationService = createLegacyMigrationService({
@@ -94,11 +103,18 @@ const removeCategoryUseCase = createRemoveCategoryUseCase({
 const createMonthUseCase = createCreateMonthUseCase({ monthBudgetRepository, categoryRepository, purchaseItemRepository });
 const reorderCategoriesUseCase = createReorderCategoriesUseCase(categoryRepository);
 const clearMonthTransactionsUseCase = createClearMonthTransactionsUseCase(transactionRepository);
-const resetAllBudgetDataUseCase = createResetAllBudgetDataUseCase({ monthBudgetRepository, categoryRepository });
+const resetAllBudgetDataUseCase = createResetAllBudgetDataUseCase({
+  monthBudgetRepository,
+  categoryRepository,
+  incomeSourceRepository
+});
 const addPurchaseItemUseCase = createAddPurchaseItemUseCase(purchaseItemRepository);
 const updatePurchaseItemUseCase = createUpdatePurchaseItemUseCase(purchaseItemRepository);
 const markPurchaseItemPurchasedUseCase = createMarkPurchaseItemPurchasedUseCase(purchaseItemRepository);
 const deletePurchaseItemUseCase = createDeletePurchaseItemUseCase(purchaseItemRepository);
+const upsertIncomeSourceUseCase = createUpsertIncomeSourceUseCase(incomeSourceRepository);
+const removeIncomeSourceUseCase = createRemoveIncomeSourceUseCase(incomeSourceRepository);
+const reorderIncomeSourcesUseCase = createReorderIncomeSourcesUseCase(incomeSourceRepository);
 
 export async function getBudgetSnapshot(): Promise<BudgetSnapshot> {
   return getBudgetSnapshotUseCase();
@@ -164,11 +180,24 @@ export async function deletePurchaseItem(id: string): Promise<void> {
   return deletePurchaseItemUseCase(id);
 }
 
+export async function upsertIncomeSource(input: UpsertIncomeSourceInput): Promise<IncomeSourceEntity> {
+  return upsertIncomeSourceUseCase(input);
+}
+
+export async function removeIncomeSource(id: string): Promise<void> {
+  return removeIncomeSourceUseCase(id);
+}
+
+export async function reorderIncomeSources(input: ReorderIncomeSourcesInput): Promise<void> {
+  return reorderIncomeSourcesUseCase(input);
+}
+
 // Re-export type-only (bị xoá hoàn toàn khi biên dịch — không vi phạm ràng buộc
 // "use server" chỉ được export async function) để Client Component (TB-07/08/09)
 // và Server Component (TB-06) dùng chung một nguồn kiểu dữ liệu, tránh lệch contract.
 export type {
   BudgetCategorySnapshot,
+  IncomeSourceSnapshot,
   MonthBudgetSnapshot,
   PurchaseItemSnapshot,
   TransactionSnapshot
@@ -182,6 +211,8 @@ export type { CreateMonthInput } from "./application/use-cases/create-month";
 export type { ReorderCategoriesInput } from "./application/use-cases/reorder-categories";
 export type { AddPurchaseItemInput } from "./application/use-cases/add-purchase-item";
 export type { UpdatePurchaseItemUseCaseInput } from "./application/use-cases/update-purchase-item";
+export type { UpsertIncomeSourceInput } from "./application/use-cases/upsert-income-source";
+export type { ReorderIncomeSourcesInput } from "./application/use-cases/reorder-income-sources";
 export type {
   LegacyCategoryPayload,
   LegacyMigrationOutcome,
@@ -191,3 +222,4 @@ export type {
 } from "./domain/services/legacy-migration-service";
 export type { LegacyMigrationEntity, MigrationStatusValue } from "./domain/entities/legacy-migration";
 export type { PurchaseItemEntity, PurchaseItemStatus } from "./domain/entities/purchase-item";
+export type { IncomeSourceEntity } from "./domain/entities/income-source";

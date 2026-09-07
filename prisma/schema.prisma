@@ -20,9 +20,26 @@ model MonthBudget {
   categories    Category[]
   transactions  Transaction[]
   purchaseItems PurchaseItem[]
+  incomeSources IncomeSource[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model IncomeSource {
+  id      String @id @default(cuid())
+  monthId String
+  name    String
+  amount  Int
+  order   Int    @default(0)
+
+  month MonthBudget @relation(fields: [monthId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([monthId])
+  @@index([monthId, order])
 }
 
 model Category {

@@ -1,9 +1,10 @@
 # DEV index
 
-Updated: 2026-08-28 (US-021 plan Ready for task-breakdown — không đổi schema; thêm Server Action `readJobLink` đọc-thuần trong `server/job-tracker/`)
+Updated: 2026-09-07 (US-022 plan Ready for task-breakdown — đổi schema: model mới `IncomeSource` + migration backfill; `budget-snapshot-service` tính `income` = tổng nguồn thu; `assertMonthNotPast` thay `assertMonthIsCurrent`; `BudgetApp.tsx` thêm bảng Nguồn thu + insight mới)
 
 | Mã | Tên | File |
 | --- | --- | --- |
+| US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | `docs/kb/dev/wiki/US-022-nguon-thu-va-insight-tab-thu-chi.md` |
 | US-021 | Tự điền thông tin job từ link tin tuyển dụng | `docs/kb/dev/wiki/US-021-tu-dien-thong-tin-job-link.md` |
 | US-001 | Lưu trữ chi tiêu bền vững và liên kết giao dịch theo danh mục cố định | `docs/kb/dev/wiki/US-001-luu-tru-chi-tieu-ben-vung.md` |
 | US-007 | Phân tích xu hướng trên toàn bộ lịch sử đã lưu | `docs/kb/dev/wiki/US-007-phan-tich-xu-huong-lich-su.md` |
