@@ -1,23 +1,27 @@
+/* Biến giao diện của app là alias mỏng lên token của design system (@vn-dylan/ui →
+   styles.css). Giữ nguyên tên biến cũ để toàn bộ CSS bên dưới chạy không đổi; chế độ
+   tối do class `.dark` trên <html> (useDarkMode của @vn-dylan/utils) tự lật token. */
 :root {
-  --bg: #f5f7fb;
-  --surface: #ffffff;
-  --surface-2: #f9fafc;
-  --text: #182033;
-  --muted: #667085;
-  --line: #e4e8f0;
-  --primary: #6c55f5;
-  --primary-soft: #eeeaff;
-  --accent: #ea6e9d;
-  --success: #178f61;
-  --success-soft: #e8f8f1;
-  --warning: #b86b00;
-  --warning-soft: #fff5df;
-  --danger: #c64545;
-  --danger-soft: #fff0f0;
-  --blue: #2674c9;
-  --blue-soft: #eaf4ff;
-  --shadow: 0 1px 2px rgba(24, 32, 51, 0.05);
-  --radius: 14px;
+  --bg: var(--dyl-bg);
+  --surface: var(--dyl-surface);
+  --surface-2: var(--dyl-surface-sunken);
+  --text: var(--dyl-text);
+  --muted: var(--dyl-text-muted);
+  --line: var(--dyl-border);
+  --primary: var(--dyl-primary);
+  --primary-soft: var(--dyl-primary-subtle);
+  --accent: var(--dyl-primary-mild);
+  --success: var(--dyl-success);
+  --success-soft: var(--dyl-success-subtle);
+  --warning: var(--dyl-warning);
+  --warning-soft: var(--dyl-warning-subtle);
+  --danger: var(--dyl-error);
+  --danger-soft: var(--dyl-error-subtle);
+  --blue: var(--dyl-info);
+  --blue-soft: var(--dyl-info-subtle);
+  --shadow: var(--dyl-shadow-sm);
+  --radius: var(--dyl-radius-lg);
+  /* Bảng màu biểu đồ (pie/bar tự vẽ) — design system không có, giữ thủ công. */
   --chart-1: #6c55f5;
   --chart-2: #ea6e9d;
   --chart-3: #178f61;
@@ -28,25 +32,8 @@
   --chart-8: #8a5a2b;
 }
 
-body.dark {
-  --bg: #0c1020;
-  --surface: #151a2d;
-  --surface-2: #101527;
-  --text: #f5f7ff;
-  --muted: #a8b0c5;
-  --line: #2a3046;
-  --primary: #9a88ff;
-  --primary-soft: #282445;
-  --accent: #ff9abd;
-  --success: #4ad59a;
-  --success-soft: #173629;
-  --warning: #ffc767;
-  --warning-soft: #3a2b12;
-  --danger: #ff8585;
-  --danger-soft: #3a2025;
-  --blue: #77b8ff;
-  --blue-soft: #18304a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+:root:is(.dark, .dark *),
+.dark {
   --chart-1: #9a88ff;
   --chart-2: #ff9abd;
   --chart-3: #4ad59a;
@@ -74,19 +61,14 @@ body {
   overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--dyl-font-sans, Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
   line-height: 1.55;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-button,
-input,
-select {
-  font: inherit;
-}
-
 button {
   color: inherit;
+  font: inherit;
 }
 
 a {
@@ -104,54 +86,98 @@ a {
   max-width: 2000px;
   margin: 0 auto;
   padding: 24px clamp(12px, 4vw, 32px);
+  min-width: 0;
 }
 
 .app-content .container {
   width: 100%;
 }
 
-/* Vùng chuyển tab: dải ngang riêng dưới thanh tiêu đề (spec §8.1). Có trọn bề ngang
-   nên cả 6 nhãn nằm một hàng; máy tính bảng chỉ thu nhỏ chữ + khoảng cách (AC-04, A8). */
-.app-shell-brand span:last-child {
-  white-space: nowrap;
-}
-
-.app-shell-nav-bar {
+/* Navbar chuẩn: một thanh trên cùng gom thương hiệu + toàn bộ menu điều hướng +
+   nút giao diện + menu người dùng. Điện thoại: menu thu vào nút ba gạch → Drawer. */
+.app-navbar {
   position: sticky;
-  top: 64px;
-  z-index: 20;
-  border-bottom: 1px solid var(--line);
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 64px;
+  padding: 0 clamp(12px, 3vw, 24px);
   background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 
-.app-shell-nav.ant-menu.ant-menu-horizontal {
-  max-width: min(2000px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 0 4px;
-  border-bottom: none;
+.app-navbar-spacer {
+  flex: 1;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.app-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: var(--dyl-radius-md);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.app-nav-link:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.app-nav-link.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.app-nav-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px;
+  border-radius: var(--dyl-radius-md);
+  color: var(--text);
+  font-weight: 650;
+}
+
+.app-nav-drawer-link.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid transparent;
+  border-radius: var(--dyl-radius-md);
   background: transparent;
-  line-height: 46px;
+  color: var(--muted);
+  cursor: pointer;
 }
 
-@media (max-width: 992px) {
-  .app-shell-nav.ant-menu.ant-menu-horizontal {
-    max-width: 100%;
-    padding: 0;
-    line-height: 42px;
-  }
-
-  .app-shell-nav.ant-menu-horizontal > .ant-menu-item {
-    padding-inline: 10px;
-    font-size: 13px;
-  }
-
-  .app-shell-nav.ant-menu-horizontal > .ant-menu-item svg {
-    display: none;
-  }
-
-  .app-shell-nav.ant-menu-horizontal .ant-menu-title-content {
-    margin-inline-start: 0;
-  }
+.icon-button:hover {
+  color: var(--text);
+  background: var(--surface-2);
 }
 
 .brand {
@@ -161,14 +187,32 @@ a {
   font-weight: 850;
 }
 
+.brand span:last-child {
+  white-space: nowrap;
+}
+
 .logo {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #fff;
+  border-radius: 12px;
+  background: #0d0d0f;
+  color: #c8ff00;
+  font-weight: 800;
+  font-size: 20px;
+}
+
+@media (max-width: 900px) {
+  .app-nav-links {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .app-nav-hamburger {
+    display: none;
+  }
 }
 
 .user-menu {
@@ -372,29 +416,13 @@ a {
   padding: 36px 0 4px;
 }
 
-.ant-card {
-  border-color: var(--line);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-}
-
-.ant-card .ant-card-body {
+/* Card của design system: gốc `.dyl-card`, thân `.dyl-card__body`. Các class app
+   (`.panel`, `.summary`, `.spotlight`...) đặt trên gốc; padding thân do rule dưới. */
+.dyl-card {
   color: var(--text);
 }
 
-.ant-row.targets,
-.ant-row.service-grid,
-.ant-row.module-grid,
-.ant-row.product-roadmap,
-.ant-row.priority-grid,
-.ant-row.overview-pipeline {
-  display: flex;
-  grid-template-columns: none;
-  gap: 0;
-}
-
-.overview-phase .ant-card-body {
+.overview-phase .dyl-card__body {
   display: grid;
   gap: 12px;
 }
@@ -403,14 +431,16 @@ a {
   max-width: 860px;
 }
 
-.panel,
-.summary,
-.priority,
-.insight,
-.rule,
-.month-card,
-.metric-card,
-.focus-card {
+/* Padding thân card của app đặt trên `.dyl-card__body` (class app nằm trên gốc card). */
+.panel > .dyl-card__body,
+.summary > .dyl-card__body,
+.priority > .dyl-card__body,
+.insight > .dyl-card__body,
+.rule > .dyl-card__body,
+.month-card > .dyl-card__body,
+.metric-card > .dyl-card__body,
+.focus-card > .dyl-card__body,
+.quick-panel > .dyl-card__body {
   padding: 18px;
 }
 
@@ -549,14 +579,11 @@ h3 {
   font-size: 14px;
 }
 
-.target-card,
-.service-card,
-.module-card,
-.product-week {
-  padding: 16px;
-}
-
-.summary {
+.target-card > .dyl-card__body,
+.service-card > .dyl-card__body,
+.module-card > .dyl-card__body,
+.product-week > .dyl-card__body,
+.summary > .dyl-card__body {
   padding: 16px;
 }
 
@@ -615,8 +642,8 @@ h3 {
   margin-top: 16px;
 }
 
-.hybrid-ratio.ant-progress,
-.income-track.ant-progress {
+.hybrid-ratio.dyl-progress,
+.income-track.dyl-progress {
   display: block;
 }
 
@@ -647,7 +674,7 @@ h3 {
   font-weight: 800;
 }
 
-.spotlight .ant-select-selector {
+.spotlight .dyl-select__trigger {
   min-height: 48px;
   border-color: var(--primary);
   font-size: 15px;
@@ -674,7 +701,7 @@ h3 {
   font-weight: 700;
 }
 
-/* Lộ trình roadmap: antd Timeline, mỗi mốc là một item (EL-18) */
+/* Lộ trình roadmap: Timeline của design system, mỗi mốc là một Timeline.Item (EL-18) */
 .roadmap-timeline {
   margin-top: 4px;
 }
@@ -959,22 +986,11 @@ label {
   font-weight: 700;
 }
 
-input,
-select {
+/* Input/Select đã do design system tạo dáng (`.dyl-input`, `.dyl-select`). Chỉ ép các
+   control trong `<label>` của app chiếm trọn bề ngang. */
+label > .dyl-input,
+label > .dyl-select {
   width: 100%;
-  min-height: 42px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  outline: none;
-  background: var(--surface-2);
-  color: var(--text);
-  padding: 10px 11px;
-}
-
-input:focus,
-select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .budget-table-wrap {
@@ -1060,7 +1076,6 @@ select:focus {
 
 .quick-panel {
   margin-bottom: 16px;
-  padding: 18px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface-2);
@@ -1294,23 +1309,26 @@ select:focus {
   margin-bottom: 0;
 }
 
-/* Bảng "Theo dõi CV ứng tuyển" là antd Table với `scroll={{x}}`: bảng rộng cuộn ngang
-   BÊN TRONG `.ant-table-body`, không đẩy trang. Cần `min-width: 0` xuyên chuỗi flex
-   (Layout.Content → .app-content → .container) để khung bảng bị kẹp đúng bề ngang cha,
-   khi đó antd mới bật thanh cuộn trong của bảng (AC-05). */
-.ant-layout-content,
-.app-content,
+/* Bảng "Theo dõi CV ứng tuyển": bảng rộng cuộn ngang BÊN TRONG khung `.job-tracker-table-wrap`,
+   không đẩy trang. Cần `min-width: 0` xuyên chuỗi flex để khung bảng bị kẹp đúng bề ngang cha. */
 .app-content .container,
-.job-tracker-panel .ant-card-body,
-.job-tracker-table {
+.job-tracker-panel .dyl-card__body {
   min-width: 0;
+}
+
+.job-tracker-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .job-tracker-table {
   width: 100%;
+  min-width: 1180px;
 }
 
-.job-tracker-table .ant-table-cell {
+.job-tracker-table .dyl-table__td,
+.job-tracker-table .dyl-table__th {
   vertical-align: top;
 }
 
@@ -1348,76 +1366,66 @@ select:focus {
   gap: 5px;
 }
 
-.job-note-field textarea {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  outline: none;
-  background: var(--surface-2);
-  color: var(--text);
-  padding: 10px 11px;
-  font: inherit;
+.job-note-field .dyl-input__field {
+  min-height: 62px;
   line-height: 1.4;
   resize: vertical;
 }
 
-.job-note-field textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
-}
-
 .job-status-select {
   min-width: 132px;
-  border-radius: 999px;
-  font-weight: 750;
-  padding: 8px 30px 8px 12px;
 }
 
-.status-interested {
+.job-status-select .dyl-select__trigger {
+  border-radius: 999px;
+  font-weight: 750;
+}
+
+/* Màu theo trạng thái áp lên ô chọn (`.dyl-select__trigger`) của cột Trạng thái. */
+.job-status-select.status-interested .dyl-select__trigger {
   background: var(--blue-soft);
   border-color: color-mix(in srgb, var(--blue) 35%, transparent);
   color: var(--blue);
 }
 
-.status-waiting {
+.job-status-select.status-waiting .dyl-select__trigger {
   background: var(--warning-soft);
   border-color: color-mix(in srgb, var(--warning) 35%, transparent);
   color: var(--warning);
 }
 
-.status-no-response {
+.job-status-select.status-no-response .dyl-select__trigger {
   background: var(--surface-2);
   border-color: var(--line);
   color: var(--muted);
 }
 
-.status-response {
+.job-status-select.status-response .dyl-select__trigger {
   background: var(--success-soft);
   border-color: color-mix(in srgb, var(--success) 35%, transparent);
   color: var(--success);
 }
 
-.status-appointment {
+.job-status-select.status-appointment .dyl-select__trigger {
   background: var(--primary-soft);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
   color: var(--primary);
 }
 
-.status-cancel {
+.job-status-select.status-cancel .dyl-select__trigger {
   background: var(--danger-soft);
   border-color: color-mix(in srgb, var(--danger) 30%, transparent);
   color: var(--danger);
 }
 
-.status-fail {
+.job-status-select.status-fail .dyl-select__trigger {
   background: var(--danger-soft);
   border-color: color-mix(in srgb, var(--danger) 45%, transparent);
   color: var(--danger);
   font-weight: 850;
 }
 
-.status-expired {
+.job-status-select.status-expired .dyl-select__trigger {
   background: color-mix(in srgb, var(--chart-7) 16%, var(--surface));
   border-color: color-mix(in srgb, var(--chart-7) 38%, transparent);
   color: color-mix(in srgb, var(--chart-7) 78%, var(--text));
@@ -1519,7 +1527,10 @@ select:focus {
 }
 
 .platform-menu {
-  position: relative;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
   display: grid;
   width: min(260px, 80vw);
   max-height: 280px;
@@ -1527,7 +1538,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--dyl-shadow-md, var(--shadow));
 }
 
 .platform-option {
@@ -1617,7 +1628,7 @@ select:focus {
 }
 
 @media (max-width: 650px) {
-  .panel {
+  .panel > .dyl-card__body {
     padding: 16px;
   }
 
@@ -1656,4 +1667,75 @@ select:focus {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Cầu nối với component @vn-dylan/ui: thay các prop inline đã mất khi */
+/* rời antd (nút nguy hiểm, màu progress theo ngưỡng, tag trạng thái). */
+/* ------------------------------------------------------------------ */
+
+.dyl-btn.btn-danger {
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.dyl-btn.btn-danger:hover {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
+.dyl-btn.btn-danger.btn-danger-strong {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+/* Progress: màu vạch fill theo ngưỡng dùng khi truyền `strokeClass`. */
+.dyl-progress__line-value.progress-warn {
+  background: var(--warning);
+}
+
+.dyl-progress__line-value.progress-danger {
+  background: var(--danger);
+}
+
+.dyl-progress__line-value.progress-success {
+  background: var(--success);
+}
+
+.tag-purchased {
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  color: var(--success);
+}
+
+.tag-pending {
+  background: var(--warning-soft);
+  border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+  color: var(--warning);
+}
+
+/* Bảng job: căn header sắp xếp + ô nhập gọn trong ô. */
+.job-tracker-table .dyl-table__th--sortable {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.job-tracker-table .job-field .dyl-input,
+.job-tracker-table .job-field .dyl-select {
+  width: 100%;
+}
+
+/* Trigger chọn Platform (dùng làm renderTitle của Dropdown). */
+.platform-trigger .dyl-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Danh sách điều hướng trong Drawer điện thoại. */
+.app-nav-drawer {
+  display: grid;
+  gap: 2px;
 }

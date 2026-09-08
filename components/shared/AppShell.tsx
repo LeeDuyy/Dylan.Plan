@@ -1,114 +1,114 @@
 "use client";
 
-import { MenuOutlined } from "@ant-design/icons";
-import { Button, Drawer, Grid, Layout, Menu, Space } from "antd";
-import { BriefcaseBusiness, CalendarClock, Handshake, Moon, PanelsTopLeft, ShoppingBag, Sun, WalletCards } from "lucide-react";
+import { Drawer } from "@vn-dylan/ui";
+import { useDarkMode } from "@vn-dylan/utils";
+import {
+  BriefcaseBusiness,
+  CalendarClock,
+  Handshake,
+  Menu as MenuIcon,
+  Moon,
+  PanelsTopLeft,
+  ShoppingBag,
+  Sun,
+  WalletCards
+} from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { ComponentType, ReactNode } from "react";
 
-import { useAppTheme } from "@/components/shared/AppThemeProvider";
 import { UserMenu } from "@/components/shared/UserMenu";
 
-const navItems = [
-  { key: "/", label: "Tổng quan", icon: <PanelsTopLeft size={16} /> },
-  { key: "/roadmap", label: "Roadmap", icon: <BriefcaseBusiness size={16} /> },
-  { key: "/timetable", label: "Thời gian biểu", icon: <CalendarClock size={16} /> },
-  { key: "/freelance", label: "Freelance", icon: <Handshake size={16} /> },
-  { key: "/product", label: "Sản phẩm", icon: <ShoppingBag size={16} /> },
-  { key: "/budget", label: "Thu chi", icon: <WalletCards size={16} /> }
+type NavItem = { href: string; label: string; icon: ComponentType<{ size?: number }> };
+
+const navItems: NavItem[] = [
+  { href: "/", label: "Tổng quan", icon: PanelsTopLeft },
+  { href: "/roadmap", label: "Roadmap", icon: BriefcaseBusiness },
+  { href: "/timetable", label: "Thời gian biểu", icon: CalendarClock },
+  { href: "/freelance", label: "Freelance", icon: Handshake },
+  { href: "/product", label: "Sản phẩm", icon: ShoppingBag },
+  { href: "/budget", label: "Thu chi", icon: WalletCards }
 ];
+
+function isActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const screens = Grid.useBreakpoint();
-  const [mounted, setMounted] = useState(false);
-  // `Grid.useBreakpoint()` trả `{}` khi SSR + lần vẽ đầu ở client. Nếu suy ra `isMobile`
-  // ngay lúc đó thì màn desktop/tablet chớp qua layout điện thoại rồi mới sửa (kèm nguy
-  // cơ hydration mismatch). Chờ mounted rồi mới bật layout điện thoại.
-  const isMobile = mounted && !screens.md;
+  const [dark, setMode] = useDarkMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { dark, toggle } = useAppTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const selectedKeys = useMemo(() => [pathname], [pathname]);
-  const themeIcon = dark ? <Sun size={18} /> : <Moon size={18} />;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const toggleTheme = () => setMode(dark ? "light" : "dark");
+  // `useDarkMode` chỉ biết giá trị thật (localStorage / prefers-color-scheme) sau khi
+  // mount ở client — chờ mounted rồi mới chọn icon để khớp SSR, tránh hydration mismatch.
+  const themeIcon = !mounted ? <Moon size={18} /> : dark ? <Sun size={18} /> : <Moon size={18} />;
 
   return (
-    <Layout style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      <Layout.Header
-        className="app-shell-header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--line)",
-          position: "sticky",
-          top: 0,
-          zIndex: 21,
-          padding: "0 clamp(12px, 3vw, 24px)"
-        }}
-      >
-        <Link className="brand app-shell-brand" href="/">
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <header className="app-navbar">
+        <Link className="brand" href="/">
           <span className="logo">D</span>
           <span>Dylan Plan Dashboard</span>
         </Link>
 
-        <span style={{ flex: 1 }} />
+        <nav className="app-nav-links">
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link key={href} className={`app-nav-link${isActive(pathname, href) ? " active" : ""}`} href={href}>
+              <Icon size={16} />
+              {label}
+            </Link>
+          ))}
+        </nav>
 
-        <Space align="center" size={8}>
-          {!isMobile && <Button type="text" icon={themeIcon} onClick={toggle} title="Đổi giao diện" />}
+        <span className="app-navbar-spacer" />
+
+        <div className="app-navbar-actions">
+          <button type="button" className="icon-button" onClick={toggleTheme} title="Đổi giao diện" aria-label="Đổi giao diện">
+            {themeIcon}
+          </button>
           <UserMenu />
-          {isMobile && <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} title="Chuyển tab" />}
-        </Space>
-      </Layout.Header>
-
-      {/* Vùng chuyển tab là một dải ngang riêng ngay dưới thanh tiêu đề (spec §8.1):
-          có trọn bề ngang màn hình nên cả 6 nhãn nằm một hàng ở cả tablet lẫn màn rộng. */}
-      {!isMobile && (
-        <div className="app-shell-nav-bar">
-          <Menu
-            className="app-shell-nav"
-            mode="horizontal"
-            disabledOverflow
-            selectedKeys={selectedKeys}
-            items={navItems}
-            onClick={(event) => router.push(event.key)}
-          />
+          <button
+            type="button"
+            className="icon-button app-nav-hamburger"
+            onClick={() => setDrawerOpen(true)}
+            title="Điều hướng"
+            aria-label="Mở menu điều hướng"
+          >
+            <MenuIcon size={18} />
+          </button>
         </div>
-      )}
+      </header>
 
-      <Layout.Content>
-        <div className="app-content">{children}</div>
-      </Layout.Content>
+      <main className="app-content" style={{ flex: 1 }}>
+        {children}
+      </main>
 
-      <Layout.Footer style={{ textAlign: "center", background: "var(--surface)", borderTop: "1px solid var(--line)" }}>
+      <footer className="footer">
         Bắt đầu 22/06/2026 · Chuyển việc · Buy to Build · Mini Shop Builder · Budget cá nhân
-      </Layout.Footer>
+      </footer>
 
-      <Drawer title="Chuyển tab" placement="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <Menu
-          mode="inline"
-          selectedKeys={selectedKeys}
-          items={navItems}
-          onClick={(event) => {
-            router.push(event.key);
-            setDrawerOpen(false);
-          }}
-          style={{ borderInlineEnd: "none" }}
-        />
-        <div style={{ borderTop: "1px solid var(--line)", marginTop: 16, paddingTop: 16 }}>
-          <Button block icon={themeIcon} onClick={toggle}>
+      <Drawer isOpen={drawerOpen} placement="right" title="Điều hướng" width={280} onClose={() => setDrawerOpen(false)}>
+        <div className="app-nav-drawer">
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              className={`app-nav-drawer-link${isActive(pathname, href) ? " active" : ""}`}
+              href={href}
+              onClick={() => setDrawerOpen(false)}
+            >
+              <Icon size={18} />
+              {label}
+            </Link>
+          ))}
+          <button type="button" className="app-nav-drawer-link" onClick={toggleTheme} style={{ width: "100%", cursor: "pointer" }}>
+            {themeIcon}
             Đổi giao diện
-          </Button>
+          </button>
         </div>
       </Drawer>
-    </Layout>
+    </div>
   );
 }

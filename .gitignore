@@ -17,3 +17,4 @@ ssh
 .claude/ssr-pipeline-state.json
 **/.claude/ssr-artifact.log
 .ssr-wiki-index
+.npmrc

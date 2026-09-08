@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Dropdown } from "antd";
+import { Dropdown } from "@vn-dylan/ui";
 import { LogOut, UserRound } from "lucide-react";
 import { useRef } from "react";
 
@@ -18,25 +18,20 @@ export function UserMenu() {
   return (
     <>
       <Dropdown
-        trigger={["click"]}
-        menu={{
-          items: [
-            { key: "email", label: email, disabled: true },
-            { type: "divider" },
-            {
-              key: "signout",
-              label: "Đăng xuất",
-              icon: <LogOut size={15} />,
-              onClick: () => formRef.current?.requestSubmit()
-            }
-          ]
-        }}
+        placement="bottom-end"
+        renderTitle={
+          <button type="button" className="icon-button" title={email} aria-label="Menu người dùng">
+            <UserRound size={18} />
+          </button>
+        }
       >
-        <Button className="user-menu-trigger" type="text" icon={<UserRound size={18} />} title={email}>
-          <span className="user-menu-email">{email}</span>
-        </Button>
+        <Dropdown.Item variant="header">{email}</Dropdown.Item>
+        <Dropdown.Item onClick={() => formRef.current?.requestSubmit()}>
+          <LogOut size={15} style={{ marginRight: 8, verticalAlign: "-2px" }} />
+          Đăng xuất
+        </Dropdown.Item>
       </Dropdown>
-      <form action={signOutAction} className="user-menu" hidden ref={formRef} />
+      <form action={signOutAction} hidden ref={formRef} />
     </>
   );
 }
