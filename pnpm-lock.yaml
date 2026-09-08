@@ -4,20 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  prisma: 7.9.1
-  '@prisma/client': 7.9.1
-  '@prisma/adapter-better-sqlite3': 7.9.1
-
 importers:
 
   .:
     dependencies:
       '@prisma/adapter-better-sqlite3':
-        specifier: 7.9.1
+        specifier: ^7.9.1
         version: 7.9.1
       '@prisma/client':
-        specifier: 7.9.1
+        specifier: ^7.9.1
         version: 7.9.1(prisma@7.9.1(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(typescript@5.9.3)
       '@vn-dylan/ui':
         specifier: ^0.1.1
@@ -35,7 +30,7 @@ importers:
         specifier: ^5.0.0-beta.32
         version: 5.0.0-beta.32(next@15.5.25(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       prisma:
-        specifier: 7.9.1
+        specifier: ^7.9.1
         version: 7.9.1(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       react:
         specifier: ^19.0.0
@@ -427,7 +422,7 @@ packages:
     resolution: {integrity: sha512-+xgrh2EhJVF79wC0yX5G4PI1Rdcm7Qn/nekNQ+t/O153wtNggruHal+fXHSa0QE+Tp/Cw5wvxeCEhZZ59xGm8Q==}
     engines: {node: ^20.19 || ^22.12 || >=24.0}
     peerDependencies:
-      prisma: 7.9.1
+      prisma: '*'
       typescript: '>=5.4.0'
     peerDependenciesMeta:
       prisma:
