@@ -33,17 +33,20 @@ jobs:
       # @vn-dylan/* nằm trên GitHub Packages (private) — .npmrc bị gitignore nên CI
       # phải tự dựng lại từ secret. Tạo Personal Access Token (classic) scope `read:packages`
       # có quyền đọc org VN-Dylan, lưu vào repo secret VN_DYLAN_NPM_TOKEN.
-      - name: Configure GitHub Packages auth
+      # `node-linker=hoisted`: bắt buộc cho `output: standalone` — node_modules symlink của
+      # pnpm không đóng gói được vào artifact (Next tạo symlink tuyệt đối → chết khi rời máy build).
+      - name: Configure pnpm + GitHub Packages auth
         run: |
           {
             echo "@vn-dylan:registry=https://npm.pkg.github.com"
             echo "//npm.pkg.github.com/:_authToken=${VN_DYLAN_NPM_TOKEN}"
+            echo "node-linker=hoisted"
           } > .npmrc
         env:
           VN_DYLAN_NPM_TOKEN: ${{ secrets.VN_DYLAN_NPM_TOKEN }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.node-linker=hoisted
 
       - name: Build
         run: pnpm run build
@@ -54,6 +57,14 @@ jobs:
           cp -R .next/standalone/. deploy/app/
           cp -R .next/static deploy/app/.next/static
           cp -R public deploy/app/public
+          # Artifact phải tự chứa: không còn symlink trỏ ra ngoài cây build (pnpm hoisted
+          # đã làm node_modules phẳng, nhưng chặn sớm nếu Next lại sinh symlink tuyệt đối).
+          test -f deploy/app/server.js
+          if find deploy/app -type l | grep -q .; then
+            echo "::error::deploy/app còn symlink — artifact không portable (kiểm tra node-linker)."
+            find deploy/app -type l -printf '%p -> %l\n' | head -50
+            exit 1
+          fi
           cp compose.yaml deploy/compose.yaml
           cp nginx/default.conf deploy/nginx/default.conf
           cp prisma/schema.prisma deploy/migrate/prisma/schema.prisma
