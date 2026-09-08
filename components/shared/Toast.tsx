@@ -1,16 +1,14 @@
 "use client";
 
-import { App as AntdApp } from "antd";
+import { toast } from "@vn-dylan/ui";
 import { useEffect } from "react";
 
 export function Toast({ message, onDismiss }: { message: string | null; onDismiss: () => void }) {
-  const { message: msg } = AntdApp.useApp();
-
   useEffect(() => {
     if (!message) return;
-    msg.open({ content: message, duration: 4 });
+    toast.push(message, { duration: 4000 });
     onDismiss();
-  }, [message, msg, onDismiss]);
+  }, [message, onDismiss]);
 
   return null;
 }

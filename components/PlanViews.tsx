@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Col, Progress, Row, Timeline } from "antd";
+import { Button, Card, Progress, Timeline } from "@vn-dylan/ui";
 import { CalendarDays, WalletCards } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -194,7 +194,7 @@ export function OverviewView({
               nhập nhanh chi tiêu.
             </p>
             <div className="hero-actions">
-              <Button type="primary" icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
+              <Button variant="solid" icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
                 Xem roadmap
               </Button>
               <Button icon={<WalletCards size={18} />} onClick={() => router.push("/budget")}>
@@ -232,17 +232,15 @@ export function OverviewView({
             </Button>
           </Card>
 
-          <Row className="overview-pipeline" gutter={[16, 16]}>
+          <div className="overview-pipeline summary-grid">
             {pipelineCards.map(([label, value, desc]) => (
-              <Col key={label} xs={24} sm={12} lg={6}>
-                <Card className="summary">
-                  <span className="eyebrow">{label}</span>
-                  <div className="value">{value}</div>
-                  <p>{desc}</p>
-                </Card>
-              </Col>
+              <Card key={label} className="summary">
+                <span className="eyebrow">{label}</span>
+                <div className="value">{value}</div>
+                <p>{desc}</p>
+              </Card>
             ))}
-          </Row>
+          </div>
         </div>
       </section>
 
@@ -304,25 +302,17 @@ function PrioritySection() {
           </div>
           <p>Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio.</p>
         </div>
-        <Row className="priority-grid" gutter={[16, 16]}>
+        <div className="priority-grid">
           {priorities.map(([title, percent, desc, width], index) => (
-            <Col key={title} xs={24} sm={12} lg={6}>
-              <Card className="priority">
-                <span className="eyebrow">Ưu tiên {index + 1}</span>
-                <div className="percent">{percent}</div>
-                <h3>{title}</h3>
-                <p>{desc}</p>
-                <Progress
-                  className="priority-bar"
-                  percent={width}
-                  showInfo={false}
-                  strokeColor="var(--primary)"
-                  trailColor="var(--line)"
-                />
-              </Card>
-            </Col>
+            <Card key={title} className="priority">
+              <span className="eyebrow">Ưu tiên {index + 1}</span>
+              <div className="percent">{percent}</div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
+              <Progress className="priority-bar" percent={width} showInfo={false} />
+            </Card>
           ))}
-        </Row>
+        </div>
       </div>
     </section>
   );
@@ -340,10 +330,9 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
             </div>
             <p>Mỗi giai đoạn có đầu ra rõ ràng trước khi chuyển sang ứng tuyển số lượng lớn.</p>
           </div>
-          <Timeline
-            className="roadmap-timeline"
-            items={roadmapPhases.map((phase) => ({
-              children: (
+          <Timeline className="roadmap-timeline">
+            {roadmapPhases.map((phase) => (
+              <Timeline.Item key={phase.date}>
                 <div className="roadmap-phase">
                   <div className="roadmap-phase-head">
                     <strong>{phase.date}</strong>
@@ -360,9 +349,9 @@ function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerS
                     ))}
                   </div>
                 </div>
-              )
-            }))}
-          />
+              </Timeline.Item>
+            ))}
+          </Timeline>
         </div>
       </section>
 
@@ -403,13 +392,7 @@ function FreelanceSections() {
               <span className="eyebrow">Chiến lược chính</span>
               <h3>80% Buy to Build · 20% Build to Buy</h3>
               <p className="muted">Ưu tiên lead, demo, báo giá và delivery nhỏ; chỉ refactor phần đã có tín hiệu lặp lại.</p>
-              <Progress
-                className="hybrid-ratio"
-                percent={80}
-                showInfo={false}
-                strokeColor="var(--warning)"
-                trailColor="var(--success)"
-              />
+              <Progress className="hybrid-ratio" percent={80} showInfo={false} strokeClass="progress-warn" />
               <div className="ratio-labels">
                 <div>
                   <strong>80% Buy to Build</strong>
@@ -433,22 +416,20 @@ function FreelanceSections() {
               />
             </Card>
           </div>
-          <Row className="service-grid" gutter={[16, 16]}>
+          <div className="service-grid">
             {freelanceServices.map(([code, title, desc, items]) => (
-              <Col key={title} xs={24} sm={12} lg={8}>
-                <Card className="service-card">
-                  <small>{code}</small>
-                  <h3>{title}</h3>
-                  <p>{desc}</p>
-                  <div className="service-meta">
-                    {items.map((item) => (
-                      <span key={item}>{item}</span>
-                    ))}
-                  </div>
-                </Card>
-              </Col>
+              <Card key={title} className="service-card">
+                <small>{code}</small>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <div className="service-meta">
+                  {items.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </Card>
             ))}
-          </Row>
+          </div>
         </div>
       </section>
 
@@ -569,22 +550,20 @@ function ProductSections() {
             </div>
             <p>Chỉ build những phần giúp demo, bán gói nhỏ hoặc reuse cho khách sau.</p>
           </div>
-          <Row className="module-grid" gutter={[16, 16]}>
+          <div className="module-grid">
             {[
               ["01 · PUBLIC SITE", "Landing + Catalog", "Trang chủ, banner, câu chuyện thương hiệu, danh sách sản phẩm, chi tiết sản phẩm và CTA Zalo/Facebook."],
               ["02 · ORDER", "Đặt hàng đơn giản", "Form thông tin khách, sản phẩm quan tâm, ghi chú, trạng thái đơn ở mức cơ bản. Ưu tiên COD/manual confirm."],
               ["03 · ADMIN", "Quản trị nội dung", "CRUD sản phẩm, danh mục, ảnh, giá, trạng thái hiển thị, đơn hàng và thông tin liên hệ."],
               ["04 · REUSE", "Theme Config", "Cấu hình màu, logo, font, social link, thông tin shop và banner để clone cho khách mới nhanh hơn."]
             ].map(([code, title, desc]) => (
-              <Col key={title} xs={24} sm={12} lg={6}>
-                <Card className="module-card">
-                  <small>{code}</small>
-                  <h3>{title}</h3>
-                  <p>{desc}</p>
-                </Card>
-              </Col>
+              <Card key={title} className="module-card">
+                <small>{code}</small>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+              </Card>
             ))}
-          </Row>
+          </div>
         </div>
       </section>
 
@@ -597,21 +576,19 @@ function ProductSections() {
             </div>
             <p>Nếu tuần nào có phỏng vấn, ưu tiên phỏng vấn và đẩy sản phẩm sang cuối tuần.</p>
           </div>
-          <Row className="product-roadmap" gutter={[16, 16]}>
+          <div className="product-roadmap">
             {productWeeks.map(([week, title, items]) => (
-              <Col key={week} xs={24} sm={12} lg={6}>
-                <Card className="product-week">
-                  <small>{week}</small>
-                  <h3>{title}</h3>
-                  <ul>
-                    {items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
-              </Col>
+              <Card key={week} className="product-week">
+                <small>{week}</small>
+                <h3>{title}</h3>
+                <ul>
+                  {items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </Card>
             ))}
-          </Row>
+          </div>
         </div>
       </section>
 
@@ -650,18 +627,17 @@ function LongTermSections() {
               <p className="muted">Lương mới vẫn là nền tảng. Freelance tăng trưởng theo Buy to Build; sản phẩm chỉ mở rộng khi có khách.</p>
               <div className="income-breakdown">
                 {[
-                  ["Lương chính", "40-45M net", "70%", "var(--primary)"],
-                  ["Freelance", "10-15M", "20%", "var(--warning)"],
-                  ["Sản phẩm", "0-5M ban đầu", "10%", "var(--success)"]
-                ].map(([title, value, width, color]) => (
+                  ["Lương chính", "40-45M net", "70%", ""],
+                  ["Freelance", "10-15M", "20%", "progress-warn"],
+                  ["Sản phẩm", "0-5M ban đầu", "10%", "progress-success"]
+                ].map(([title, value, width, strokeClass]) => (
                   <div className="income-row" key={title}>
                     <strong>{title}</strong>
                     <Progress
                       className="income-track"
                       percent={Number.parseInt(width, 10)}
                       showInfo={false}
-                      strokeColor={color}
-                      trailColor="var(--line)"
+                      strokeClass={strokeClass}
                     />
                     <span>{value}</span>
                   </div>

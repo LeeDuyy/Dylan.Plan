@@ -1,12 +1,13 @@
 "use client";
 
 import { CalendarDays, CheckCircle2, Copy, Download, Eye, EyeOff, Filter, GripVertical, LineChart, PiggyBank, Plus, RefreshCcw, Trash2 } from "lucide-react";
-import { Button, Card, Input, Popconfirm, Progress, Select, Tag } from "antd";
+import { Button, Card, Input, Progress, Select, Tag } from "@vn-dylan/ui";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AppShell } from "@/components/shared/AppShell";
 import { TargetGrid } from "@/components/shared/TargetGrid";
 import { Toast } from "@/components/shared/Toast";
+import { InlineConfirm, opt, selected, type Opt } from "@/components/shared/ui";
 import { CATEGORY_TYPES, DEFAULT_INCOME, defaultCategories, quickRules } from "@/lib/budget-defaults";
 import {
   addPurchaseItem as addPurchaseItemAction,
@@ -55,6 +56,8 @@ type MonthPeriod = {
 };
 
 const STORAGE_KEY = "dylan-plan-next-dashboard-v2";
+
+const CATEGORY_TYPE_OPTIONS: Opt[] = CATEGORY_TYPES.map((type) => opt(type));
 
 // --- Hình dạng dữ liệu cũ trong localStorage (trước khi có Prisma), chỉ dùng để
 // dựng payload cho luồng di trú một lần (TB-09). Không liên quan tới DTO server.
@@ -753,6 +756,7 @@ function BudgetSections({
   );
   const [editExpected, setEditExpected] = useState<UpdateTransactionExpected | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [confirmDeleteTxId, setConfirmDeleteTxId] = useState<string | null>(null);
   const [newPurchaseName, setNewPurchaseName] = useState("");
   const [newPurchasePrice, setNewPurchasePrice] = useState("");
   const [purchaseItemsDraft, setPurchaseItemsDraft] = useState<PurchaseItemDraft[]>(() =>
@@ -1139,33 +1143,45 @@ function BudgetSections({
                     <CalendarDays size={16} />
                     Chọn tháng xem
                   </span>
-                  <Select
-                    value={selectedMonthId}
-                    onChange={setSelectedMonthId}
-                    options={[...months].reverse().map((month) => ({ label: month.id, value: month.id }))}
-                  />
+                  {(() => {
+                    const monthOptions = [...months].reverse().map((month) => opt(month.id));
+                    return (
+                      <Select
+                        isClearable={false}
+                        options={monthOptions}
+                        value={selected(monthOptions, selectedMonthId)}
+                        onChange={(option) => option && setSelectedMonthId(option.value)}
+                      />
+                    );
+                  })()}
                 </label>
               </Card>
 
               <Card className="panel">
                 <label>
                   Tạo tháng mới
-                  <Select
-                    value={newMonth}
-                    onChange={setNewMonth}
-                    options={[
+                  {(() => {
+                    const periodOptions: Opt[] = [
                       ...(!newMonth ? [{ disabled: true, label: "Không còn kỳ tháng trống", value: "" }] : []),
                       ...monthPeriods.map((period) => ({
                         disabled: period.taken,
                         label: period.taken ? `${period.label} (Đã có dữ liệu)` : period.label,
                         value: period.id
                       }))
-                    ]}
-                  />
+                    ];
+                    return (
+                      <Select
+                        isClearable={false}
+                        options={periodOptions}
+                        value={selected(periodOptions, newMonth)}
+                        onChange={(option) => option && setNewMonth(option.value)}
+                      />
+                    );
+                  })()}
                 </label>
                 {!newMonth && <p className="muted small">Không còn kỳ tháng trống trong 6 tháng trước/sau.</p>}
                 <div className="actions">
-                  <Button type="primary" disabled={!newMonth} onClick={() => createNewMonth(false)} icon={<Plus size={18} />}>
+                  <Button variant="solid" disabled={!newMonth} onClick={() => createNewMonth(false)} icon={<Plus size={18} />}>
                     Tạo tháng
                   </Button>
                   <Button disabled={!newMonth} onClick={() => createNewMonth(true)} icon={<Copy size={18} />}>
@@ -1181,7 +1197,7 @@ function BudgetSections({
               <Progress
                 percent={Math.min(totals.ratio * 100, 100)}
                 showInfo={false}
-                status={totals.ratio >= 0.9 ? "exception" : totals.ratio >= 0.8 ? "active" : "success"}
+                strokeClass={totals.ratio >= 0.9 ? "progress-danger" : totals.ratio >= 0.8 ? "progress-warn" : "progress-success"}
               />
               <div className={`result ${totals.remaining >= 0 ? "positive" : "negative"}`}>
                 {totals.remaining >= 0 ? `Còn lại ${formatMoney(totals.remaining)}` : `Vượt thu nhập ${formatMoney(Math.abs(totals.remaining))}`}
@@ -1196,6 +1212,7 @@ function BudgetSections({
               const percent = month.income ? (actual / month.income) * 100 : 0;
               return (
                 <Card
+                  clickable
                   className={`month-card ${month.id === selectedMonthId ? "active" : ""}`}
                   key={month.id}
                   onClick={() => setSelectedMonthId(month.id)}
@@ -1256,14 +1273,14 @@ function BudgetSections({
                 <div className="insight-head">
                   <Icon size={21} />
                   {maskable ? (
-                    <Button
-                      type="text"
+                    <button
+                      type="button"
                       className="insight-toggle"
                       onClick={() => setShowSaving((prev) => !prev)}
                       aria-label={showSaving ? "Ẩn giá trị tích lũy" : "Hiện giá trị tích lũy"}
                     >
                       {showSaving ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </Button>
+                    </button>
                   ) : null}
                 </div>
                 <span className="eyebrow">{title as string}</span>
@@ -1364,7 +1381,7 @@ function BudgetSections({
                     />
                   </label>
                   <Button
-                    type="primary"
+                    variant="solid"
                     disabled={!newIncomeName.trim() || newIncomeAmountValue == null}
                     onClick={addIncomeSource}
                     icon={<Plus size={18} />}
@@ -1414,7 +1431,7 @@ function BudgetSections({
                             <td>
                               <Button
                                 aria-label="Sắp xếp nguồn thu"
-                                type="text"
+                                variant="plain"
                                 draggable
                                 onDragEnd={resetIncomeDragState}
                                 onDragStart={(event) => {
@@ -1463,7 +1480,7 @@ function BudgetSections({
                           </td>
                           {canEditMonth && (
                             <td>
-                              <Button type="text" onClick={() => deleteIncomeSource(item.id)} title="Xóa nguồn thu" icon={<Trash2 size={16} />} />
+                              <Button variant="plain" className="btn-danger" onClick={() => deleteIncomeSource(item.id)} title="Xóa nguồn thu" icon={<Trash2 size={16} />} />
                             </td>
                           )}
                         </tr>
@@ -1514,16 +1531,22 @@ function BudgetSections({
                 </label>
                 <label>
                   Danh mục nhận diện
-                  <Select
-                    value={quickCategory}
-                    onChange={setQuickCategory}
-                    options={[
+                  {(() => {
+                    const quickCategoryOptions: Opt[] = [
                       { label: "— Chưa xác định —", value: "" },
-                      ...visibleCategories.map((item) => ({ label: item.name, value: item.name }))
-                    ]}
-                  />
+                      ...visibleCategories.map((item) => opt(item.name))
+                    ];
+                    return (
+                      <Select
+                        isClearable={false}
+                        options={quickCategoryOptions}
+                        value={selected(quickCategoryOptions, quickCategory)}
+                        onChange={(option) => setQuickCategory(option?.value ?? "")}
+                      />
+                    );
+                  })()}
                 </label>
-                <Button type="primary" disabled={!quickText.trim() || !quickAmount} onClick={addQuickExpense} icon={<Plus size={18} />}>
+                <Button variant="solid" disabled={!quickText.trim() || !quickAmount} onClick={addQuickExpense} icon={<Plus size={18} />}>
                   Ghi nhận
                 </Button>
               </div>
@@ -1555,22 +1578,25 @@ function BudgetSections({
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span className="money negative">-{formatMoney(item.amount)}</span>
-                            <Button onClick={() => startEditTransaction(item)}>
+                            <Button size="sm" onClick={() => startEditTransaction(item)}>
                               Sửa
                             </Button>
-                            <Popconfirm
-                              title="Bạn có chắc muốn xóa giao dịch này?"
-                              okText="Xác nhận xóa"
-                              cancelText="Hủy"
-                              okButtonProps={{ danger: true }}
-                              onConfirm={() => confirmDeleteTransaction(item.id)}
-                            >
-                              <Button>Xóa</Button>
-                            </Popconfirm>
+                            <InlineConfirm
+                              open={confirmDeleteTxId === item.id}
+                              label="Xóa giao dịch này?"
+                              confirmText="Xác nhận xóa"
+                              onOpen={() => setConfirmDeleteTxId(item.id)}
+                              onCancel={() => setConfirmDeleteTxId(null)}
+                              onConfirm={() => {
+                                setConfirmDeleteTxId(null);
+                                confirmDeleteTransaction(item.id);
+                              }}
+                              trigger={<Button size="sm">Xóa</Button>}
+                            />
                           </div>
                         </div>
                         {isEditing && editForm && (
-                          <Card className="panel" style={{ padding: 14 }}>
+                          <Card className="panel">
                             <div className="quick-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr" }}>
                               <label>
                                 Nội dung chi tiêu
@@ -1590,11 +1616,19 @@ function BudgetSections({
                               </label>
                               <label>
                                 Danh mục
-                                <Select
-                                  value={editForm.categoryId}
-                                  onChange={(categoryId) => setEditForm((current) => (current ? { ...current, categoryId } : current))}
-                                  options={selectedMonth.categories.map((category) => ({ label: category.name, value: category.id }))}
-                                />
+                                {(() => {
+                                  const categoryOptions: Opt[] = selectedMonth.categories.map((category) => opt(category.id, category.name));
+                                  return (
+                                    <Select
+                                      isClearable={false}
+                                      options={categoryOptions}
+                                      value={selected(categoryOptions, editForm.categoryId)}
+                                      onChange={(option) =>
+                                        option && setEditForm((current) => (current ? { ...current, categoryId: option.value } : current))
+                                      }
+                                    />
+                                  );
+                                })()}
                               </label>
                               <label>
                                 Ngày
@@ -1612,15 +1646,13 @@ function BudgetSections({
                             )}
                             <div className="actions" style={{ marginTop: 12 }}>
                               <Button
-                                type="primary"
+                                variant="solid"
                                 disabled={!editForm.text.trim() || !(Number(editForm.amount) > 0)}
                                 onClick={() => saveEditTransaction(item)}
                               >
                                 Lưu
                               </Button>
-                              <Button onClick={resetTransactionRowState}>
-                                Hủy
-                              </Button>
+                              <Button onClick={resetTransactionRowState}>Hủy</Button>
                             </div>
                           </Card>
                         )}
@@ -1661,7 +1693,7 @@ function BudgetSections({
                       }}
                     />
                   </label>
-                  <Button type="primary" disabled={!newPurchaseName.trim()} onClick={addPurchaseItem} icon={<Plus size={18} />}>
+                  <Button variant="solid" disabled={!newPurchaseName.trim()} onClick={addPurchaseItem} icon={<Plus size={18} />}>
                     Thêm item
                   </Button>
                 </div>
@@ -1680,18 +1712,7 @@ function BudgetSections({
                   <tbody>
                     {purchaseItemsDraft.length ? (
                       purchaseItemsDraft.map((item) => {
-                        const statusStyle =
-                          item.status === "Purchased"
-                            ? {
-                                background: "var(--success-soft)",
-                                borderColor: "color-mix(in srgb, var(--success) 35%, transparent)",
-                                color: "var(--success)"
-                              }
-                            : {
-                                background: "var(--warning-soft)",
-                                borderColor: "color-mix(in srgb, var(--warning) 35%, transparent)",
-                                color: "var(--warning)"
-                              };
+                        const statusTagClass = item.status === "Purchased" ? "tag-purchased" : "tag-pending";
                         return (
                           <tr key={item.id}>
                             <td>
@@ -1727,29 +1748,26 @@ function BudgetSections({
                               )}
                             </td>
                             <td>
-                              <Tag className="pill" style={statusStyle}>
-                                {item.status}
-                              </Tag>
+                              <Tag className={`pill ${statusTagClass}`}>{item.status}</Tag>
                             </td>
                             {canEditPurchaseItems && (
                               <td>
                                 <div style={{ display: "flex", gap: 8 }}>
                                   {item.status === "Pending" && (
                                     <Button
-                                      type="text"
+                                      variant="plain"
                                       onClick={() => markPurchaseItemPurchased(item.id)}
                                       title="Đánh dấu đã mua"
                                       icon={<CheckCircle2 size={16} />}
-                                    >
-                                    </Button>
+                                    />
                                   )}
                                   <Button
-                                    type="text"
+                                    variant="plain"
+                                    className="btn-danger"
                                     onClick={() => deletePurchaseItem(item.id)}
                                     title="Xóa item"
                                     icon={<Trash2 size={16} />}
-                                  >
-                                  </Button>
+                                  />
                                 </div>
                               </td>
                             )}
@@ -1822,7 +1840,7 @@ function BudgetSections({
                         <td>
                           <Button
                             aria-label="Sắp xếp danh mục"
-                            type="text"
+                            variant="plain"
                             draggable
                             onDragEnd={onCategoryDragEnd}
                             onDragStart={(event) => {
@@ -1845,12 +1863,15 @@ function BudgetSections({
                         </td>
                         <td>
                           <Select
-                            value={item.type}
-                            onChange={(type) => {
+                            isClearable={false}
+                            options={CATEGORY_TYPE_OPTIONS}
+                            value={selected(CATEGORY_TYPE_OPTIONS, item.type)}
+                            onChange={(option) => {
+                              if (!option) return;
+                              const type = option.value;
                               updateCategoryLocal(item.id, { type });
                               commitCategory(item.id, { type });
                             }}
-                            options={CATEGORY_TYPES.map((type) => ({ label: type, value: type }))}
                           />
                         </td>
                         <td>
@@ -1866,7 +1887,7 @@ function BudgetSections({
                         <td>{(ratio * 100).toFixed(1)}%</td>
                         <td>
                           {!item.locked && (
-                            <Button type="text" onClick={() => removeCategory(item.id)} title="Xóa danh mục" icon={<Trash2 size={16} />} />
+                            <Button variant="plain" className="btn-danger" onClick={() => removeCategory(item.id)} title="Xóa danh mục" icon={<Trash2 size={16} />} />
                           )}
                         </td>
                       </tr>
@@ -1897,7 +1918,7 @@ function BudgetSections({
               <Button onClick={exportData} icon={<Download size={18} />}>
                 Xuất JSON
               </Button>
-              <Button danger onClick={resetAll} icon={<RefreshCcw size={18} />}>
+              <Button className="btn-danger" onClick={resetAll} icon={<RefreshCcw size={18} />}>
                 Reset dữ liệu
               </Button>
             </div>

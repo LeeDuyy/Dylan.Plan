@@ -10,12 +10,10 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.6.1",
-    "@ant-design/nextjs-registry": "~1.2.0",
-    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
-    "antd": "^5.29.3",
+    "@vn-dylan/ui": "^0.1.1",
+    "@vn-dylan/utils": "^0.1.1",
     "lucide-react": "^0.468.0",
     "next": "^15.0.4",
     "next-auth": "^5.0.0-beta.32",
@@ -30,5 +28,6 @@
     "eslint": "^9.16.0",
     "eslint-config-next": "^15.0.4",
     "typescript": "^5.7.2"
-  }
+  },
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }
