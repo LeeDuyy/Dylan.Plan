@@ -24,19 +24,20 @@ thêm thẻ `script` nhỏ chống FOUC (đọc `localStorage["dyl-color-mode"]`
 mount qua `components/shared/RootClient.tsx` (client wrapper).
 
 Dark mode: hook `useDarkMode()` của `@vn-dylan/utils` (trả tuple `[isDark, setMode]`, toggle class
-`.dark` trên phần tử `html`, tự lưu `localStorage["dyl-color-mode"]`). Nút toggle nằm trong navbar,
-có `mounted` guard tránh hydration mismatch icon Moon/Sun.
+`.dark` trên phần tử `html`, tự lưu `localStorage["dyl-color-mode"]`). Nút toggle ở đáy sidebar (và
+trên topbar điện thoại), có `mounted` guard tránh hydration mismatch icon Moon/Sun.
 
-Layout chuẩn: `AppShell` dựng lại bằng một thanh `header.app-navbar` — thương hiệu + 6 link điều
-hướng inline (`next/link`, class `active` theo `usePathname`) + nút giao diện + `UserMenu` + nút ba
-gạch. Điện thoại (CSS `max-width: 900px`): ẩn link inline, hiện ba gạch → `Drawer` (`isOpen`/
-`onClose`). Bỏ dải nav ngang riêng `.app-shell-nav-bar` và `Grid.useBreakpoint`.
+Layout chuẩn: `AppShell` là **sidebar cố định bên trái** (`aside.app-sidebar`, 248px, sticky full-height:
+thương hiệu + 6 link điều hướng dọc `next/link` với class `active` theo `usePathname` + đáy: nút giao diện
++ `UserMenu`) cạnh vùng `div.app-main` (nội dung cuộn riêng). Điện thoại (CSS `max-width: 1024px`): ẩn
+sidebar, hiện `header.app-topbar` gọn (ba gạch + brand + nút giao diện) → nút ba gạch mở `Drawer` trái
+(`isOpen`/`onClose`). Bỏ dải nav ngang riêng `.app-shell-nav-bar` và `Grid.useBreakpoint`.
 
 `globals.css`: ~1700 dòng CSS app giữ nguyên; biến cũ (`--primary`, `--surface`, `--line`, `--text`,
 `--muted`, `--bg`, `--success`…) đổi thành **alias mỏng lên token `--dyl-*`**. Bỏ mọi selector
 `.ant-*` (thay bằng `.dyl-card__body`, `.dyl-select__trigger`, `.dyl-progress__line-value`…). Bảng
 màu biểu đồ `--chart-1..8` giữ thủ công (design system không có), có biến thể dưới `.dark`. Thêm
-`.app-navbar`, `.app-nav-link`, `.btn-danger`, `.progress-warn/-danger/-success`, `.tag-purchased/
+`.app-shell`/`.app-sidebar`/`.app-topbar`/`.app-nav-link`, `.btn-danger`, `.progress-warn/-danger/-success`, `.tag-purchased/
 -pending`.
 
 ## 2. Luồng End-To-End
@@ -47,7 +48,7 @@ middleware (host routing, không đổi)
      phần tử html gắn suppressHydrationWarning;
      UserSessionProvider > RootClient (mount Toaster) > children
   -> app/(mỗi tab)/page.tsx (6 route, không đổi) -> *View client -> AppShell
-     -> header.app-navbar (Link x6 + nút giao diện useDarkMode + UserMenu + Drawer điện thoại)
+     -> aside.app-sidebar (Link x6 dọc + nút giao diện useDarkMode + UserMenu) | app-topbar + Drawer trái khi ≤1024px
      -> nội dung tab: Button/Card/Input/Select/Progress/Tag/Table/Timeline/Dropdown của @vn-dylan/ui
         + InlineConfirm + toast.push ; logic + Server Action giữ nguyên
 ```
@@ -57,9 +58,9 @@ middleware (host routing, không đổi)
 | Entry | `app/layout.tsx` | styles.css + script FOUC + favicon; bọc `RootClient` |
 | Toaster | `components/shared/RootClient.tsx` (mới) | client wrapper render `Toaster` |
 | Helper | `components/shared/ui.tsx` (mới) | `opt`, `selected` (Select), `InlineConfirm` (thay `Popconfirm`) |
-| Shell | `components/shared/AppShell.tsx` | navbar + `Drawer` + `useDarkMode` + `mounted` guard |
+| Shell | `components/shared/AppShell.tsx` | sidebar + topbar + `Drawer` trái + `useDarkMode` + `mounted` guard |
 | Tab content | `components/PlanViews.tsx`, `components/JobTrackerBoard.tsx`, `components/BudgetApp.tsx` | antd → vn-dylan theo bảng §5 |
-| Style | `app/globals.css` | alias `--dyl-*`, `.app-navbar`, bỏ `.ant-*` |
+| Style | `app/globals.css` | alias `--dyl-*`, `.app-shell`/`.app-sidebar`/`.app-topbar`, bỏ `.ant-*` |
 | Data | — | Không chạm |
 
 ## 3. Bản Đồ Source
@@ -69,7 +70,7 @@ middleware (host routing, không đổi)
 | Root layout | `app/layout.tsx` | styles.css + FOUC script + `metadata.icons`; `html` có `suppressHydrationWarning` |
 | Toaster mount | `components/shared/RootClient.tsx` (mới) | render `Toaster` |
 | Helper UI | `components/shared/ui.tsx` (mới) | `opt`, `selected`, `InlineConfirm` |
-| Shell | `components/shared/AppShell.tsx` | navbar + drawer + toggle giao diện |
+| Shell | `components/shared/AppShell.tsx` | sidebar trái + topbar + drawer + toggle giao diện |
 | UserMenu | `components/shared/UserMenu.tsx` | `Dropdown` + `renderTitle` + `Dropdown.Item` |
 | Toast | `components/shared/Toast.tsx` | `toast.push(message,{duration:4000})` |
 | TargetGrid | `components/shared/TargetGrid.tsx` | `Card` + `div.targets` |
@@ -105,7 +106,7 @@ tại `prisma.$transaction` khi chạy dưới pnpm — khắc phục bằng
 | antd | vn-dylan | Ghi chú |
 | --- | --- | --- |
 | `ConfigProvider`+`theme.darkAlgorithm`+`App` | *(bỏ)* + `useDarkMode()` + `RootClient` | theming qua CSS var |
-| `Layout/Header/Content/Footer` + `Menu` ngang + `Drawer` | `header.app-navbar` + `Link` + `Drawer` | `Menu` vn-dylan chỉ dọc |
+| `Layout/Header/Content/Footer` + `Menu` ngang + `Drawer` | `aside.app-sidebar` + `header.app-topbar` + `Drawer` trái + `Link` | `Menu` vn-dylan chỉ dọc |
 | `Button type="primary"` / `type="text"` / `danger` | `variant="solid"` / `variant="plain"` / `className="btn-danger"` | không có `href` → bọc thẻ `a` |
 | `Card` (children) | `Card` | class app trên gốc `.dyl-card`; padding thân qua `X > .dyl-card__body` |
 | `Input` / `Input.TextArea` | `Input` / `Input textArea rows` | `status="error"` → `invalid` |
@@ -144,9 +145,9 @@ tại `prisma.$transaction` khi chạy dưới pnpm — khắc phục bằng
 | Yêu cầu | Kết quả | Bằng chứng |
 | --- | --- | --- |
 | Thay toàn bộ component sang `@vn-dylan/ui` | Đạt | `grep "from \"antd\"\|@ant-design"` trong `app/` `components/` = 0; `pnpm ls antd` = không có |
-| Layout chuẩn, menu lên navbar | Đạt | `/`, `/roadmap`, `/budget`, `/timetable`, `/freelance`, `/product` cùng `header.app-navbar` với 6 link inline + `active` đúng theo route |
-| Điện thoại (≤900px) | Đạt | 390px: link inline ẩn, nút ba gạch → `Drawer` "Điều hướng" đủ 6 link + "Đổi giao diện"; lưới xuống 1 cột |
-| Icon/favicon lấy của portfolio | Đạt | `metadata.icons.icon = "/favicon.svg"` (ô bo góc nền tối, chữ D vàng chanh); logo navbar + badge signin style theo portfolio |
+| Layout chuẩn, menu ở sidebar trái | Đạt | 6 route cùng `aside.app-sidebar` dọc 6 link + `active` đúng; ≤1024px → topbar + Drawer trái |
+| Điện thoại (≤1024px) | Đạt | 390px: sidebar ẩn, topbar hiện, nút ba gạch → `Drawer` trái đủ 6 link + toggle giao diện; lưới xuống 1 cột |
+| Icon/favicon lấy của portfolio | Đạt | `metadata.icons.icon = "/favicon.svg"` (ô bo góc nền tối, chữ D vàng chanh); logo sidebar + badge signin style theo portfolio |
 | Sáng/tối | Đạt | Nút navbar toggle → class `.dark` trên `html` + `localStorage["dyl-color-mode"]`; reload giữ; đổi tức thì không nạp lại |
 | JobTracker giữ hành vi | Đạt | "Thêm job" → hàng nháp (Company/Date/Platform/Link/Status/Note + nút lưu/hủy); header cột sắp xếp `Th sortable`; `Select` trạng thái (pill màu); Platform dropdown mở/chọn/thêm/xóa; xóa job → xác nhận inline |
 | BudgetApp giữ hành vi | Đạt | `Select` tháng/tạo tháng/loại/danh mục nhận diện; `Progress` "Mức sử dụng thu nhập" đổi màu theo ngưỡng; `Tag` trạng thái mua sắm; `InlineConfirm` xóa giao dịch; xuất JSON; kéo-thả danh mục |

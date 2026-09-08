@@ -93,47 +93,83 @@ a {
   width: 100%;
 }
 
-/* Navbar chuẩn: một thanh trên cùng gom thương hiệu + toàn bộ menu điều hướng +
-   nút giao diện + menu người dùng. Điện thoại: menu thu vào nút ba gạch → Drawer. */
-.app-navbar {
+/* Layout chuẩn: sidebar điều hướng cố định bên trái + vùng nội dung cuộn riêng.
+   Điện thoại (≤1024px): ẩn sidebar, hiện thanh trên cùng gọn + nút ba gạch → Drawer trái. */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
   position: sticky;
   top: 0;
   z-index: 30;
   display: flex;
+  flex-direction: column;
+  flex: 0 0 248px;
+  width: 248px;
+  height: 100vh;
+  padding: 18px 14px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.app-sidebar-brand {
+  padding: 6px 8px 16px;
+  font-size: 16px;
+}
+
+.app-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.app-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.app-topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 25;
   align-items: center;
-  gap: 20px;
-  min-height: 64px;
-  padding: 0 clamp(12px, 3vw, 24px);
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 clamp(10px, 3vw, 16px);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 
-.app-navbar-spacer {
-  flex: 1;
-}
-
-.app-navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.app-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
 .app-nav-link {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 0;
   border-radius: var(--dyl-radius-md);
+  background: transparent;
   color: var(--muted);
+  font: inherit;
   font-size: 14px;
   font-weight: 650;
   white-space: nowrap;
+  text-align: left;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
@@ -147,19 +183,18 @@ a {
   background: var(--primary-soft);
 }
 
-.app-nav-drawer-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 10px;
-  border-radius: var(--dyl-radius-md);
-  color: var(--text);
-  font-weight: 650;
+.app-nav-link--drawer {
+  padding: 12px;
 }
 
-.app-nav-drawer-link.active {
-  color: var(--primary);
-  background: var(--primary-soft);
+@media (max-width: 1024px) {
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-topbar {
+    display: flex;
+  }
 }
 
 .icon-button {
@@ -203,17 +238,6 @@ a {
   font-size: 20px;
 }
 
-@media (max-width: 900px) {
-  .app-nav-links {
-    display: none;
-  }
-}
-
-@media (min-width: 901px) {
-  .app-nav-hamburger {
-    display: none;
-  }
-}
 
 .user-menu {
   display: flex;

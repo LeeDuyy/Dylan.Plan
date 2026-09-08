@@ -46,66 +46,82 @@ export function AppShell({ children }: { children: ReactNode }) {
   // mount ở client — chờ mounted rồi mới chọn icon để khớp SSR, tránh hydration mismatch.
   const themeIcon = !mounted ? <Moon size={18} /> : dark ? <Sun size={18} /> : <Moon size={18} />;
 
+  const navLinks = (variant: "side" | "drawer") =>
+    navItems.map(({ href, label, icon: Icon }) => (
+      <Link
+        key={href}
+        className={`app-nav-link app-nav-link--${variant}${isActive(pathname, href) ? " active" : ""}`}
+        href={href}
+        onClick={variant === "drawer" ? () => setDrawerOpen(false) : undefined}
+      >
+        <Icon size={variant === "drawer" ? 18 : 17} />
+        {label}
+      </Link>
+    ));
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header className="app-navbar">
-        <Link className="brand" href="/">
+    <div className="app-shell">
+      <aside className="app-sidebar">
+        <Link className="brand app-sidebar-brand" href="/">
           <span className="logo">D</span>
-          <span>Dylan Plan Dashboard</span>
+          <span>Dylan Plan</span>
         </Link>
 
-        <nav className="app-nav-links">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link key={href} className={`app-nav-link${isActive(pathname, href) ? " active" : ""}`} href={href}>
-              <Icon size={16} />
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <nav className="app-sidebar-nav">{navLinks("side")}</nav>
 
-        <span className="app-navbar-spacer" />
-
-        <div className="app-navbar-actions">
-          <button type="button" className="icon-button" onClick={toggleTheme} title="Đổi giao diện" aria-label="Đổi giao diện">
-            {themeIcon}
-          </button>
-          <UserMenu />
+        <div className="app-sidebar-foot">
           <button
             type="button"
-            className="icon-button app-nav-hamburger"
+            className="app-nav-link app-nav-link--side"
+            onClick={toggleTheme}
+            style={{ width: "100%", cursor: "pointer" }}
+          >
+            {themeIcon}
+            {mounted && dark ? "Giao diện sáng" : "Giao diện tối"}
+          </button>
+          <UserMenu />
+        </div>
+      </aside>
+
+      <div className="app-main">
+        <header className="app-topbar">
+          <button
+            type="button"
+            className="icon-button"
             onClick={() => setDrawerOpen(true)}
             title="Điều hướng"
             aria-label="Mở menu điều hướng"
           >
-            <MenuIcon size={18} />
+            <MenuIcon size={20} />
           </button>
-        </div>
-      </header>
-
-      <main className="app-content" style={{ flex: 1 }}>
-        {children}
-      </main>
-
-      <footer className="footer">
-        Bắt đầu 22/06/2026 · Chuyển việc · Buy to Build · Mini Shop Builder · Budget cá nhân
-      </footer>
-
-      <Drawer isOpen={drawerOpen} placement="right" title="Điều hướng" width={280} onClose={() => setDrawerOpen(false)}>
-        <div className="app-nav-drawer">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              className={`app-nav-drawer-link${isActive(pathname, href) ? " active" : ""}`}
-              href={href}
-              onClick={() => setDrawerOpen(false)}
-            >
-              <Icon size={18} />
-              {label}
-            </Link>
-          ))}
-          <button type="button" className="app-nav-drawer-link" onClick={toggleTheme} style={{ width: "100%", cursor: "pointer" }}>
+          <Link className="brand" href="/">
+            <span className="logo">D</span>
+            <span>Dylan Plan</span>
+          </Link>
+          <span style={{ flex: 1 }} />
+          <button type="button" className="icon-button" onClick={toggleTheme} title="Đổi giao diện" aria-label="Đổi giao diện">
             {themeIcon}
-            Đổi giao diện
+          </button>
+        </header>
+
+        <main className="app-content">{children}</main>
+
+        <footer className="footer">
+          Bắt đầu 22/06/2026 · Chuyển việc · Buy to Build · Mini Shop Builder · Budget cá nhân
+        </footer>
+      </div>
+
+      <Drawer isOpen={drawerOpen} placement="left" title="Dylan Plan" width={264} onClose={() => setDrawerOpen(false)}>
+        <div className="app-nav-drawer">
+          {navLinks("drawer")}
+          <button
+            type="button"
+            className="app-nav-link app-nav-link--drawer"
+            onClick={toggleTheme}
+            style={{ width: "100%", cursor: "pointer" }}
+          >
+            {themeIcon}
+            {mounted && dark ? "Giao diện sáng" : "Giao diện tối"}
           </button>
         </div>
       </Drawer>
