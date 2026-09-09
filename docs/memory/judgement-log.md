@@ -1,6 +1,6 @@
 # judgement-log.md — Nhận định và kết luận sau phân tích
 
-Updated: 2026-09-07 (JDG-036)
+Updated: 2026-09-09 (JDG-037)
 Scope: Dự án `DylanPlan`.
 
 **Append-only.** Nhận định bị bác bỏ thì đổi `Status: Refuted` và thêm bản ghi mới trỏ ngược lại.
@@ -10,6 +10,17 @@ Ghi vào đây khi: kết thúc một lượt điều tra, review, hoặc phân 
 Khác `decisions.md`: nhận định **có thể sai**. Một nhận định được xác nhận đủ chắc thì nâng thành `DEC-###` bên `decisions.md`.
 
 ---
+
+### JDG-037 — Hai function cùng chạm cây điều hướng (US-025 tùy biến menu, US-026 tách mục con Thu chi) phải tách theo thứ tự triển khai, không chạy song song vào code
+
+- Ngày: 2026-09-09
+- Status: Applied — áp cho `docs/features/US-026-.../spec.md` mục 10/14 (A10), `DEC-137` điểm 6
+- Độ tin cậy: Đã xác nhận từ knowledge — `po-expert` lần 1 nêu rủi ro thứ tự; user chốt tường minh US-026 code sau US-025
+- Feature liên quan: US-025, US-026 (tiền lệ cho các function sau cùng chạm `components/shared/nav.ts` + `lib/nav-registry.ts` + `NavPref`)
+- Bối cảnh: US-025 (bảng điều khiển tùy biến menu — thứ tự, ẩn/hiện mục menu, lưu `NavPref`) đang code dở khi US-026 (bỏ mục con `/budget/control`, thêm `/budget/income` + `/budget/expense`) vào pipeline. Cả hai sửa `NAV_CHILD_HREFS`, `defaultNavPrefSeeds()` và dữ liệu `NavPref`.
+- Lập luận: Nếu hai bên cùng sửa registry điều hướng và seed trong hai nhánh song song, merge sẽ xung đột ở chính danh sách mục con canon và ở logic di trú `NavPref`; rủi ro cao hơn giá trị của việc chạy song song. Phần BA/plan/task của US-026 không đụng code nên làm ngay được.
+- Hệ quả nếu đúng: `ssr-pipeline` cho US-026 chạy hết BA + plan + task rồi dừng trước `implement`; khi US-025 merge xong, `ssr-plan` của US-026 rà lại impact map (registry/seed có thể đã đổi) trước khi code.
+- Cái gì sẽ chứng minh nó sai: Nếu US-025 thực ra không chạm `NAV_CHILD_HREFS`/seed (chỉ đọc), thì hai function độc lập và có thể code song song — khi đó nới ràng buộc thứ tự này.
 
 ### JDG-036 — Function cross-cutting toàn giao diện (US-023) neo vào quyết định user tường minh, không gán ép vào mục tiêu Business Flow
 

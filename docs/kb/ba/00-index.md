@@ -1,6 +1,6 @@
 # BA index
 
-Updated: 2026-09-07 (US-022 + US-023 raw intake — nguồn thu/insight/tháng mặc định/item mọi tháng tại tab Thu chi; chuẩn hóa layout toàn app bằng Ant Design + responsive)
+Updated: 2026-09-09 (US-026 raw intake — tách "Ngân sách & nhập nhanh" thành 2 mục con "Quản lý thu" (`/budget/income`) và "Quản lý chi" (`/budget/expense`), item cần mua vào Drawer)
 
 | Mã | Tên | File |
 | --- | --- | --- |
@@ -29,3 +29,4 @@ Updated: 2026-09-07 (US-022 + US-023 raw intake — nguồn thu/insight/tháng m
 | US-021 | Tự điền thông tin job từ link tin tuyển dụng (mở rộng US-018, ngoài Business Flow — `DEC-111`) | [`docs/kb/ba/wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md`](wiki/knowledge/feature/US-021-tu-dien-thong-tin-job-link.md) (nested — spec `Ready for DEV`, 8 AC; rule `BR-031`, `BR-032`) |
 | US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | `docs/kb/ba/raw/US-022-nguon-thu-va-insight-tab-thu-chi.md` (Raw — chờ `ssr-ingest` + `ssr-ba`) |
 | US-023 | Chuẩn hóa layout toàn app bằng Ant Design, tận dụng không gian và responsive cho mobile/tablet | `docs/kb/ba/raw/US-023-layout-antd-responsive-toan-app.md` (Raw — chờ `ssr-ingest` + `ssr-ba`) |
+| US-026 | Tách "Ngân sách & nhập nhanh" thành "Quản lý thu" và "Quản lý chi"; item cần mua vào Drawer | `docs/features/US-026-tach-quan-ly-thu-va-chi/spec.md` (spec `Ready for DEV`, 9 AC; `DEC-137`; wiki feature chưa biên soạn — nợ `ssr-ingest`) |

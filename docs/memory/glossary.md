@@ -1,6 +1,6 @@
 # glossary.md — Từ điển thuật ngữ của dự án
 
-Updated: 2026-09-07
+Updated: 2026-09-09
 Scope: Dự án `DylanPlan`.
 Kế thừa: `${CLAUDE_PLUGIN_ROOT}/memory/glossary.md` (thuật ngữ kit + Next.js + Prisma + SQLite).
 
@@ -28,6 +28,9 @@ Quy tắc: mỗi thuật ngữ có **đúng một** định nghĩa. Nếu một 
 | Ngày nộp hồ sơ | Mốc thời gian ghi nhận khi một Job ứng tuyển chuyển từ Interested sang Waiting; dùng làm mốc tính luật tự động "quá 7 ngày ở Waiting mà không đổi trạng thái khác → tự chuyển No Response". Bị xoá khi job chuyển ngược từ Waiting về Interested (US-020, DEC-099) | Chưa có cột — chờ `ssr-data` mở rộng `JobApplication` | "Ngày nộp hồ sơ" (mốc mới trong bảng Theo dõi CV ứng tuyển) | Ngày hết hạn — đó là hạn chót tuyển dụng do nhà tuyển dụng đặt ra, không phải thời điểm Dylan nộp CV |
 | Nguồn thu | Một dòng thu nhập gắn theo tháng ngân sách, gồm tên (vd Lương, Freelance, Thưởng) và số tiền (số nguyên đồng ≥ 0, không cho âm — DEC-134); Dylan tự thêm/sửa/xóa/kéo-thả sắp xếp — đối xứng với Danh mục ở phần chi, chỉ thao tác được ở tháng hiện tại hoặc tương lai (BR-036, DEC-133). Tháng tạo mới bắt đầu không có nguồn thu nào (DEC-131). Không ảnh hưởng `Category.budget`/`Category.actual` (US-022, DEC-127) | Chưa có model — entity mới, chờ `ssr-data` (dự kiến `IncomeSource` liên kết `MonthBudget`) | "Nguồn thu" (bảng trong tab Thu chi) | Danh mục — đó là nhóm ở phần chi; Nguồn thu ở phần thu, không có Loại cố định |
 | Thu nhập tháng | Tổng số tiền tất cả Nguồn thu của một tháng ngân sách. Trước US-022 là một số cứng 35.000.000đ không sửa được (`MonthBudget.income`, `DEFAULT_INCOME`) (US-022, DEC-127) | Tổng `IncomeSource.amount` theo `monthId` (đường đọc); `MonthBudget.income` có thể giữ làm cache — `ssr-data` chốt | "Thu nhập tháng" | Nguồn thu — đó là từng dòng; Thu nhập tháng là tổng |
+| Quản lý thu | Mục con trong nhóm menu "Thu chi" (route `/budget/income`), chứa bảng Nguồn thu và một khu tổng hợp **chỉ xem** các danh mục Loại "Tích lũy" của tháng đang xem. Thay một phần cho mục con "Ngân sách & nhập nhanh" cũ (US-026, DEC-137) | Không có model — là một màn hình; UI dùng lại `IncomeSource` + `Category` (`type = "Tích lũy"`) | "Quản lý thu" | Quản lý chi — đó là phần chi; Insight tài chính — đó là mục con phân tích |
+| Quản lý chi | Mục con trong nhóm menu "Thu chi" (route `/budget/expense`), layout 2 cột: trái là Nhập nhanh + danh sách giao dịch, phải là nút mở danh sách "Items cần mua" (badge đếm "Pending") + bảng Danh mục ngân sách + cụm nút hành động. Thay một phần cho mục con "Ngân sách & nhập nhanh" cũ (US-026, DEC-137) | Không có model — là một màn hình; UI dùng lại `Transaction` + `Category` + `PurchaseItem` | "Quản lý chi" | Quản lý thu — đó là phần thu; Lịch sử thu chi — đó là mục con xem theo tháng |
+| Ngân sách & nhập nhanh | **Tên cũ, đã bỏ** khỏi menu từ US-026 (DEC-137). Mục con này (route `/budget/control`, `BudgetApp` prop `section="control"`) từng gom Nguồn thu + Nhập nhanh + Items cần mua + Danh mục ngân sách trên một trang; nay tách thành "Quản lý thu" và "Quản lý chi". Route `/budget/control` chuyển hướng sang `/budget/expense` | — | (không còn hiển thị) | Quản lý thu, Quản lý chi — hai mục con thay thế |
 
 ## 2. Vai trò người dùng
 
