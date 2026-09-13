@@ -1,5 +1,10 @@
 import { FreelanceStrategySection } from "@/components/PlanViews";
+import { toPageContentView } from "@/lib/page-content-defaults";
+import { getPageContent } from "@/server/pages/actions";
 
-export default function FreelanceStrategyPage() {
-  return <FreelanceStrategySection />;
+export const dynamic = "force-dynamic";
+
+export default async function FreelanceStrategyPage() {
+  const entity = await getPageContent("freelance/strategy");
+  return <FreelanceStrategySection content={toPageContentView("freelance/strategy", entity)} />;
 }

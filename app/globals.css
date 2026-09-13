@@ -2082,6 +2082,25 @@ label > .dyl-select {
   background: var(--surface-2);
 }
 
+/* Nút "Chỉnh sửa trang" (US-027) — nổi bên phải, ngay trên nội dung trang. */
+.page-edit-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+}
+
+.page-content-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-content-field-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .footer {
   flex: 0 0 auto;
   z-index: 25;

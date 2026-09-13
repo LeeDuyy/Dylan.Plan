@@ -162,6 +162,48 @@ model TimetableRow {
   @@index([order])
 }
 
+// Nội dung tĩnh của các trang Roadmap/Freelance/Sản phẩm, sửa được qua nút "Chỉnh
+// sửa trang" mà không cần đổi code (US-027) — layout/JSX giữ nguyên, chỉ đổi dữ
+// liệu hiển thị. `page` là khoá ổn định do app đặt (route rút gọn, vd
+// "roadmap/priorities"). Nội dung mặc định nằm ở `lib/page-content-defaults.ts`.
+//
+// PageText: từng trường text đơn lẻ đặt tên theo `key` (tiêu đề Card, mô tả, số
+// liệu lớn...). PageBlock: danh sách item lặp lại (thẻ ưu tiên, mục tiêu, dịch
+// vụ...); `section` phân nhóm khi 1 trang có nhiều danh sách khác nhau (vd trang
+// Chiến lược Freelance có cả danh sách "nguyên tắc" và "gói dịch vụ"). `bullets`
+// là mảng chuỗi JSON-encode cho item có gạch đầu dòng con (gói dịch vụ, mốc thời
+// gian sản phẩm) — SQLite không có kiểu mảng gốc.
+model PageText {
+  id    String @id @default(cuid())
+  page  String
+  key   String
+  value String
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([page, key])
+  @@index([page])
+}
+
+model PageBlock {
+  id      String @id @default(cuid())
+  page    String
+  section String @default("default")
+  order   Int    @default(0)
+
+  badge   String?
+  title   String?
+  desc    String?
+  value   String?
+  weight  Int?
+  variant String?
+  bullets String?
+
+  updatedAt DateTime @updatedAt
+
+  @@index([page, section, order])
+}
+
 model JobPlatform {
   id   String @id @default(cuid())
   name String

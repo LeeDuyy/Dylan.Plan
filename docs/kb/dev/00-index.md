@@ -1,11 +1,14 @@
 # DEV index
 
+Updated: 2026-09-14 (US-027 implemented — nút "Chỉnh sửa trang" cho 12 trang Roadmap/Freelance/Sản phẩm; model mới `PageText`+`PageBlock` (migration `20260913164331_add_page_content`) dùng chung mọi trang, không phải 1 model/trang; bounded context mới `server/pages`; editor form generic `PageContentEditor` suy field theo dữ liệu. Verify qua Chrome DevTools MCP cả 12 route, không lỗi console, round-trip đúng. Không qua pipeline ssr-* — implement trực tiếp trong phiên tương tác)
+
 Updated: 2026-09-13 (US-026 implemented — thuần tầng trình bày, KHÔNG đổi schema; `BudgetApp` `section` `control` tách thành `income`+`expense`, 2 route mới + redirect `/budget/control`, `NavPref` reconcile ở tầng ứng dụng (chèn thiếu + xoá orphan), "Items cần mua" vào `Drawer` với badge đếm Pending. Verify qua Chrome DevTools MCP trên `plan.localhost:3000`, không lỗi console, DB xác nhận reconcile đúng)
 
 Updated: 2026-09-09 (US-025 GĐ1+GĐ2+GĐ3 implemented — đổi schema: model mới `NavPref` (migration `20260909141127_add_nav_pref`) + `RoadmapPhase`/`RoadmapDeliverable`/`TimetableRow` (migration `20260909142811_add_roadmap_timetable_config`), đều thuần CREATE TABLE; bounded context mới `server/config`; `app/(app)/layout.tsx` → dynamic, đọc nav/roadmap/timetable config; `AppShell`/`ConfigDrawer` nhận các config; nút bánh răng → drawer 4 tab (Density localStorage · Menu · Roadmap · Lịch tuần DB); `roadmapPhases`/`weekRows` chuyển từ `PlanViews.tsx` ra `lib/*-defaults.ts`, section components nhận props. Trước đó: US-023 plan Ready for task-breakdown — thuần tầng trình bày, KHÔNG đổi schema)
 
 | Mã | Tên | File |
 | --- | --- | --- |
+| US-027 | Nút "Chỉnh sửa trang" cho 12 trang Roadmap/Freelance/Sản phẩm (PageText/PageBlock) | `docs/kb/dev/wiki/US-027-chinh-sua-noi-dung-trang.md` |
 | US-026 | Tách "Ngân sách & nhập nhanh" thành "Quản lý thu" và "Quản lý chi"; "Items cần mua" vào Drawer | `docs/kb/dev/wiki/US-026-tach-quan-ly-thu-va-chi.md` |
 | US-025 | Bảng điều khiển tuỳ biến app (config panel: density · thứ tự/ẩn hiện menu · sửa roadmap · sửa timetable) | `docs/kb/dev/wiki/US-025-bang-dieu-khien-config.md` |
 | US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | `docs/kb/dev/wiki/US-023-layout-antd-responsive-toan-app.md` |

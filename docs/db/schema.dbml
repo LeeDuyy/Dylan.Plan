@@ -1,6 +1,6 @@
 // Đồng bộ thủ công từ prisma/schema.prisma — không có generator DBML cài sẵn trong dự án.
 // Nguồn sự thật là prisma/schema.prisma. Không sửa ngược từ file này.
-// Cập nhật lần cuối: 2026-09-09 (US-025 GĐ3 — thêm RoadmapPhase / RoadmapDeliverable / TimetableRow; GĐ2 thêm NavPref)
+// Cập nhật lần cuối: 2026-09-13 (US-027 — thêm PageText / PageBlock cho nội dung sửa được của trang Roadmap/Freelance/Sản phẩm; trước đó US-025 GĐ3 thêm RoadmapPhase / RoadmapDeliverable / TimetableRow, GĐ2 thêm NavPref)
 
 Table MonthBudget {
   id text [pk, note: 'Dạng YYYY-MM, client cung cấp']
@@ -141,6 +141,42 @@ Table TimetableRow {
 
   indexes {
     order
+  }
+}
+
+Table PageText {
+  id text [pk]
+  page text [not null, note: 'Khoá ổn định do app đặt = route rút gọn, vd "roadmap/priorities"']
+  key text [not null, note: 'Tên trường text trong trang, vd "ratio.title", "scorecard.desc"']
+  value text [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Từng trường text đơn lẻ của trang Roadmap/Freelance/Sản phẩm (US-027) — tiêu đề Card, mô tả, số liệu lớn... Sửa qua nút "Chỉnh sửa trang", không cần đổi code. Mặc định: lib/page-content-defaults.ts.'
+
+  indexes {
+    page
+    (page, key) [unique]
+  }
+}
+
+Table PageBlock {
+  id text [pk]
+  page text [not null]
+  section text [not null, default: 'default', note: 'Phân nhóm khi 1 trang có nhiều danh sách khác nhau, vd "topics" và "services"']
+  order integer [not null, default: 0]
+  badge text [note: 'Nhãn ngắn đầu item — số thứ tự, mã gói...']
+  title text
+  desc text
+  value text [note: 'Số liệu hiển thị lớn (percent, con số KPI...)']
+  weight integer [note: 'Độ dài thanh Progress khi item có biểu diễn %']
+  variant text [note: 'Biến thể màu/kiểu hiển thị (progress-warn, progress-success...)']
+  bullets text [note: 'Mảng chuỗi JSON-encode cho gạch đầu dòng con — SQLite không có kiểu mảng gốc']
+  updatedAt timestamp [not null]
+
+  note: 'Danh sách item lặp lại trong trang Roadmap/Freelance/Sản phẩm (US-027) — thẻ ưu tiên, mục tiêu, dịch vụ... Mặc định: lib/page-content-defaults.ts.'
+
+  indexes {
+    (page, section, order)
   }
 }
 
