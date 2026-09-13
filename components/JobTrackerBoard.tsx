@@ -612,10 +612,6 @@ export function JobTrackerBoard({
         <div className="container">
           <Card className="panel job-tracker-panel">
             <div className="section-head job-tracker-head">
-              <div>
-                <span className="eyebrow">Ứng tuyển</span>
-                <h2>Theo dõi CV ứng tuyển</h2>
-              </div>
               <Button variant="solid" onClick={() => setAdding(true)} icon={<Plus size={18} />}>
                 Thêm job
               </Button>

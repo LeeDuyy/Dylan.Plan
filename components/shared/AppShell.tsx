@@ -2,62 +2,121 @@
 
 import { Drawer } from "@vn-dylan/ui";
 import { useDarkMode } from "@vn-dylan/utils";
-import {
-  BriefcaseBusiness,
-  CalendarClock,
-  Handshake,
-  Menu as MenuIcon,
-  Moon,
-  PanelsTopLeft,
-  ShoppingBag,
-  Sun,
-  WalletCards
-} from "lucide-react";
+import { ChevronDown, LogOut, Menu as MenuIcon, Moon, Settings2, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { ComponentType, ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
-import { UserMenu } from "@/components/shared/UserMenu";
+import { ConfigDrawer } from "@/components/shared/ConfigDrawer";
+import { useUserEmail } from "@/components/shared/UserSessionContext";
+import { activeGroup, applyNavPrefs, currentMeta, navGroups } from "@/components/shared/nav";
+import type { NavPref } from "@/lib/nav-registry";
+import type { RoadmapPhaseView } from "@/lib/roadmap-defaults";
+import type { TimetableRowView } from "@/lib/timetable-defaults";
+import { signOutAction } from "@/server/auth/actions";
 
-type NavItem = { href: string; label: string; icon: ComponentType<{ size?: number }> };
-
-const navItems: NavItem[] = [
-  { href: "/", label: "Tổng quan", icon: PanelsTopLeft },
-  { href: "/roadmap", label: "Roadmap", icon: BriefcaseBusiness },
-  { href: "/timetable", label: "Thời gian biểu", icon: CalendarClock },
-  { href: "/freelance", label: "Freelance", icon: Handshake },
-  { href: "/product", label: "Sản phẩm", icon: ShoppingBag },
-  { href: "/budget", label: "Thu chi", icon: WalletCards }
-];
-
-function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
-}
-
-export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+export function AppShell({
+  children,
+  navPrefs,
+  roadmapPhases,
+  timetableRows
+}: {
+  children: ReactNode;
+  navPrefs: NavPref[];
+  roadmapPhases: RoadmapPhaseView[];
+  timetableRows: TimetableRowView[];
+}) {
+  const rawPathname = usePathname();
+  const pathname = rawPathname ?? "/";
+  const email = useUserEmail();
   const [dark, setMode] = useDarkMode();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Cây nav sau khi áp thứ tự + ẩn/hiện từ DB (NavPref).
+  const groups = useMemo(() => applyNavPrefs(navGroups, navPrefs), [navPrefs]);
+
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    const current = activeGroup(pathname, groups);
+    return current ? [current.label] : [];
+  });
+
   useEffect(() => setMounted(true), []);
+
+  // Mục cha chứa route hiện tại luôn được mở sẵn; các mục khác giữ nguyên trạng
+  // thái người dùng đã bấm.
+  useEffect(() => {
+    const current = activeGroup(pathname, groups);
+    if (current) {
+      setExpanded((prev) => (prev.includes(current.label) ? prev : [...prev, current.label]));
+    }
+  }, [pathname, groups]);
+
+  const meta = currentMeta(pathname);
   const toggleTheme = () => setMode(dark ? "light" : "dark");
+  const toggleGroup = (label: string) =>
+    setExpanded((prev) => (prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]));
+
   // `useDarkMode` chỉ biết giá trị thật (localStorage / prefers-color-scheme) sau khi
   // mount ở client — chờ mounted rồi mới chọn icon để khớp SSR, tránh hydration mismatch.
   const themeIcon = !mounted ? <Moon size={18} /> : dark ? <Sun size={18} /> : <Moon size={18} />;
 
-  const navLinks = (variant: "side" | "drawer") =>
-    navItems.map(({ href, label, icon: Icon }) => (
-      <Link
-        key={href}
-        className={`app-nav-link app-nav-link--${variant}${isActive(pathname, href) ? " active" : ""}`}
-        href={href}
-        onClick={variant === "drawer" ? () => setDrawerOpen(false) : undefined}
-      >
-        <Icon size={variant === "drawer" ? 18 : 17} />
-        {label}
-      </Link>
-    ));
+  const navTree = (variant: "side" | "drawer") => {
+    const iconSize = variant === "drawer" ? 18 : 17;
+    const closeDrawer = variant === "drawer" ? () => setDrawerOpen(false) : undefined;
+
+    return groups.map((group) => {
+      const Icon = group.icon;
+      const groupActive = group.match(pathname);
+
+      if (group.children.length === 0) {
+        return (
+          <Link
+            key={group.label}
+            className={`app-nav-link app-nav-link--${variant}${groupActive ? " active" : ""}`}
+            href={group.href}
+            onClick={closeDrawer}
+          >
+            <Icon size={iconSize} />
+            {group.label}
+          </Link>
+        );
+      }
+
+      const open = expanded.includes(group.label);
+
+      return (
+        <div className="app-nav-group" key={group.label}>
+          <button
+            type="button"
+            className={`app-nav-link app-nav-link--${variant} app-nav-group-toggle${groupActive ? " active" : ""}`}
+            aria-expanded={open}
+            onClick={() => toggleGroup(group.label)}
+          >
+            <Icon size={iconSize} />
+            <span className="app-nav-group-label">{group.label}</span>
+            <ChevronDown size={15} className={`app-nav-chevron${open ? " open" : ""}`} />
+          </button>
+          {open && (
+            <div className="app-nav-sublist">
+              {group.children.map((child) => (
+                <Link
+                  key={child.href}
+                  className={`app-nav-sublink${pathname === child.href ? " active" : ""}`}
+                  href={child.href}
+                  onClick={closeDrawer}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
 
   return (
     <div className="app-shell">
@@ -67,19 +126,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span>Dylan Plan</span>
         </Link>
 
-        <nav className="app-sidebar-nav">{navLinks("side")}</nav>
+        <nav className="app-sidebar-nav">{navTree("side")}</nav>
 
         <div className="app-sidebar-foot">
-          <button
-            type="button"
-            className="app-nav-link app-nav-link--side"
-            onClick={toggleTheme}
-            style={{ width: "100%", cursor: "pointer" }}
-          >
-            {themeIcon}
-            {mounted && dark ? "Giao diện sáng" : "Giao diện tối"}
-          </button>
-          <UserMenu />
+          {email && (
+            <span className="app-sidebar-user" title={email}>
+              {email}
+            </span>
+          )}
+          <form action={signOutAction}>
+            <button type="submit" className="app-nav-link app-nav-link--side" style={{ width: "100%", cursor: "pointer" }}>
+              <LogOut size={17} />
+              Đăng xuất
+            </button>
+          </form>
         </div>
       </aside>
 
@@ -87,18 +147,27 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="app-topbar">
           <button
             type="button"
-            className="icon-button"
+            className="icon-button app-topbar-menu"
             onClick={() => setDrawerOpen(true)}
             title="Điều hướng"
             aria-label="Mở menu điều hướng"
           >
             <MenuIcon size={20} />
           </button>
-          <Link className="brand" href="/">
-            <span className="logo">D</span>
-            <span>Dylan Plan</span>
-          </Link>
+          <div className="app-topbar-heading">
+            <span className="app-topbar-title">{meta.title}</span>
+            {meta.desc && <span className="app-topbar-desc">{meta.desc}</span>}
+          </div>
           <span style={{ flex: 1 }} />
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setConfigOpen(true)}
+            title="Tuỳ chỉnh"
+            aria-label="Mở bảng tuỳ chỉnh"
+          >
+            <Settings2 size={18} />
+          </button>
           <button type="button" className="icon-button" onClick={toggleTheme} title="Đổi giao diện" aria-label="Đổi giao diện">
             {themeIcon}
           </button>
@@ -113,18 +182,28 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <Drawer isOpen={drawerOpen} placement="left" title="Dylan Plan" width={264} onClose={() => setDrawerOpen(false)}>
         <div className="app-nav-drawer">
-          {navLinks("drawer")}
-          <button
-            type="button"
-            className="app-nav-link app-nav-link--drawer"
-            onClick={toggleTheme}
-            style={{ width: "100%", cursor: "pointer" }}
-          >
-            {themeIcon}
-            {mounted && dark ? "Giao diện sáng" : "Giao diện tối"}
-          </button>
+          {navTree("drawer")}
+          {email && (
+            <span className="app-sidebar-user" title={email}>
+              {email}
+            </span>
+          )}
+          <form action={signOutAction}>
+            <button type="submit" className="app-nav-link app-nav-link--drawer" style={{ width: "100%", cursor: "pointer" }}>
+              <LogOut size={18} />
+              Đăng xuất
+            </button>
+          </form>
         </div>
       </Drawer>
+
+      <ConfigDrawer
+        open={configOpen}
+        navPrefs={navPrefs}
+        roadmapPhases={roadmapPhases}
+        timetableRows={timetableRows}
+        onClose={() => setConfigOpen(false)}
+      />
     </div>
   );
 }

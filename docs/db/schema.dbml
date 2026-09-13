@@ -1,6 +1,6 @@
 // Đồng bộ thủ công từ prisma/schema.prisma — không có generator DBML cài sẵn trong dự án.
 // Nguồn sự thật là prisma/schema.prisma. Không sửa ngược từ file này.
-// Cập nhật lần cuối: 2026-09-07 (US-022 — thêm bảng IncomeSource, thêm quan hệ incomeSources trên MonthBudget)
+// Cập nhật lần cuối: 2026-09-09 (US-025 GĐ3 — thêm RoadmapPhase / RoadmapDeliverable / TimetableRow; GĐ2 thêm NavPref)
 
 Table MonthBudget {
   id text [pk, note: 'Dạng YYYY-MM, client cung cấp']
@@ -79,6 +79,69 @@ Table LegacyMigration {
   errorMessage text
 
   updatedAt timestamp [not null]
+}
+
+Table NavPref {
+  id text [pk, note: 'Khoá do app đặt: "group:<groupId>" cho nhóm cha, "leaf:<href>" cho section con (lib/nav-registry.ts). Nội dung menu (label/icon/route) vẫn ở code (US-025)']
+  order integer [not null, default: 0, note: 'Vị trí trong CÙNG cấp anh em; reorder ghi order = index của mảng gửi lên (mẫu Category.reorder)']
+  hidden boolean [not null, default: false, note: 'Ẩn khỏi sidebar — KHÔNG chặn route, truy cập trực tiếp vẫn được']
+  updatedAt timestamp [not null]
+
+  note: 'Bộ mặc định (6 nhóm + các section con, order theo thứ tự trong nav.ts) được tạo lười bởi tầng ứng dụng khi bảng rỗng, không phải seed migration. Độc lập mọi bảng khác.'
+
+  indexes {
+    order
+  }
+}
+
+Table RoadmapPhase {
+  id text [pk]
+  order integer [not null, default: 0]
+  dateRange text [not null, note: 'Dạng "DD/MM-DD/MM" (năm cố định 2026); validate ở tầng ứng dụng, không CHECK (US-025 GĐ3)']
+  label text [not null]
+  title text [not null]
+  desc text [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Roadmap timeline sửa được qua Config Panel. Seed lười từ lib/roadmap-defaults.ts khi bảng rỗng.'
+
+  indexes {
+    order
+  }
+}
+
+Table RoadmapDeliverable {
+  id text [pk]
+  phaseId text [not null, ref: > RoadmapPhase.id]
+  order integer [not null, default: 0]
+  title text [not null]
+  desc text [not null]
+
+  note: 'Đầu ra của một giai đoạn roadmap. onDelete Cascade theo RoadmapPhase.'
+
+  indexes {
+    (phaseId, order)
+  }
+}
+
+Table TimetableRow {
+  id text [pk]
+  order integer [not null, default: 0]
+  timeLabel text [not null]
+  mon text [not null]
+  tue text [not null]
+  wed text [not null]
+  thu text [not null]
+  fri text [not null]
+  sat text [not null]
+  sun text [not null]
+  updatedAt timestamp [not null]
+
+  note: 'Bảng lịch tuần sửa được qua Config Panel. Mỗi dòng = 1 khung giờ + 7 ô ngày. Seed lười từ lib/timetable-defaults.ts.'
+
+  indexes {
+    order
+  }
 }
 
 Table JobPlatform {

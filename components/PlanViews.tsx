@@ -4,16 +4,23 @@ import { Button, Card, Progress, Timeline } from "@vn-dylan/ui";
 import { CalendarDays, WalletCards } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { JobTrackerBoard } from "@/components/JobTrackerBoard";
-import { AppShell } from "@/components/shared/AppShell";
 import { TargetGrid } from "@/components/shared/TargetGrid";
+import {
+  DEFAULT_ROADMAP_PHASES,
+  PHASE_STATE_LABEL,
+  resolveActivePhase,
+  type RoadmapPhaseView
+} from "@/lib/roadmap-defaults";
+import {
+  DEFAULT_TIMETABLE_ROWS,
+  scheduleClass,
+  TIMETABLE_DAY_HEADERS,
+  TIMETABLE_DAY_KEYS,
+  type TimetableRowView
+} from "@/lib/timetable-defaults";
 import type { JobApplicationStatus, JobTrackerSnapshot } from "@/server/job-tracker/actions";
 
 const EMPTY_JOB_TRACKER: JobTrackerSnapshot = { jobs: [], platforms: [] };
-
-// Các mốc trong `roadmapPhases` chỉ ghi ngày/tháng; toàn bộ kế hoạch nằm trong năm
-// 2026 (bắt đầu 22/06/2026, chiến dịch ứng tuyển kết thúc 15/09/2026).
-const ROADMAP_YEAR = 2026;
 
 // Nhóm trạng thái ứng tuyển thành phễu ngắn gọn cho phần Tổng quan.
 const PIPELINE_GROUPS: [string, JobApplicationStatus[], string][] = [
@@ -21,61 +28,6 @@ const PIPELINE_GROUPS: [string, JobApplicationStatus[], string][] = [
   ["Đang chờ phản hồi", ["Waiting", "No Response"], "Đã nộp, chưa có kết quả"],
   ["Đang tiến triển", ["Response", "Appointment"], "Có phản hồi hoặc đã hẹn phỏng vấn"],
   ["Đã đóng", ["Cancel", "Fail", "Expired"], "Bị hủy, trượt hoặc hết hạn"]
-];
-
-const roadmapPhases = [
-  {
-    date: "22/06-30/06",
-    label: "Định vị và chuẩn hóa hồ sơ",
-    title: "Reset và chuẩn hóa hồ sơ",
-    desc: "Chuyển kinh nghiệm thành thông điệp giá trị rõ ràng, không chỉ liệt kê công nghệ.",
-    items: [
-      ["CV Việt + Anh", "Nhấn mạnh impact, quy mô hệ thống, vai trò quản lý và khách hàng lớn."],
-      ["LinkedIn hoàn chỉnh", "Headline, About, project highlights và Open to Work có chọn lọc."],
-      ["Career stories", "Chuẩn bị 8 câu chuyện STAR về kỹ thuật, leadership và stakeholder."],
-      ["Salary positioning", "Xác định expected salary, mức sàn và cách giải thích giá trị."],
-      ["Company list", "Danh sách 30 công ty phù hợp .NET, product, outsourcing quốc tế."],
-      ["Skill gap", "Chấm điểm English, coding, system design, leadership và architecture."]
-    ]
-  },
-  {
-    date: "01/07-31/07",
-    label: "Tăng cường năng lực phỏng vấn",
-    title: "Luyện phỏng vấn",
-    desc: "Biến kiến thức đã có thành khả năng trình bày ngắn gọn, logic và thuyết phục.",
-    items: [
-      ["English daily", "45-60 phút/ngày, ưu tiên nói và nghe tình huống phỏng vấn."],
-      [".NET review", "ASP.NET Core, EF Core, concurrency, async, performance và security."],
-      ["System design", "Ít nhất 8 bài thiết kế: order, loyalty, notification, HRM, high load."],
-      ["Leadership interview", "Team performance, conflict, coaching, estimation và delivery risk."],
-      ["Mock interview", "2 buổi/tuần: một technical, một HR/English."],
-      ["Warm networking", "Kết nối recruiter và referral nhưng chưa ứng tuyển dàn trải."]
-    ]
-  },
-  {
-    date: "01/08-14/08",
-    label: "Chạy thử quy trình ứng tuyển",
-    title: "Ứng tuyển thử",
-    desc: "Ứng tuyển chọn lọc để kiểm tra CV, phản hồi thị trường và điều chỉnh trước giai đoạn chính.",
-    items: [
-      ["5-8 hồ sơ thử", "Chọn công ty phù hợp nhưng chưa phải nhóm ưu tiên cao nhất."],
-      ["Recruiter screening", "Kiểm tra phần giới thiệu, expected salary và English communication."],
-      ["Feedback loop", "Ghi lại câu hỏi bị yếu và cập nhật câu trả lời ngay trong 24 giờ."],
-      ["Portfolio evidence", "Sơ đồ hệ thống, case study, tài liệu quy trình và sản phẩm demo."]
-    ]
-  },
-  {
-    date: "15/08-15/09",
-    label: "Ứng tuyển tập trung",
-    title: "Tối ưu offer 40M net",
-    desc: "Tạo pipeline đủ lớn nhưng vẫn ưu tiên chất lượng và khả năng đạt mức 40 triệu net.",
-    items: [
-      ["20-28 hồ sơ chất lượng", "Ưu tiên product, outsourcing quốc tế, team có stack .NET hoặc cloud."],
-      ["Interview pipeline", "Theo dõi vòng HR, technical, system design, leadership và client."],
-      ["Offer comparison", "So sánh net salary, bonus, role scope, môi trường, learning và work-life balance."],
-      ["Mục tiêu cuối", "Nhận offer phù hợp ở mức 40 triệu net hoặc tổng package tương đương."]
-    ]
-  }
 ];
 
 const priorities = [
@@ -124,54 +76,44 @@ const productWeeks = [
   ["W8 · 10/08-14/08", "Freeze trước apply", ["Chỉ fix bug, không thêm feature lớn.", "Chọn 1-2 phần có thể reuse cao nhất.", "Đóng gói demo để phục vụ phỏng vấn/portfolio.", "Output: MVP ổn định trước chiến dịch apply."]]
 ] as const;
 
-const weekRows = [
-  ["06:30-07:15", "Shadowing + self-introduction", "Listening technical English", "Project storytelling", "HR answers", "Vocabulary review", "Ngủ thêm / vận động", "Nghỉ"],
-  ["07:15-07:30", "Nói 1 câu hỏi HR", "Nói 1 chủ đề .NET", "Nói 1 STAR story", "Nói 1 design decision", "Weekly recap", "-", "-"],
-  ["08:00-18:00", "Công việc chính", "Công việc chính", "Công việc chính", "Công việc chính", "Công việc chính", "Buy to Build: lead / demo / báo giá", "Refactor phần lặp lại"],
-  ["19:30-20:15", ".NET / C# core", "System design", "English mock", "Architecture / performance", "Nghỉ hoàn toàn", "Mock technical", "Nghỉ / đi chơi / hồi phục"],
-  ["20:15-21:00", "Tóm tắt bằng tiếng Anh", "Record 5 phút design", "Review HR + leadership", "Case study dự án thật", "Nghỉ hoàn toàn", "Review mock + fix gap", "Review KPI & lên kế hoạch"],
-  ["21:00-21:30", "Dừng học / thư giãn", "Dừng học / thư giãn", "Dừng học / thư giãn", "Dừng học / thư giãn", "Thư giãn", "Cập nhật case study nhẹ", "Product MVP 60 phút hoặc nghỉ"],
-  ["Sau 21:30", "Dừng học", "Dừng học", "Dừng học", "Dừng học", "Nghỉ", "Dừng làm việc", "Nghỉ sớm"]
-];
-
-type PhaseState = "active" | "upcoming" | "done";
-
-function parsePhaseRange(range: string) {
-  const [from, to] = range.split("-");
-  const [fromDay, fromMonth] = from.split("/").map(Number);
-  const [toDay, toMonth] = to.split("/").map(Number);
-  return {
-    start: new Date(ROADMAP_YEAR, fromMonth - 1, fromDay),
-    end: new Date(ROADMAP_YEAR, toMonth - 1, toDay, 23, 59, 59)
-  };
+export function HeroSection() {
+  const router = useRouter();
+  return (
+    <section className="hero">
+      <div className="container">
+        <div className="hero-main">
+          <span className="eyebrow">Career · Buy to Build · Finance</span>
+          <h1>
+            Kế hoạch <span className="gradient">sự nghiệp, sản phẩm và thu chi</span>
+          </h1>
+          <p className="lead">
+            App hợp nhất kế hoạch chuyển việc, chiến lược Buy to Build, MVP Mini Shop Builder và budget planner có
+            nhập nhanh chi tiêu.
+          </p>
+          <div className="hero-actions">
+            <Button variant="solid" icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap/timeline")}>
+              Xem roadmap
+            </Button>
+            <Button icon={<WalletCards size={18} />} onClick={() => router.push("/budget/monthly")}>
+              Nhập thu chi
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
-// Xác định pha roadmap ứng với hôm nay: đang chạy, sắp tới, hoặc (đã qua mốc cuối)
-// giữ pha cuối cùng. Chạy trên client nên lấy ngày thực của người dùng; sai lệch chỉ
-// có thể xảy ra đúng thời điểm giao pha, chấp nhận được với pha dài cả tháng.
-function resolveActivePhase(today: Date): { phase: (typeof roadmapPhases)[number]; state: PhaseState } {
-  const ranges = roadmapPhases.map((phase) => ({ phase, ...parsePhaseRange(phase.date) }));
-  const active = ranges.find(({ start, end }) => today >= start && today <= end);
-  if (active) return { phase: active.phase, state: "active" };
-  const upcoming = ranges.find(({ start }) => today < start);
-  if (upcoming) return { phase: upcoming.phase, state: "upcoming" };
-  return { phase: ranges[ranges.length - 1].phase, state: "done" };
-}
-
-const PHASE_STATE_LABEL: Record<PhaseState, string> = {
-  active: "Giai đoạn hiện tại",
-  upcoming: "Giai đoạn kế tiếp",
-  done: "Giai đoạn cuối"
-};
-
-export function OverviewView({
-  initialJobTracker = EMPTY_JOB_TRACKER
+export function CurrentStatusSection({
+  initialJobTracker = EMPTY_JOB_TRACKER,
+  phases = DEFAULT_ROADMAP_PHASES
 }: {
   initialJobTracker?: JobTrackerSnapshot;
+  phases?: RoadmapPhaseView[];
 }) {
   const router = useRouter();
   const jobs = initialJobTracker.jobs;
-  const activePhase = resolveActivePhase(new Date());
+  const activePhase = resolveActivePhase(new Date(), phases);
   const pipelineCards: [string, string, string][] = [
     ["Tổng hồ sơ", String(jobs.length), "Toàn bộ job đang theo dõi"],
     ...PIPELINE_GROUPS.slice(0, 3).map(
@@ -181,127 +123,45 @@ export function OverviewView({
   ];
 
   return (
-    <AppShell>
-      <section className="hero">
-        <div className="container">
-          <div className="hero-main">
-            <span className="eyebrow">Career · Buy to Build · Finance</span>
-            <h1>
-              Kế hoạch <span className="gradient">sự nghiệp, sản phẩm và thu chi</span>
-            </h1>
-            <p className="lead">
-              App hợp nhất kế hoạch chuyển việc, chiến lược Buy to Build, MVP Mini Shop Builder và budget planner có
-              nhập nhanh chi tiêu.
-            </p>
-            <div className="hero-actions">
-              <Button variant="solid" icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
-                Xem roadmap
-              </Button>
-              <Button icon={<WalletCards size={18} />} onClick={() => router.push("/budget")}>
-                Nhập thu chi
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section" id="overview">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Tổng quan</span>
-              <h2>Đang ở đâu trong lộ trình</h2>
-            </div>
-            <p>Giai đoạn roadmap hiện tại và trạng thái pipeline ứng tuyển. Chi tiết ngân sách nằm ở tab Thu chi.</p>
-          </div>
-
+    <section className="section" id="overview">
+      <div className="container">
+        {activePhase && (
           <Card className="panel overview-phase">
             <span className="eyebrow">
-              {PHASE_STATE_LABEL[activePhase.state]} · {activePhase.phase.date}
+              {PHASE_STATE_LABEL[activePhase.state]} · {activePhase.phase.dateRange}
             </span>
             <h3>{activePhase.phase.label}</h3>
             <div className="deliverables">
-              {activePhase.phase.items.map(([title]) => (
-                <div className="deliverable" key={title}>
-                  <strong>{title}</strong>
+              {activePhase.phase.deliverables.map((deliverable) => (
+                <div className="deliverable" key={deliverable.id}>
+                  <strong>{deliverable.title}</strong>
                 </div>
               ))}
             </div>
-            <Button icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap")}>
+            <Button icon={<CalendarDays size={18} />} onClick={() => router.push("/roadmap/timeline")}>
               Xem chi tiết roadmap
             </Button>
           </Card>
+        )}
 
-          <div className="overview-pipeline summary-grid">
-            {pipelineCards.map(([label, value, desc]) => (
-              <Card key={label} className="summary">
-                <span className="eyebrow">{label}</span>
-                <div className="value">{value}</div>
-                <p>{desc}</p>
-              </Card>
-            ))}
-          </div>
+        <div className="overview-pipeline summary-grid">
+          {pipelineCards.map(([label, value, desc]) => (
+            <Card key={label} className="summary">
+              <span className="eyebrow">{label}</span>
+              <div className="value">{value}</div>
+              <p>{desc}</p>
+            </Card>
+          ))}
         </div>
-      </section>
-
-      <PrioritySection />
-      <TargetGrid
-        eyebrow="KPI"
-        title="KPI hằng tuần"
-        desc="Các chỉ số trung gian giúp phát hiện sớm CV, tiếng Anh hoặc kỹ thuật đang có vấn đề."
-        items={weeklyKpis}
-      />
-    </AppShell>
+      </div>
+    </section>
   );
 }
 
-export function RoadmapView({
-  initialJobTracker = EMPTY_JOB_TRACKER
-}: {
-  initialJobTracker?: JobTrackerSnapshot;
-}) {
-  return (
-    <AppShell>
-      <RoadmapSections initialJobTracker={initialJobTracker} />
-    </AppShell>
-  );
-}
-
-export function TimetableView() {
-  return (
-    <AppShell>
-      <TimetableSection />
-    </AppShell>
-  );
-}
-
-export function FreelanceView() {
-  return (
-    <AppShell>
-      <FreelanceSections />
-    </AppShell>
-  );
-}
-
-export function ProductView() {
-  return (
-    <AppShell>
-      <ProductSections />
-    </AppShell>
-  );
-}
-
-function PrioritySection() {
+export function PrioritySection() {
   return (
     <section className="section" id="strategy">
       <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">Ưu tiên</span>
-            <h2>Ưu tiên hiện tại</h2>
-          </div>
-          <p>Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio.</p>
-        </div>
         <div className="priority-grid">
           {priorities.map(([title, percent, desc, width], index) => (
             <Card key={title} className="priority">
@@ -318,75 +178,50 @@ function PrioritySection() {
   );
 }
 
-function RoadmapSections({ initialJobTracker }: { initialJobTracker: JobTrackerSnapshot }) {
+export function RoadmapTimelineSection({ phases = DEFAULT_ROADMAP_PHASES }: { phases?: RoadmapPhaseView[] }) {
   return (
-    <>
-      <section className="section" id="roadmap">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Roadmap</span>
-              <h2>Lộ trình thực hiện</h2>
-            </div>
-            <p>Mỗi giai đoạn có đầu ra rõ ràng trước khi chuyển sang ứng tuyển số lượng lớn.</p>
-          </div>
-          <Timeline className="roadmap-timeline">
-            {roadmapPhases.map((phase) => (
-              <Timeline.Item key={phase.date}>
-                <div className="roadmap-phase">
-                  <div className="roadmap-phase-head">
-                    <strong>{phase.date}</strong>
-                    <span className="muted">{phase.label}</span>
-                  </div>
-                  <h3>{phase.title}</h3>
-                  <p>{phase.desc}</p>
-                  <div className="deliverables">
-                    {phase.items.map(([title, desc]) => (
-                      <div className="deliverable" key={title}>
-                        <strong>{title}</strong>
-                        <span className="muted">{desc}</span>
-                      </div>
-                    ))}
-                  </div>
+    <section className="section" id="roadmap">
+      <div className="container">
+        <Timeline className="roadmap-timeline">
+          {phases.map((phase) => (
+            <Timeline.Item key={phase.id}>
+              <div className="roadmap-phase">
+                <div className="roadmap-phase-head">
+                  <strong>{phase.dateRange}</strong>
+                  <span className="muted">{phase.label}</span>
                 </div>
-              </Timeline.Item>
-            ))}
-          </Timeline>
-        </div>
-      </section>
-
-      <JobTrackerBoard initialJobs={initialJobTracker.jobs} initialPlatforms={initialJobTracker.platforms} />
-
-      <TargetGrid
-        eyebrow="Tuần đầu"
-        title="Kế hoạch 22/06-28/06"
-        desc="Tạo nhịp bền vững, hoàn tất nền tảng hồ sơ và bắt đầu luyện nói đều."
-        items={firstWeekTargets}
-      />
-      <TargetGrid
-        eyebrow="KPI"
-        title="KPI hằng tuần"
-        desc="Các chỉ số trung gian giúp phát hiện sớm CV, tiếng Anh hoặc kỹ thuật đang có vấn đề."
-        items={weeklyKpis}
-      />
-      <EnglishInterviewSections />
-      <LongTermSections />
-    </>
+                <h3>{phase.title}</h3>
+                <p>{phase.desc}</p>
+                <div className="deliverables">
+                  {phase.deliverables.map((deliverable) => (
+                    <div className="deliverable" key={deliverable.id}>
+                      <strong>{deliverable.title}</strong>
+                      <span className="muted">{deliverable.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Timeline.Item>
+          ))}
+        </Timeline>
+      </div>
+    </section>
   );
 }
 
-function FreelanceSections() {
+export function FirstWeekSection() {
+  return <TargetGrid headless items={firstWeekTargets} />;
+}
+
+export function WeeklyKpiSection() {
+  return <TargetGrid headless items={weeklyKpis} />;
+}
+
+export function FreelanceStrategySection() {
   return (
     <>
       <section className="section" id="freelance">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Freelance</span>
-              <h2>Buy to Build trước</h2>
-            </div>
-            <p>Không build platform lớn trước khi có tín hiệu mua; bán gói nhỏ, lấy feedback, rồi chuẩn hóa phần lặp lại.</p>
-          </div>
           <div className="freelance-strategy">
             <Card className="panel">
               <span className="eyebrow">Chiến lược chính</span>
@@ -432,16 +267,15 @@ function FreelanceSections() {
           </div>
         </div>
       </section>
+    </>
+  );
+}
 
+export function FreelanceProcessSection() {
+  return (
+    <>
       <section className="section">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Quy trình</span>
-              <h2>Từ lead đến module</h2>
-            </div>
-            <p>Mỗi lead phải kiểm chứng khách có thật sự cần, có sẵn sàng trả tiền và phần nào có thể reuse.</p>
-          </div>
           <div className="flow-grid">
             {[
               ["1", "Tìm lead", "Người quen, Facebook, shop handmade và phụ kiện."],
@@ -479,35 +313,30 @@ function FreelanceSections() {
           "Ảnh hưởng lịch học tiếng Anh, mock interview hoặc công việc chính."
         ]}
       />
-      <TargetGrid
-        eyebrow="Freelance KPI"
-        title="KPI theo tuần"
-        desc="Trước offer mới, KPI freelance chỉ đo tín hiệu thị trường."
-        items={[
-          ["3-5", "Lead phù hợp được tiếp cận"],
-          ["1-2", "Cuộc trao đổi nhu cầu"],
-          ["1", "Demo hoặc báo giá mẫu gửi đi"],
-          ["1", "Pattern/insight được ghi lại"],
-          ["≥ 80%", "Tỷ lệ code/template có thể tái sử dụng"],
-          ["≤ 4h", "Thời gian freelance mỗi tuần trước offer"]
-        ]}
-      />
     </>
   );
 }
 
-function ProductSections() {
+export function FreelanceKpiSection() {
   return (
-    <>
+    <TargetGrid
+      headless
+      items={[
+        ["3-5", "Lead phù hợp được tiếp cận"],
+        ["1-2", "Cuộc trao đổi nhu cầu"],
+        ["1", "Demo hoặc báo giá mẫu gửi đi"],
+        ["1", "Pattern/insight được ghi lại"],
+        ["≥ 80%", "Tỷ lệ code/template có thể tái sử dụng"],
+        ["≤ 4h", "Thời gian freelance mỗi tuần trước offer"]
+      ]}
+    />
+  );
+}
+
+export function ProductPositioningSection() {
+  return (
       <section className="section" id="personal-product">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Sản phẩm cá nhân</span>
-              <h2>Kế hoạch phát triển MVP</h2>
-            </div>
-            <p>Tạo bộ template bán hàng nhỏ dùng cho shop của bạn, sau đó tái sử dụng cho khách freelance theo Buy to Build.</p>
-          </div>
           <div className="two-col">
             <Card className="panel">
               <span className="eyebrow">Định vị MVP</span>
@@ -540,16 +369,13 @@ function ProductSections() {
           </div>
         </div>
       </section>
+  );
+}
 
+export function ProductScopeSection() {
+  return (
       <section className="section">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">MVP Scope</span>
-              <h2>Module cần có</h2>
-            </div>
-            <p>Chỉ build những phần giúp demo, bán gói nhỏ hoặc reuse cho khách sau.</p>
-          </div>
           <div className="module-grid">
             {[
               ["01 · PUBLIC SITE", "Landing + Catalog", "Trang chủ, banner, câu chuyện thương hiệu, danh sách sản phẩm, chi tiết sản phẩm và CTA Zalo/Facebook."],
@@ -566,16 +392,13 @@ function ProductSections() {
           </div>
         </div>
       </section>
+  );
+}
 
+export function ProductTimelineSection() {
+  return (
       <section className="section">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Timeline</span>
-              <h2>Lộ trình sản phẩm 8 tuần</h2>
-            </div>
-            <p>Nếu tuần nào có phỏng vấn, ưu tiên phỏng vấn và đẩy sản phẩm sang cuối tuần.</p>
-          </div>
           <div className="product-roadmap">
             {productWeeks.map(([week, title, items]) => (
               <Card key={week} className="product-week">
@@ -591,35 +414,29 @@ function ProductSections() {
           </div>
         </div>
       </section>
-
-      <TargetGrid
-        eyebrow="Validation"
-        title="KPI sản phẩm"
-        desc="KPI đúng là demo có dùng được không, có ai quan tâm không, và có phần nào lặp lại để product hóa không."
-        items={[
-          ["1", "Demo public chạy ổn định"],
-          ["5-10", "Shop/người quen xem demo"],
-          ["3+", "Nhu cầu lặp lại được ghi nhận"],
-          ["1", "Bảng báo giá 3 gói"],
-          ["≤ 5h", "Thời gian build mỗi tuần trước offer"]
-        ]}
-      />
-    </>
   );
 }
 
-function LongTermSections() {
+export function ProductKpiSection() {
+  return (
+    <TargetGrid
+      headless
+      items={[
+        ["1", "Demo public chạy ổn định"],
+        ["5-10", "Shop/người quen xem demo"],
+        ["3+", "Nhu cầu lặp lại được ghi nhận"],
+        ["1", "Bảng báo giá 3 gói"],
+        ["≤ 5h", "Thời gian build mỗi tuần trước offer"]
+      ]}
+    />
+  );
+}
+
+export function LongTermSections() {
   return (
     <>
       <section className="section" id="long-term">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Dài hạn</span>
-              <h2>Kế hoạch đến tháng 11</h2>
-            </div>
-            <p>Hướng tới tổng thu nhập tối thiểu 60M/tháng nhưng không đánh đổi bằng quá tải sau khi vừa chuyển việc.</p>
-          </div>
           <div className="two-col">
             <Card className="panel">
               <span className="eyebrow">Cơ cấu mục tiêu</span>
@@ -679,33 +496,30 @@ function LongTermSections() {
   );
 }
 
-function TimetableSection() {
+export function TimetableSection({ rows = DEFAULT_TIMETABLE_ROWS }: { rows?: TimetableRowView[] }) {
   return (
     <section className="section" id="timetable">
       <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">Timetable</span>
-            <h2>Lịch hằng tuần</h2>
-          </div>
-          <p>Mỗi tối chỉ có một nhiệm vụ chính, tiếng Anh ngắn hằng ngày và ít nhất một buổi nghỉ hoàn toàn.</p>
-        </div>
         <Card className="panel">
           <div className="schedule">
-            {["Khung giờ", "T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((item) => (
-              <div className="cell head" key={item}>
-                {item}
+            <div className="cell head">Khung giờ</div>
+            {TIMETABLE_DAY_KEYS.map((dayKey) => (
+              <div className="cell head" key={dayKey}>
+                {TIMETABLE_DAY_HEADERS[dayKey]}
               </div>
             ))}
-            {weekRows.flatMap(([time, ...items]) => [
-              <div className="cell time" key={time}>
-                {time}
+            {rows.flatMap((row) => [
+              <div className="cell time" key={`${row.id}-time`}>
+                {row.timeLabel}
               </div>,
-              ...items.map((item, index) => (
-                <div className={`cell ${scheduleClass(item)}`} key={`${time}-${index}`}>
-                  {item}
-                </div>
-              ))
+              ...TIMETABLE_DAY_KEYS.map((dayKey) => {
+                const item = row[dayKey];
+                return (
+                  <div className={`cell ${scheduleClass(item)}`} key={`${row.id}-${dayKey}`}>
+                    {item}
+                  </div>
+                );
+              })
             ])}
           </div>
           <div className="legend">
@@ -720,16 +534,7 @@ function TimetableSection() {
   );
 }
 
-function scheduleClass(item: string) {
-  if (/english|shadowing|listening|nói|record|tóm tắt|story/i.test(item)) return "english";
-  if (/net|design|architecture|mock|review hr|technical/i.test(item)) return "interview";
-  if (/product|refactor/i.test(item)) return "product";
-  if (/buy to build|lead|demo|case study|báo giá/i.test(item)) return "freelance";
-  if (/nghỉ|dừng|thư giãn|-/.test(item)) return "rest";
-  return "";
-}
-
-function EnglishInterviewSections() {
+export function EnglishInterviewSections() {
   return (
     <>
       <section className="section" id="english">

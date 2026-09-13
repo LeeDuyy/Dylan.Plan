@@ -2,9 +2,8 @@
 
 import { CalendarDays, CheckCircle2, Copy, Download, Eye, EyeOff, Filter, GripVertical, LineChart, PiggyBank, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { Button, Card, Input, Progress, Select, Tag } from "@vn-dylan/ui";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AppShell } from "@/components/shared/AppShell";
 import { TargetGrid } from "@/components/shared/TargetGrid";
 import { Toast } from "@/components/shared/Toast";
 import { InlineConfirm, opt, selected, type Opt } from "@/components/shared/ui";
@@ -56,6 +55,10 @@ type MonthPeriod = {
 };
 
 const STORAGE_KEY = "dylan-plan-next-dashboard-v2";
+
+// Tháng đang xem — lưu localStorage để giữ nguyên khi chuyển giữa các tab Thu chi
+// (mỗi tab là một route riêng nên BudgetApp remount).
+const BUDGET_MONTH_KEY = "dylan-plan-budget-month";
 
 const CATEGORY_TYPE_OPTIONS: Opt[] = CATEGORY_TYPES.map((type) => opt(type));
 
@@ -192,6 +195,64 @@ function formatMoney(value: number) {
   return value.toLocaleString("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 });
 }
 
+// Line chart SVG: thu nhập (nét đứt) + tổng chi (nét liền) qua các tháng. Dùng viewBox
+// nên tự co giãn theo bề ngang thẻ (responsive), không cần thư viện.
+function TrendLineChart({ months }: { months: MonthBudget[] }) {
+  const W = 320;
+  const H = 138;
+  const padX = 8;
+  const padTop = 12;
+  const padBottom = 22;
+
+  const points = months.map((month) => ({
+    label: month.id.slice(5),
+    expense: month.categories.reduce((sum, item) => sum + item.actual, 0),
+    income: month.income
+  }));
+
+  if (points.length === 0) {
+    return <p className="muted small">Chưa có dữ liệu tháng để vẽ biểu đồ.</p>;
+  }
+
+  const max = Math.max(1, ...points.flatMap((point) => [point.expense, point.income]));
+  const n = points.length;
+  const xAt = (index: number) => (n <= 1 ? W / 2 : padX + (index * (W - padX * 2)) / (n - 1));
+  const yAt = (value: number) => padTop + (1 - value / max) * (H - padTop - padBottom);
+  const polyline = (key: "expense" | "income") =>
+    points.map((point, index) => `${xAt(index).toFixed(1)},${yAt(point[key]).toFixed(1)}`).join(" ");
+
+  return (
+    <svg
+      className="line-chart"
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label="Thu nhập và tổng chi qua các tháng"
+    >
+      {[0.25, 0.5, 0.75, 1].map((fraction) => (
+        <line
+          key={fraction}
+          className="line-chart-grid"
+          x1={padX}
+          x2={W - padX}
+          y1={yAt(max * fraction)}
+          y2={yAt(max * fraction)}
+        />
+      ))}
+      {n > 1 && <polyline className="line-chart-income" points={polyline("income")} />}
+      {n > 1 && <polyline className="line-chart-expense" points={polyline("expense")} />}
+      {points.map((point, index) => (
+        <g key={point.label}>
+          <circle className="line-chart-dot line-chart-dot--income" cx={xAt(index)} cy={yAt(point.income)} r={2.6} />
+          <circle className="line-chart-dot line-chart-dot--expense" cx={xAt(index)} cy={yAt(point.expense)} r={2.6} />
+          <text className="line-chart-label" x={xAt(index)} y={H - 7} textAnchor="middle">
+            {point.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function safeNumber(value: string | number) {
   if (typeof value === "number") return Number.isFinite(value) ? Math.max(0, value) : 0;
   const raw = value.toLowerCase().trim();
@@ -300,9 +361,30 @@ function parseRequiredIncomeAmount(value: string) {
   return Number.isInteger(amount) && amount >= 0 ? amount : null;
 }
 
-export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) {
+export type BudgetSection = "monthly" | "insight" | "control";
+
+export function BudgetApp({
+  initialBudget,
+  section = "control"
+}: {
+  initialBudget: BudgetSnapshot;
+  section?: BudgetSection;
+}) {
   const [months, setMonths] = useState<MonthBudget[]>(initialBudget.months);
-  const [selectedMonthId, setSelectedMonthId] = useState(() => pickInitialMonthId(initialBudget.months));
+  // SSR luôn khởi tạo bằng tháng mặc định (không đọc localStorage) để khớp hydrate;
+  // effect bên dưới khôi phục lựa chọn đã lưu sau khi mount.
+  const [selectedMonthId, setSelectedMonthIdState] = useState(() => pickInitialMonthId(initialBudget.months));
+  const setSelectedMonthId = useCallback((next: string | ((current: string) => string)) => {
+    setSelectedMonthIdState((current) => {
+      const id = typeof next === "function" ? next(current) : next;
+      try {
+        window.localStorage.setItem(BUDGET_MONTH_KEY, id);
+      } catch {
+        /* localStorage không khả dụng — bỏ qua */
+      }
+      return id;
+    });
+  }, []);
   const [newMonth, setNewMonth] = useState(() => pickDefaultPeriod(buildMonthPeriods(new Date(), initialBudget.months)));
   const [quickText, setQuickText] = useState("");
   const [quickCategory, setQuickCategory] = useState(defaultCategories[2]?.name ?? "");
@@ -328,6 +410,19 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
       }
     }
     setHydrated(true);
+  }, []);
+
+  // Khôi phục tháng đang xem đã lưu (sau mount để khớp SSR/hydrate).
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(BUDGET_MONTH_KEY);
+      if (stored && initialBudget.months.some((month) => month.id === stored)) {
+        setSelectedMonthIdState(stored);
+      }
+    } catch {
+      /* bỏ qua */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshSnapshot = async () => {
@@ -616,9 +711,9 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
   };
 
   return (
-    <AppShell>
       <div id="top">
         <BudgetSections
+          section={section}
           addCategory={addCategory}
           addQuickExpense={addQuickExpense}
           commitCategory={commitCategory}
@@ -656,11 +751,11 @@ export function BudgetApp({ initialBudget }: { initialBudget: BudgetSnapshot }) 
           visibleCategories={visibleCategories}
         />
       </div>
-    </AppShell>
   );
 }
 
 type BudgetProps = {
+  section: BudgetSection;
   addCategory: () => void;
   addQuickExpense: () => void;
   commitCategory: (id: string, overridePatch?: Partial<Pick<BudgetCategory, "name" | "type" | "budget">>) => void;
@@ -710,6 +805,7 @@ type BudgetProps = {
 };
 
 function BudgetSections({
+  section,
   addCategory,
   addQuickExpense,
   commitCategory,
@@ -1087,7 +1183,6 @@ function BudgetSections({
     }
   };
 
-  const maxMonth = Math.max(...months.map((month) => month.categories.reduce((sum, item) => sum + item.actual, 0)), 1);
 
   const pieCategories = visibleCategories.filter((item) => item.actual > 0);
   const pieTotal = pieCategories.reduce((sum, item) => sum + item.actual, 0);
@@ -1102,29 +1197,47 @@ function BudgetSections({
     ? `conic-gradient(${pieSlices.map((slice) => `${slice.color} ${slice.start}% ${slice.end}%`).join(", ")})`
     : undefined;
 
+  // Bộ chọn tháng đang xem — hiển thị ở đầu tab Insight và Ngân sách để luôn thấy
+  // dữ liệu đang thuộc tháng nào (tab Lịch sử thu chi đã có sẵn selector riêng).
+  const monthViewPicker = (
+    <label className="month-view-picker">
+      <span className="spotlight-label">
+        <CalendarDays size={16} />
+        Tháng đang xem
+      </span>
+      {(() => {
+        const monthOptions = [...months].reverse().map((month) => opt(month.id));
+        return (
+          <Select
+            isClearable={false}
+            options={monthOptions}
+            value={selected(monthOptions, selectedMonthId)}
+            onChange={(option) => option && setSelectedMonthId(option.value)}
+          />
+        );
+      })()}
+    </label>
+  );
+
   return (
     <>
       <Toast message={toastMessage} onDismiss={onDismissToast} />
-      <TargetGrid
-        eyebrow="Nguyên tắc"
-        title="Quy tắc kiểm soát"
-        items={[
-          ["01", "Tách phần tích lũy trước khi chi linh hoạt."],
-          ["02", "Giữ chi linh hoạt trong phạm vi thu nhập thật của tháng."],
-          ["03", "Khi tổng chi tiến sát thu nhập, dừng các khoản không cần thiết."],
-          ["04", "Review mỗi Chủ nhật: cập nhật chi thực tế và điều chỉnh danh mục trước tuần mới."]
-        ]}
-      />
+      {section === "control" && (
+        <TargetGrid
+          eyebrow="Nguyên tắc"
+          title="Quy tắc kiểm soát"
+          items={[
+            ["01", "Tách phần tích lũy trước khi chi linh hoạt."],
+            ["02", "Giữ chi linh hoạt trong phạm vi thu nhập thật của tháng."],
+            ["03", "Khi tổng chi tiến sát thu nhập, dừng các khoản không cần thiết."],
+            ["04", "Review mỗi Chủ nhật: cập nhật chi thực tế và điều chỉnh danh mục trước tuần mới."]
+          ]}
+        />
+      )}
 
+      {section === "monthly" && (
       <section className="section" id="monthly">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Theo tháng</span>
-              <h2>Lịch sử thu chi</h2>
-            </div>
-            <p>Mỗi tháng có dữ liệu riêng. Tạo tháng mới sẽ sao chép kế hoạch ngân sách và reset chi thực tế về 0.</p>
-          </div>
           {migrationBannerVisible && (
             <Card
               className="panel"
@@ -1135,74 +1248,128 @@ function BudgetSections({
               <strong>Việc chuyển dữ liệu cũ sang lưu trữ mới chưa hoàn tất, dữ liệu cũ của bạn vẫn còn nguyên.</strong>
             </Card>
           )}
-          <div className="two-col">
-            <div className="month-panels">
-              <Card className="panel spotlight">
-                <label>
-                  <span className="spotlight-label">
-                    <CalendarDays size={16} />
-                    Chọn tháng xem
-                  </span>
-                  {(() => {
-                    const monthOptions = [...months].reverse().map((month) => opt(month.id));
-                    return (
-                      <Select
-                        isClearable={false}
-                        options={monthOptions}
-                        value={selected(monthOptions, selectedMonthId)}
-                        onChange={(option) => option && setSelectedMonthId(option.value)}
-                      />
-                    );
-                  })()}
-                </label>
-              </Card>
+          <div className="month-toolbar">
+            <label className="month-toolbar-field">
+              <span className="spotlight-label">
+                <CalendarDays size={16} />
+                Chọn tháng xem
+              </span>
+              {(() => {
+                const monthOptions = [...months].reverse().map((month) => opt(month.id));
+                return (
+                  <Select
+                    isClearable={false}
+                    options={monthOptions}
+                    value={selected(monthOptions, selectedMonthId)}
+                    onChange={(option) => option && setSelectedMonthId(option.value)}
+                  />
+                );
+              })()}
+            </label>
 
-              <Card className="panel">
-                <label>
-                  Tạo tháng mới
-                  {(() => {
-                    const periodOptions: Opt[] = [
-                      ...(!newMonth ? [{ disabled: true, label: "Không còn kỳ tháng trống", value: "" }] : []),
-                      ...monthPeriods.map((period) => ({
-                        disabled: period.taken,
-                        label: period.taken ? `${period.label} (Đã có dữ liệu)` : period.label,
-                        value: period.id
-                      }))
-                    ];
-                    return (
-                      <Select
-                        isClearable={false}
-                        options={periodOptions}
-                        value={selected(periodOptions, newMonth)}
-                        onChange={(option) => option && setNewMonth(option.value)}
-                      />
-                    );
-                  })()}
-                </label>
-                {!newMonth && <p className="muted small">Không còn kỳ tháng trống trong 6 tháng trước/sau.</p>}
-                <div className="actions">
-                  <Button variant="solid" disabled={!newMonth} onClick={() => createNewMonth(false)} icon={<Plus size={18} />}>
-                    Tạo tháng
-                  </Button>
-                  <Button disabled={!newMonth} onClick={() => createNewMonth(true)} icon={<Copy size={18} />}>
-                    Clone tháng đang xem
-                  </Button>
-                </div>
-              </Card>
+            <div className="month-toolbar-create">
+              <span className="muted small">Tạo tháng mới</span>
+              <div className="month-toolbar-create-row">
+                {(() => {
+                  const periodOptions: Opt[] = [
+                    ...(!newMonth ? [{ disabled: true, label: "Không còn kỳ tháng trống", value: "" }] : []),
+                    ...monthPeriods.map((period) => ({
+                      disabled: period.taken,
+                      label: period.taken ? `${period.label} (Đã có dữ liệu)` : period.label,
+                      value: period.id
+                    }))
+                  ];
+                  return (
+                    <Select
+                      isClearable={false}
+                      options={periodOptions}
+                      value={selected(periodOptions, newMonth)}
+                      onChange={(option) => option && setNewMonth(option.value)}
+                    />
+                  );
+                })()}
+                <Button variant="solid" disabled={!newMonth} onClick={() => createNewMonth(false)} icon={<Plus size={16} />}>
+                  Tạo
+                </Button>
+                <Button disabled={!newMonth} onClick={() => createNewMonth(true)} icon={<Copy size={16} />}>
+                  Clone
+                </Button>
+              </div>
             </div>
+          </div>
 
-            <Card className="panel">
-              <span className="eyebrow">Tiến độ</span>
-              <h3>Mức sử dụng thu nhập</h3>
+          <div className="month-summary">
+            <Card className="month-stat is-income">
+              <span className="eyebrow">Tổng thu</span>
+              <strong>{formatMoney(totals.totalIncome)}</strong>
+              <span>{selectedMonth.incomeSources.length} nguồn thu đã khai báo</span>
+            </Card>
+            <Card className="month-stat">
+              <span className="eyebrow">Tổng chi</span>
+              <strong>{formatMoney(totals.totalActual)}</strong>
               <Progress
                 percent={Math.min(totals.ratio * 100, 100)}
                 showInfo={false}
                 strokeClass={totals.ratio >= 0.9 ? "progress-danger" : totals.ratio >= 0.8 ? "progress-warn" : "progress-success"}
               />
-              <div className={`result ${totals.remaining >= 0 ? "positive" : "negative"}`}>
-                {totals.remaining >= 0 ? `Còn lại ${formatMoney(totals.remaining)}` : `Vượt thu nhập ${formatMoney(Math.abs(totals.remaining))}`}
-                <small>{totals.ratio >= 0.9 ? "Mức sử dụng thu nhập đang cao." : "Tình trạng vẫn trong vùng kiểm soát."}</small>
-              </div>
+              <span>{totals.totalIncome ? `${(totals.ratio * 100).toFixed(0)}% thu nhập` : "Chưa có thu nhập"}</span>
+            </Card>
+            <Card className={`month-stat ${totals.remaining >= 0 ? "is-positive" : "is-negative"}`}>
+              <span className="eyebrow">Chênh lệch</span>
+              <strong>{formatMoney(totals.remaining)}</strong>
+              <span>{totals.remaining >= 0 ? "Còn lại trong tháng" : "Đã vượt thu nhập"}</span>
+            </Card>
+          </div>
+
+          <div className="two-col month-detail">
+            <Card className="panel">
+              <span className="eyebrow">Nguồn thu · {selectedMonth.id}</span>
+              {selectedMonth.incomeSources.length ? (
+                <div className="detail-list">
+                  {selectedMonth.incomeSources.map((source) => (
+                    <div className="detail-row" key={source.id}>
+                      <span className="detail-name">{source.name}</span>
+                      <span className="money positive">{formatMoney(source.amount)}</span>
+                    </div>
+                  ))}
+                  <div className="detail-row detail-foot">
+                    <span className="detail-name">Tổng thu</span>
+                    <span className="money positive">{formatMoney(totals.totalIncome)}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="muted small">Chưa khai báo nguồn thu — thêm ở tab &quot;Ngân sách &amp; nhập nhanh&quot;.</p>
+              )}
+            </Card>
+
+            <Card className="panel">
+              <span className="eyebrow">Chi theo danh mục · {selectedMonth.id}</span>
+              {(() => {
+                const spent = selectedMonth.categories
+                  .filter((category) => category.actual > 0)
+                  .sort((a, b) => b.actual - a.actual);
+                if (!spent.length) {
+                  return <p className="muted small">Chưa có chi tiêu trong tháng này.</p>;
+                }
+                return (
+                  <div className="detail-list detail-list--scroll">
+                    {spent.map((category) => (
+                      <div className="detail-row" key={category.id}>
+                        <span className="detail-name">{category.name}</span>
+                        <span className="detail-pct">
+                          {totals.totalIncome ? `${((category.actual / totals.totalIncome) * 100).toFixed(0)}%` : ""}
+                        </span>
+                        <span className="money negative">{formatMoney(category.actual)}</span>
+                      </div>
+                    ))}
+                    <div className="detail-row detail-foot">
+                      <span className="detail-name">Tổng chi</span>
+                      <span className="detail-pct" />
+                      <span className="money negative">{formatMoney(totals.totalActual)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </Card>
           </div>
 
@@ -1228,16 +1395,12 @@ function BudgetSections({
           </div>
         </div>
       </section>
+      )}
 
+      {section === "insight" && (
       <section className="section" id="insight">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Phân tích</span>
-              <h2>Insight tài chính</h2>
-            </div>
-            <p>Nhìn nhanh danh mục chi nhiều nhất, khả năng tiết kiệm và xu hướng qua các tháng.</p>
-          </div>
+          {monthViewPicker}
           <div className="insight-grid">
             {(
               [
@@ -1271,7 +1434,7 @@ function BudgetSections({
             ).map(([title, value, desc, Icon, maskable]) => (
               <Card className="insight" key={title as string}>
                 <div className="insight-head">
-                  <Icon size={21} />
+                  <Icon size={15} />
                   {maskable ? (
                     <button
                       type="button"
@@ -1320,36 +1483,22 @@ function BudgetSections({
 
             <Card className="panel">
               <span className="eyebrow">Xu hướng</span>
-              <h3>Tổng chi qua các tháng</h3>
-              <div className="chart">
-                {months.map((month) => {
-                  const actual = month.categories.reduce((sum, item) => sum + item.actual, 0);
-                  return (
-                    <div className="col" key={month.id}>
-                      <div className="stick success-stick" style={{ height: `${Math.max(4, (actual / maxMonth) * 170)}px` }} />
-                      <small>{month.id.slice(5)}</small>
-                    </div>
-                  );
-                })}
-              </div>
+              <h3>Thu nhập và tổng chi qua các tháng</h3>
+              <TrendLineChart months={months} />
               <div className="legend">
                 <span style={{ "--legend-color": "var(--success)" } as React.CSSProperties}>Tổng chi thực tế theo tháng</span>
-                <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Thu nhập lấy từ nguồn thu đã khai báo</span>
+                <span style={{ "--legend-color": "var(--warning)" } as React.CSSProperties}>Thu nhập theo nguồn thu đã khai báo</span>
               </div>
             </Card>
           </div>
         </div>
       </section>
+      )}
 
+      {section === "control" && (
       <section className="section" id="control">
         <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Kiểm soát</span>
-              <h2>Bảng ngân sách và nhập nhanh</h2>
-            </div>
-            <p>Gõ tự nhiên như "cafe 45k", "grab 80k", "ăn trưa 65000"; app tự nhận diện số tiền và danh mục.</p>
-          </div>
+          {monthViewPicker}
           <Card className="panel">
             <Card className="quick-panel">
               <span className="eyebrow">{canEditMonth ? "Nguồn thu" : "Nguồn thu chỉ xem"}</span>
@@ -1925,6 +2074,7 @@ function BudgetSections({
           </Card>
         </div>
       </section>
+      )}
     </>
   );
 }

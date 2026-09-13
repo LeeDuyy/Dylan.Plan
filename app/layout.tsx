@@ -17,6 +17,10 @@ export const metadata: Metadata = {
 // `prefers-color-scheme`.
 const THEME_INIT = `try{var m=localStorage.getItem('dyl-color-mode');if(m==='dark'||(!m&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`;
 
+// Đặt `data-density` sớm (trước hydrate) để không nháy khi người dùng đã chọn
+// compact/spacious — khớp logic của `useDensity` (key localStorage `dylan-plan-density`).
+const DENSITY_INIT = `try{var d=localStorage.getItem('dylan-plan-density');if(d==='compact'||d==='spacious'){document.documentElement.setAttribute('data-density',d)}}catch(e){}`;
+
 export default async function RootLayout({
   children
 }: Readonly<{
@@ -28,6 +32,7 @@ export default async function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+        <script dangerouslySetInnerHTML={{ __html: DENSITY_INIT }} />
       </head>
       <body suppressHydrationWarning>
         <UserSessionProvider email={session?.user?.email ?? null}>

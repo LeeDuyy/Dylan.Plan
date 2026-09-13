@@ -102,6 +102,66 @@ model LegacyMigration {
   updatedAt DateTime @updatedAt
 }
 
+// Preference điều hướng (US-025): thứ tự + ẩn/hiện từng mục sidebar. `id` là khoá
+// ổn định do app đặt — "group:<groupId>" cho nhóm cha, "leaf:<href>" cho section con
+// (xem lib/nav-registry.ts). Nội dung menu (label/icon/route) vẫn nằm trong code.
+model NavPref {
+  id     String  @id
+  order  Int     @default(0)
+  hidden Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+// Roadmap timeline có thể sửa qua Config Panel (US-025 GĐ3). `dateRange` giữ format
+// chuỗi "DD/MM-DD/MM" như bản hardcode cũ, validate ở tầng ứng dụng (không CHECK).
+model RoadmapPhase {
+  id        String @id @default(cuid())
+  order     Int    @default(0)
+  dateRange String
+  label     String
+  title     String
+  desc      String
+
+  deliverables RoadmapDeliverable[]
+
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+model RoadmapDeliverable {
+  id      String @id @default(cuid())
+  phaseId String
+  order   Int    @default(0)
+  title   String
+  desc    String
+
+  phase RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  @@index([phaseId, order])
+}
+
+// Bảng lịch tuần (Config Panel US-025 GĐ3). Mỗi dòng = 1 khung giờ + 7 ô ngày.
+model TimetableRow {
+  id        String @id @default(cuid())
+  order     Int    @default(0)
+  timeLabel String
+  mon       String
+  tue       String
+  wed       String
+  thu       String
+  fri       String
+  sat       String
+  sun       String
+
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
 model JobPlatform {
   id   String @id @default(cuid())
   name String

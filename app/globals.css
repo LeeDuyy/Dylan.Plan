@@ -44,6 +44,54 @@
   --chart-8: #d19a63;
 }
 
+/* Density / cỡ hiển thị. `data-density` đặt trên <html> bởi init script trong
+   app/layout.tsx (đọc localStorage "dylan-plan-density"); mặc định = comfortable. */
+:root {
+  --app-section-y: 22px;
+  --app-content-pad-y: 16px;
+  --app-card-pad: 18px;
+  --app-card-pad-sm: 16px;
+  --app-gap: 15px;
+  --app-gap-sm: 12px;
+  --app-nav-link-pad-y: 9px;
+  --app-nav-link-font: 14px;
+  --app-cell-min-h: 66px;
+  --app-cell-pad: 8px;
+  --app-h1: 38px;
+  --app-h2: 22px;
+  --app-line: 1.55;
+}
+
+:root[data-density="compact"] {
+  --app-section-y: 12px;
+  --app-content-pad-y: 10px;
+  --app-card-pad: 12px;
+  --app-card-pad-sm: 11px;
+  --app-gap: 10px;
+  --app-gap-sm: 8px;
+  --app-nav-link-pad-y: 6px;
+  --app-cell-min-h: 52px;
+  --app-cell-pad: 6px;
+  --app-h1: 30px;
+  --app-h2: 19px;
+  --app-line: 1.45;
+}
+
+:root[data-density="spacious"] {
+  --app-section-y: 34px;
+  --app-content-pad-y: 24px;
+  --app-card-pad: 24px;
+  --app-card-pad-sm: 20px;
+  --app-gap: 20px;
+  --app-gap-sm: 16px;
+  --app-nav-link-pad-y: 11px;
+  --app-cell-min-h: 78px;
+  --app-cell-pad: 11px;
+  --app-h1: 44px;
+  --app-h2: 25px;
+  --app-line: 1.65;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -62,7 +110,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--dyl-font-sans, Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
-  line-height: 1.55;
+  line-height: var(--app-line);
   transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -82,10 +130,12 @@ a {
 }
 
 .app-content {
+  flex: 1;
+  overflow-y: auto;
   width: 100%;
   max-width: 2000px;
   margin: 0 auto;
-  padding: 24px clamp(12px, 4vw, 32px);
+  padding: var(--app-content-pad-y) clamp(12px, 4vw, 32px);
   min-width: 0;
 }
 
@@ -97,18 +147,18 @@ a {
    Điện thoại (≤1024px): ẩn sidebar, hiện thanh trên cùng gọn + nút ba gạch → Drawer trái. */
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .app-sidebar {
-  position: sticky;
-  top: 0;
   z-index: 30;
   display: flex;
   flex-direction: column;
   flex: 0 0 248px;
   width: 248px;
-  height: 100vh;
+  height: 100%;
   padding: 18px 14px;
   background: var(--surface);
   border-right: 1px solid var(--line);
@@ -136,37 +186,80 @@ a {
   border-top: 1px solid var(--line);
 }
 
+.app-sidebar-user {
+  padding: 2px 12px 6px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* app-main không cuộn; chỉ .app-content ở giữa cuộn, header + footer đứng yên. */
 .app-main {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-topbar {
-  display: none;
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 25;
+  display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 56px;
-  padding: 0 clamp(10px, 3vw, 16px);
+  min-height: 60px;
+  padding: 8px clamp(12px, 4vw, 32px);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+
+.app-topbar .app-topbar-menu {
+  display: none;
+}
+
+.app-topbar-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.app-topbar-title {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.app-topbar-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .app-nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: var(--app-nav-link-pad-y) 12px;
   border: 0;
   border-radius: var(--dyl-radius-md);
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--app-nav-link-font);
   font-weight: 650;
   white-space: nowrap;
   text-align: left;
@@ -187,13 +280,71 @@ a {
   padding: 12px;
 }
 
+/* Accordion điều hướng: mục cha + danh sách section con thụt vào. */
+.app-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav-group-toggle {
+  width: 100%;
+  cursor: pointer;
+}
+
+.app-nav-group-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-nav-chevron {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.app-nav-chevron.open {
+  transform: rotate(180deg);
+}
+
+.app-nav-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px;
+  padding-left: 27px;
+}
+
+.app-nav-sublink {
+  padding: 7px 10px;
+  border-radius: var(--dyl-radius-md);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.app-nav-sublink:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.app-nav-sublink.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
 @media (max-width: 1024px) {
   .app-sidebar {
     display: none;
   }
 
-  .app-topbar {
-    display: flex;
+  .app-topbar .app-topbar-menu {
+    display: inline-flex;
   }
 }
 
@@ -437,7 +588,7 @@ a {
 }
 
 .hero {
-  padding: 36px 0 4px;
+  padding: 12px 0 4px;
 }
 
 /* Card của design system: gốc `.dyl-card`, thân `.dyl-card__body`. Các class app
@@ -465,7 +616,7 @@ a {
 .metric-card > .dyl-card__body,
 .focus-card > .dyl-card__body,
 .quick-panel > .dyl-card__body {
-  padding: 18px;
+  padding: var(--app-card-pad);
 }
 
 .eyebrow {
@@ -486,14 +637,14 @@ p {
 h1 {
   max-width: 860px;
   margin: 10px 0 14px;
-  font-size: 38px;
+  font-size: var(--app-h1);
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
 
 h2 {
   margin: 4px 0 0;
-  font-size: 22px;
+  font-size: var(--app-h2);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -527,11 +678,11 @@ h3 {
 }
 
 .section {
-  padding: 40px 0;
+  padding: var(--app-section-y) 0;
 }
 
 .section-head {
-  margin-bottom: 18px;
+  margin-bottom: var(--app-gap);
 }
 
 .section-head p {
@@ -544,7 +695,7 @@ h3 {
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
+  gap: var(--app-gap);
 }
 
 .overview-phase {
@@ -563,7 +714,7 @@ h3 {
 .product-roadmap {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: var(--app-gap);
 }
 
 .service-grid {
@@ -608,7 +759,7 @@ h3 {
 .module-card > .dyl-card__body,
 .product-week > .dyl-card__body,
 .summary > .dyl-card__body {
-  padding: 16px;
+  padding: var(--app-card-pad-sm);
 }
 
 .target-card strong,
@@ -681,6 +832,133 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Bộ chọn tháng đang xem ở đầu tab Insight / Ngân sách. */
+.month-view-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 280px;
+  margin-bottom: 16px;
+}
+
+/* Trang "Lịch sử thu chi": tóm tắt thu/chi của tháng đang chọn, gọn trong 1 màn. */
+.month-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.month-toolbar-field {
+  display: flex;
+  flex: 0 1 260px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-toolbar-create {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-toolbar-create-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.month-toolbar-create-row > label,
+.month-toolbar-create-row > .dyl-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.month-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--app-gap);
+  margin-top: 16px;
+}
+
+.month-stat > .dyl-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.month-stat strong {
+  font-size: 21px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.month-stat.is-income strong,
+.month-stat.is-positive strong {
+  color: var(--success);
+}
+
+.month-stat.is-negative strong {
+  color: var(--danger);
+}
+
+.month-stat > .dyl-card__body > span:last-child {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.month-detail {
+  margin-top: 16px;
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.detail-list--scroll {
+  max-height: 248px;
+  overflow-y: auto;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-pct {
+  flex: 0 0 auto;
+  min-width: 34px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.detail-foot {
+  margin-top: 4px;
+  padding-top: 9px;
+  border-top: 2px solid var(--line);
+  font-weight: 750;
 }
 
 .spotlight {
@@ -757,11 +1035,75 @@ h3 {
 
 .deliverables,
 .focus-grid,
-.month-grid,
-.insight-grid {
+.month-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--app-gap-sm);
+}
+
+/* Insight: 8 thẻ số gọn xếp 2 hàng × 4 (co xuống 2 cột ở màn hẹp). */
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--app-gap-sm);
+}
+
+.insight-grid .insight > .dyl-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--app-card-pad-sm);
+}
+
+.insight-grid .insight strong {
+  margin: 2px 0;
+  font-size: 16px;
+}
+
+.insight-grid .insight span:not(.eyebrow) {
+  font-size: 12px;
+}
+
+/* Line chart xu hướng thu / chi. */
+.line-chart {
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+}
+
+.line-chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.line-chart-expense {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line-chart-income {
+  fill: none;
+  stroke: var(--warning);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line-chart-dot--expense {
+  fill: var(--success);
+}
+
+.line-chart-dot--income {
+  fill: var(--warning);
+}
+
+.line-chart-label {
+  fill: var(--muted);
+  font-size: 9px;
 }
 
 .insight-head {
@@ -931,14 +1273,14 @@ h3 {
 .schedule {
   display: grid;
   grid-template-columns: 105px repeat(7, minmax(125px, 1fr));
-  gap: 7px;
+  gap: var(--app-cell-pad);
   overflow-x: auto;
   padding-bottom: 8px;
 }
 
 .cell {
-  min-height: 66px;
-  padding: 9px;
+  min-height: var(--app-cell-min-h);
+  padding: var(--app-cell-pad);
   border: 1px solid var(--line);
   border-radius: 9px;
   background: var(--surface-2);
@@ -1607,9 +1949,14 @@ label > .dyl-select {
 }
 
 .footer {
-  padding: 48px 0 64px;
+  flex: 0 0 auto;
+  z-index: 25;
+  padding: 12px clamp(12px, 4vw, 32px);
   color: var(--muted);
+  font-size: 13px;
   text-align: center;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 
 @media (max-width: 1000px) {
@@ -1637,6 +1984,7 @@ label > .dyl-select {
   .deliverables,
   .focus-grid,
   .month-grid,
+  .month-summary,
   .insight-grid,
   .flow-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1654,6 +2002,10 @@ label > .dyl-select {
 @media (max-width: 650px) {
   .panel > .dyl-card__body {
     padding: 16px;
+  }
+
+  .month-summary {
+    grid-template-columns: 1fr;
   }
 
   h1 {
@@ -1676,10 +2028,14 @@ label > .dyl-select {
   .deliverables,
   .focus-grid,
   .month-grid,
-  .insight-grid,
   .quick-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Thẻ insight đã gọn — giữ 2 cột cả trên điện thoại. */
+  .insight-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .stack-row,
@@ -1762,4 +2118,174 @@ label > .dyl-select {
 .app-nav-drawer {
   display: grid;
   gap: 2px;
+}
+
+/* Drawer tuỳ chỉnh (nút bánh răng trên header). */
+.config-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-section > h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.config-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.config-density-seg {
+  width: 100%;
+}
+
+.config-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.nav-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-config-list[aria-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.nav-config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+}
+
+.nav-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--dyl-radius-md);
+  background: var(--surface-2);
+}
+
+.nav-config-row.is-child {
+  margin-left: 18px;
+  background: transparent;
+}
+
+.nav-config-row.is-hidden .nav-config-label {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.nav-config-move {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.nav-config-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Editor Roadmap / Timetable trong drawer config. */
+.plan-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-config-list[aria-busy="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.plan-config-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--dyl-radius-md);
+  background: var(--surface-2);
+}
+
+.plan-config-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-config-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-config-card-head > .dyl-input {
+  flex: 1;
+}
+
+.plan-config-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.plan-config-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 8px;
+  border-left: 2px solid var(--line);
+}
+
+.plan-config-subitem {
+  display: flex;
+  gap: 6px;
+}
+
+.plan-config-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+}
+
+.plan-config-day {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.plan-config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

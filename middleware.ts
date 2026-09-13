@@ -11,6 +11,12 @@ const ROOT_STATIC_ALLOW = new Set([
   "/TechLead_DuyLe.html",
   "/Senior_Software_Engineer_DuyLe.pdf",
   "/TechLead_DuyLe.pdf",
+  "/CoverLetters/LeDuy_SeniorBackendDeveloper.pdf",
+  "/CoverLetters/LeDuy_SeniorBackendEngineer.pdf",
+  "/CoverLetters/LeDuy_SeniorFullStackEngineer.pdf",
+  "/CoverLetters/LeDuy_SeniorFullstackDeveloper.pdf",
+  "/CoverLetters/LeDuy_SeniorSoftwareEngineer.pdf",
+  "/CoverLetters/LeDuy_TechnicalLeader.pdf",
   "/favicon.svg"
 ]);
 const PLAN_HOSTS = new Set(["plan.dylan.com.vn", "plan.127.0.0.1", "plan.localhost"]);
