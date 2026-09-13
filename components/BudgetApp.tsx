@@ -13,6 +13,7 @@ import {
   GripVertical,
   LineChart,
   PiggyBank,
+  Pencil,
   Plus,
   RefreshCcw,
   ShoppingCart,
@@ -79,6 +80,28 @@ const STORAGE_KEY = "dylan-plan-next-dashboard-v2";
 const BUDGET_MONTH_KEY = "dylan-plan-budget-month";
 
 const CATEGORY_TYPE_OPTIONS: Opt[] = CATEGORY_TYPES.map((type) => opt(type));
+
+// Khớp đúng logic chuẩn hoá tên ở server (server/budget/domain/rules/category-name-rule.ts)
+// để chặn trùng tên NGAY ở client trước khi gọi Server Action — bấm "Thêm danh mục"
+// hai lần liên tiếp (hoặc đổi tên trùng danh mục khác) trước đây gọi thẳng server,
+// ném lỗi 500 mà production không rơi êm về toast như dev (crash cả trang).
+function normalizeCategoryNameClient(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function findDuplicateCategoryName(
+  name: string,
+  categories: { id: string; name: string; isFallback: boolean }[],
+  excludeId?: string
+): boolean {
+  const normalized = normalizeCategoryNameClient(name);
+  if (!normalized) return false;
+  return categories.some((category) => {
+    if (category.isFallback) return false;
+    if (excludeId && category.id === excludeId) return false;
+    return normalizeCategoryNameClient(category.name) === normalized;
+  });
+}
 
 // --- Hình dạng dữ liệu cũ trong localStorage (trước khi có Prisma), chỉ dùng để
 // dựng payload cho luồng di trú một lần (TB-09). Không liên quan tới DTO server.
@@ -570,6 +593,10 @@ export function BudgetApp({
     const category = selectedMonth.categories.find((item) => item.id === id);
     if (!category) return;
     const payload = { ...category, ...overridePatch };
+    if (findDuplicateCategoryName(payload.name, selectedMonth.categories, id)) {
+      setToastMessage(`Tên danh mục "${payload.name.trim()}" đã tồn tại trong tháng này. Vui lòng đổi tên khác.`);
+      return;
+    }
     try {
       await upsertCategory({
         id: payload.id,
@@ -690,14 +717,14 @@ export function BudgetApp({
     setQuickCategory("");
   };
 
-  const addCategory = async () => {
-    try {
-      await upsertCategory({ monthId: selectedMonth.id, name: "Danh mục mới", type: "Khác", budget: 0 });
-      await refreshSnapshot();
-    } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : "Có lỗi xảy ra, vui lòng thử lại.");
-      await refreshSnapshot();
-    }
+  // Nhận tên/loại/ngân sách từ modal (BudgetSections) thay vì luôn tạo cứng
+  // "Danh mục mới" — bấm nhiều lần trước đây tạo trùng tên, "Tên danh mục ...
+  // đã tồn tại" ném lỗi 500 từ Server Action mà production không rơi êm về
+  // toast như dev (crash cả trang). Modal chặn trùng tên ở client trước khi
+  // gọi server nên đường lỗi này giờ hiếm khi chạm tới.
+  const addCategory = async (name: string, type: string, budget: number) => {
+    await upsertCategory({ monthId: selectedMonth.id, name, type, budget });
+    await refreshSnapshot();
   };
 
   const removeCategory = async (id: string) => {
@@ -796,7 +823,7 @@ export function BudgetApp({
 
 type BudgetProps = {
   section: BudgetSection;
-  addCategory: () => void;
+  addCategory: (name: string, type: string, budget: number) => Promise<void>;
   addQuickExpense: () => void;
   commitCategory: (id: string, overridePatch?: Partial<Pick<BudgetCategory, "name" | "type" | "budget">>) => void;
   createNewMonth: (cloneCurrent: boolean) => void;
@@ -910,6 +937,66 @@ function BudgetSections({
   const [purchaseDrawerOpen, setPurchaseDrawerOpen] = useState(false);
   const expenseColsRef = useRef<HTMLDivElement | null>(null);
   const [expenseColsHeight, setExpenseColsHeight] = useState<number | null>(null);
+
+  // Modal thêm/sửa danh mục (thay cho bấm "Thêm danh mục" là tạo cứng "Danh mục
+  // mới" rồi sửa inline) — categoryDialog null nghĩa là đang đóng.
+  const [categoryDialog, setCategoryDialog] = useState<{
+    mode: "create" | "edit";
+    id?: string;
+    name: string;
+    type: string;
+    budget: string;
+    error: string | null;
+    saving: boolean;
+  } | null>(null);
+
+  const openCreateCategoryDialog = () =>
+    setCategoryDialog({ mode: "create", name: "", type: CATEGORY_TYPES[0], budget: "0", error: null, saving: false });
+
+  const openEditCategoryDialog = (item: BudgetCategory) =>
+    setCategoryDialog({
+      mode: "edit",
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      budget: String(item.budget),
+      error: null,
+      saving: false
+    });
+
+  const closeCategoryDialog = () => setCategoryDialog(null);
+
+  const submitCategoryDialog = async () => {
+    if (!categoryDialog) return;
+    const name = categoryDialog.name.trim();
+    if (!name) {
+      setCategoryDialog((current) => (current ? { ...current, error: "Tên danh mục không được để trống." } : current));
+      return;
+    }
+    if (findDuplicateCategoryName(name, selectedMonth.categories, categoryDialog.id)) {
+      setCategoryDialog((current) =>
+        current ? { ...current, error: `Tên danh mục "${name}" đã tồn tại trong tháng này. Vui lòng đổi tên khác.` } : current
+      );
+      return;
+    }
+    const budget = safeNumber(categoryDialog.budget);
+    setCategoryDialog((current) => (current ? { ...current, saving: true, error: null } : current));
+    try {
+      if (categoryDialog.mode === "create") {
+        await addCategory(name, categoryDialog.type, budget);
+      } else if (categoryDialog.id) {
+        await upsertCategory({ id: categoryDialog.id, monthId: selectedMonth.id, name, type: categoryDialog.type, budget });
+        await refreshSnapshot();
+      }
+      closeCategoryDialog();
+    } catch (error) {
+      setCategoryDialog((current) =>
+        current
+          ? { ...current, saving: false, error: error instanceof Error ? error.message : "Có lỗi xảy ra, vui lòng thử lại." }
+          : current
+      );
+    }
+  };
 
   const currentMonthId = formatMonthId(new Date());
   const canEditMonth = selectedMonth.id >= currentMonthId;
@@ -1798,7 +1885,7 @@ function BudgetSections({
                 </Badge>
               </div>
               <div className="actions">
-                <Button onClick={addCategory} icon={<Plus size={18} />}>
+                <Button onClick={openCreateCategoryDialog} icon={<Plus size={18} />}>
                   Thêm danh mục
                 </Button>
                 <Button onClick={resetActual} icon={<RefreshCcw size={18} />}>
@@ -2235,6 +2322,7 @@ function BudgetSections({
                         <td className={`money ${diff >= 0 ? "positive" : "negative"}`} data-label="Chênh lệch">{formatMoney(diff)}</td>
                         <td data-label="Tỷ trọng">{(ratio * 100).toFixed(1)}%</td>
                         <td className="budget-cat-delete-cell">
+                          <Button variant="plain" onClick={() => openEditCategoryDialog(item)} title="Sửa danh mục" icon={<Pencil size={16} />} />
                           {!item.locked && (
                             <Button variant="plain" className="btn-danger" onClick={() => removeCategory(item.id)} title="Xóa danh mục" icon={<Trash2 size={16} />} />
                           )}
@@ -2259,6 +2347,72 @@ function BudgetSections({
                 </tfoot>
               </table>
             </div>
+
+            <Dialog
+              isOpen={categoryDialog != null}
+              onClose={closeCategoryDialog}
+              width={420}
+              aria-label={categoryDialog?.mode === "edit" ? "Sửa danh mục" : "Thêm danh mục"}
+            >
+              {categoryDialog && (
+                <div className="budget-purchase-drawer">
+                  <h3>{categoryDialog.mode === "edit" ? "Sửa danh mục" : "Thêm danh mục"}</h3>
+                  <label className="page-content-field">
+                    <span className="page-content-field-label">Tên danh mục</span>
+                    <Input
+                      value={categoryDialog.name}
+                      onChange={(event) =>
+                        setCategoryDialog((current) => (current ? { ...current, name: event.target.value, error: null } : current))
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") submitCategoryDialog();
+                      }}
+                    />
+                  </label>
+                  <label className="page-content-field">
+                    <span className="page-content-field-label">Loại</span>
+                    <Select
+                      isClearable={false}
+                      options={CATEGORY_TYPE_OPTIONS}
+                      value={selected(CATEGORY_TYPE_OPTIONS, categoryDialog.type)}
+                      onChange={(option) =>
+                        option && setCategoryDialog((current) => (current ? { ...current, type: option.value } : current))
+                      }
+                    />
+                  </label>
+                  <label className="page-content-field">
+                    <span className="page-content-field-label">Ngân sách</span>
+                    <Input
+                      inputMode="numeric"
+                      value={categoryDialog.budget}
+                      onChange={(event) =>
+                        setCategoryDialog((current) => (current ? { ...current, budget: event.target.value } : current))
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") submitCategoryDialog();
+                      }}
+                    />
+                  </label>
+                  {categoryDialog.error && (
+                    <div className="muted small" style={{ color: "var(--danger)" }}>
+                      {categoryDialog.error}
+                    </div>
+                  )}
+                  <div className="actions">
+                    <Button
+                      variant="solid"
+                      disabled={categoryDialog.saving || !categoryDialog.name.trim()}
+                      onClick={submitCategoryDialog}
+                    >
+                      {categoryDialog.mode === "edit" ? "Lưu" : "Thêm"}
+                    </Button>
+                    <Button onClick={closeCategoryDialog} disabled={categoryDialog.saving}>
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Dialog>
             </div>
           </div>
         </div>
