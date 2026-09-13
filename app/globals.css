@@ -828,10 +828,28 @@ h3 {
   gap: 18px;
 }
 
-/* Màn "Quản lý chi": cột trái nhập nhanh + giao dịch, cột phải nút "Items cần
-   mua" + bảng danh mục + hành động. Mỗi cột co giãn độc lập (min-width: 0) để
-   bảng rộng bên trong tự cuộn ngang (.budget-table-wrap) thay vì đẩy cả trang. */
+/* Màn "Quản lý chi": hàng trên cùng — bộ chọn tháng + nút "Items cần mua" trên
+   cùng một hàng. Bên dưới 2 cột theo tỉ lệ 3/12 - 9/12: trái "Nhập nhanh chi
+   tiêu", phải bảng danh mục + hành động. Mỗi cột cuộn dọc độc lập trong khung
+   cao cố định (thay vì đẩy cả trang dài ra); bảng rộng bên trong tự cuộn ngang
+   qua .budget-table-wrap. */
+.budget-expense-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.budget-expense-topbar .month-view-picker {
+  margin-bottom: 0;
+}
+
 .budget-expense-cols {
+  display: grid;
+  grid-template-columns: 3fr 9fr;
+  gap: 18px;
   align-items: start;
 }
 
@@ -840,6 +858,21 @@ h3 {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  max-height: min(640px, 70vh);
+  overflow-y: auto;
+}
+
+/* Không cho children co lại vừa khung — nếu không, flex-shrink mặc định sẽ
+   ép nội dung nhỏ vừa max-height thay vì tràn ra và cho .budget-expense-col
+   cuộn dọc như mong đợi. */
+.budget-expense-col > * {
+  flex-shrink: 0;
+}
+
+/* Cột "Nhập nhanh chi tiêu" chỉ rộng 3/12 — .quick-grid mặc định 3 cột ngang
+   (label+input, label+select, nút) không đủ chỗ, xếp lại thành 1 cột dọc. */
+.budget-expense-col--quick .quick-grid {
+  grid-template-columns: 1fr;
 }
 
 .budget-expense-purchase-trigger .dyl-badge {
@@ -1984,6 +2017,10 @@ label > .dyl-select {
 }
 
 @media (max-width: 1000px) {
+  .budget-expense-cols {
+    grid-template-columns: 1fr;
+  }
+
   .two-col,
   .freelance-strategy,
   .decision-grid,
@@ -2030,6 +2067,41 @@ label > .dyl-select {
 
   .month-summary {
     grid-template-columns: 1fr;
+  }
+
+  /* Mobile: topbar "Quản lý chi" xếp thành cột, nút full-width; bỏ cuộn nội bộ
+     mỗi cột (khó thao tác trên cảm ứng) — để cả trang cuộn tự nhiên. */
+  .budget-expense-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .budget-expense-topbar .month-view-picker {
+    max-width: none;
+  }
+
+  /* Badge bọc nút bằng 2 lớp inline-flex co theo nội dung (.dyl-badge,
+     .dyl-badge__child) — chỉ đổi lớp ngoài sang block/flex thì chấm đỏ
+     (position: absolute; inset-inline-end: 0) bị lệch ra mép container thay vì
+     mép nút. Phải cho cả lớp trong `flex-grow` theo thì nút mới thật sự full
+     width và chấm đỏ vẫn đúng góc nút. */
+  .budget-expense-purchase-trigger .dyl-badge {
+    display: flex;
+  }
+
+  .budget-expense-purchase-trigger .dyl-badge__child {
+    display: flex;
+    flex: 1;
+  }
+
+  .budget-expense-purchase-trigger button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .budget-expense-col {
+    max-height: none;
+    overflow-y: visible;
   }
 
   h1 {

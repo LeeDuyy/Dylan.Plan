@@ -1715,9 +1715,18 @@ function BudgetSections({
       {section === "expense" && (
       <section className="section" id="expense">
         <div className="container">
-          {monthViewPicker}
-          <div className="two-col budget-expense-cols">
-            <div className="budget-expense-col">
+          <div className="budget-expense-topbar">
+            {monthViewPicker}
+            <div className="budget-expense-purchase-trigger">
+              <Badge content={pendingPurchaseCount}>
+                <Button variant="solid" onClick={() => setPurchaseDrawerOpen(true)} icon={<ShoppingCart size={18} />}>
+                  Items cần mua
+                </Button>
+              </Badge>
+            </div>
+          </div>
+          <div className="budget-expense-cols">
+            <div className="budget-expense-col budget-expense-col--quick">
             <Card className="quick-panel">
               <span className="eyebrow">Quick input</span>
               <h3>Nhập nhanh chi tiêu</h3>
@@ -1880,15 +1889,7 @@ function BudgetSections({
             </Card>
             </div>
 
-            <div className="budget-expense-col">
-              <div className="budget-expense-purchase-trigger">
-                <Badge content={pendingPurchaseCount}>
-                  <Button variant="solid" onClick={() => setPurchaseDrawerOpen(true)} icon={<ShoppingCart size={18} />}>
-                    Items cần mua
-                  </Button>
-                </Badge>
-              </div>
-
+            <div className="budget-expense-col budget-expense-col--categories">
           <Drawer
             isOpen={purchaseDrawerOpen}
             placement="right"
