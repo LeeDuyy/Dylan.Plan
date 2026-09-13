@@ -21,7 +21,7 @@ export const NAV_CHILD_HREFS: Record<NavGroupId, string[]> = {
   timetable: [],
   freelance: ["/freelance/strategy", "/freelance/process", "/freelance/kpi"],
   product: ["/product/positioning", "/product/scope", "/product/timeline", "/product/kpi"],
-  budget: ["/budget/monthly", "/budget/insight", "/budget/control"]
+  budget: ["/budget/monthly", "/budget/insight", "/budget/income", "/budget/expense"]
 };
 
 export type NavPref = { id: string; order: number; hidden: boolean };

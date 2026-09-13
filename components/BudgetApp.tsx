@@ -1,7 +1,22 @@
 "use client";
 
-import { CalendarDays, CheckCircle2, Copy, Download, Eye, EyeOff, Filter, GripVertical, LineChart, PiggyBank, Plus, RefreshCcw, Trash2 } from "lucide-react";
-import { Button, Card, Input, Progress, Select, Tag } from "@vn-dylan/ui";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
+  Filter,
+  GripVertical,
+  LineChart,
+  PiggyBank,
+  Plus,
+  RefreshCcw,
+  ShoppingCart,
+  Trash2
+} from "lucide-react";
+import { Badge, Button, Card, Drawer, Input, Progress, Select, Tag } from "@vn-dylan/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { TargetGrid } from "@/components/shared/TargetGrid";
@@ -361,11 +376,11 @@ function parseRequiredIncomeAmount(value: string) {
   return Number.isInteger(amount) && amount >= 0 ? amount : null;
 }
 
-export type BudgetSection = "monthly" | "insight" | "control";
+export type BudgetSection = "monthly" | "insight" | "income" | "expense";
 
 export function BudgetApp({
   initialBudget,
-  section = "control"
+  section = "expense"
 }: {
   initialBudget: BudgetSnapshot;
   section?: BudgetSection;
@@ -865,11 +880,14 @@ function BudgetSections({
   );
   const [draggedIncomeId, setDraggedIncomeId] = useState<string | null>(null);
   const [dragOverIncomeId, setDragOverIncomeId] = useState<string | null>(null);
+  const [purchaseDrawerOpen, setPurchaseDrawerOpen] = useState(false);
 
   const currentMonthId = formatMonthId(new Date());
   const canEditMonth = selectedMonth.id >= currentMonthId;
   const canEditPurchaseItems = canEditMonth;
   const newIncomeAmountValue = parseRequiredIncomeAmount(newIncomeAmount);
+  const savingCategories = visibleCategories.filter((item) => item.type === "Tích lũy");
+  const pendingPurchaseCount = purchaseItemsDraft.filter((item) => item.status === "Pending").length;
 
   useEffect(() => {
     setPurchaseItemsDraft(toPurchaseItemDrafts(selectedMonth.purchaseItems));
@@ -1222,7 +1240,7 @@ function BudgetSections({
   return (
     <>
       <Toast message={toastMessage} onDismiss={onDismissToast} />
-      {section === "control" && (
+      {section === "expense" && (
         <TargetGrid
           eyebrow="Nguyên tắc"
           title="Quy tắc kiểm soát"
@@ -1495,8 +1513,8 @@ function BudgetSections({
       </section>
       )}
 
-      {section === "control" && (
-      <section className="section" id="control">
+      {section === "income" && (
+      <section className="section" id="income">
         <div className="container">
           {monthViewPicker}
           <Card className="panel">
@@ -1653,6 +1671,53 @@ function BudgetSections({
               </div>
             </Card>
 
+            <Card className="quick-panel">
+              <span className="eyebrow">Khoản để dành</span>
+              <h3>Khoản để dành</h3>
+              <div className="budget-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Danh mục</th>
+                      <th>Chi thực tế</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {savingCategories.length ? (
+                      savingCategories.map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.name}</td>
+                          <td className="money">{formatMoney(item.actual)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="muted small" colSpan={2}>
+                          Chưa có danh mục để dành nào trong tháng này.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Đã phân bổ vào tích lũy</td>
+                      <td className="money">{formatMoney(totals.allocatedToSaving)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </Card>
+          </Card>
+        </div>
+      </section>
+      )}
+
+      {section === "expense" && (
+      <section className="section" id="expense">
+        <div className="container">
+          {monthViewPicker}
+          <div className="two-col budget-expense-cols">
+            <div className="budget-expense-col">
             <Card className="quick-panel">
               <span className="eyebrow">Quick input</span>
               <h3>Nhập nhanh chi tiêu</h3>
@@ -1813,10 +1878,26 @@ function BudgetSections({
                 )}
               </div>
             </Card>
+            </div>
 
-            <Card className="quick-panel">
+            <div className="budget-expense-col">
+              <div className="budget-expense-purchase-trigger">
+                <Badge content={pendingPurchaseCount}>
+                  <Button variant="solid" onClick={() => setPurchaseDrawerOpen(true)} icon={<ShoppingCart size={18} />}>
+                    Items cần mua
+                  </Button>
+                </Badge>
+              </div>
+
+          <Drawer
+            isOpen={purchaseDrawerOpen}
+            placement="right"
+            width="max(360px, 50vw)"
+            title="Items cần mua"
+            onClose={() => setPurchaseDrawerOpen(false)}
+          >
+            <div className="budget-purchase-drawer">
               <span className="eyebrow">{canEditPurchaseItems ? "Danh sách mua sắm" : "Danh sách mua sắm chỉ xem"}</span>
-              <h3>Items cần mua</h3>
               {canEditPurchaseItems && (
                 <div className="quick-grid">
                   <label>
@@ -1933,7 +2014,8 @@ function BudgetSections({
                   </tbody>
                 </table>
               </div>
-            </Card>
+            </div>
+          </Drawer>
 
             <div className="budget-table-wrap">
               <table>
@@ -2071,7 +2153,8 @@ function BudgetSections({
                 Reset dữ liệu
               </Button>
             </div>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
       )}

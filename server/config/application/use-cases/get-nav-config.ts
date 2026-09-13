@@ -10,6 +10,7 @@ export type GetNavConfigDeps = {
 export function createGetNavConfigUseCase(deps: GetNavConfigDeps) {
   return async function getNavConfig(): Promise<NavPrefEntity[]> {
     await deps.defaultNavPrefsService.ensureDefaultNavPrefs();
+    await deps.defaultNavPrefsService.reconcileNavPrefs();
     return deps.navPrefRepository.findAll();
   };
 }

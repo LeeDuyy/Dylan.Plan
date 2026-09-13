@@ -155,8 +155,13 @@ export const navGroups: NavGroup[] = [
         desc: "Nhìn nhanh danh mục chi nhiều nhất, khả năng tiết kiệm và xu hướng qua các tháng."
       },
       {
-        href: "/budget/control",
-        label: "Ngân sách & nhập nhanh",
+        href: "/budget/income",
+        label: "Quản lý thu",
+        desc: "Khai báo nguồn thu trong tháng và xem nhanh các khoản đã để dành."
+      },
+      {
+        href: "/budget/expense",
+        label: "Quản lý chi",
         desc: 'Gõ tự nhiên như "cafe 45k", "grab 80k", "ăn trưa 65000"; app tự nhận diện số tiền và danh mục.'
       }
     ]

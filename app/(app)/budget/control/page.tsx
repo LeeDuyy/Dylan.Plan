@@ -1,9 +1,5 @@
-import { BudgetApp } from "@/components/BudgetApp";
-import { getBudgetSnapshot } from "@/server/budget/actions";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function BudgetControlPage() {
-  const initialBudget = await getBudgetSnapshot();
-  return <BudgetApp initialBudget={initialBudget} section="control" />;
+export default function BudgetControlPage() {
+  redirect("/budget/expense");
 }

@@ -14,4 +14,11 @@ export interface NavPrefRepository {
    * JobPlatformRepository.createDefaultsIfEmpty).
    */
   createDefaultsIfEmpty(seeds: NavPrefSeedInput[]): Promise<void>;
+  /**
+   * Chèn các seed mà id chưa có trong bảng (bỏ qua id đã tồn tại, không ghi đè
+   * order/hidden đã chỉnh) — dùng khi cấu trúc menu tĩnh thêm mục con mới.
+   */
+  insertMissing(seeds: NavPrefSeedInput[]): Promise<void>;
+  /** Xoá mọi hàng có id không còn nằm trong danh sách id hợp lệ hiện tại. */
+  deleteByIdsNotIn(ids: string[]): Promise<void>;
 }

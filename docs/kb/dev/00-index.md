@@ -1,12 +1,12 @@
 # DEV index
 
-Updated: 2026-09-10 (US-026 plan Ready for task-breakdown — thuần tầng trình bày, KHÔNG đổi schema; tách `BudgetApp` `section` `control` → `income`+`expense`, 2 route mới + redirect `/budget/control`, `NavPref` reconcile ở tầng ứng dụng, "Items cần mua" vào `Drawer`. Implement DỪNG chờ US-025 vào `main` — DEC-137)
+Updated: 2026-09-13 (US-026 implemented — thuần tầng trình bày, KHÔNG đổi schema; `BudgetApp` `section` `control` tách thành `income`+`expense`, 2 route mới + redirect `/budget/control`, `NavPref` reconcile ở tầng ứng dụng (chèn thiếu + xoá orphan), "Items cần mua" vào `Drawer` với badge đếm Pending. Verify qua Chrome DevTools MCP trên `plan.localhost:3000`, không lỗi console, DB xác nhận reconcile đúng)
 
 Updated: 2026-09-09 (US-025 GĐ1+GĐ2+GĐ3 implemented — đổi schema: model mới `NavPref` (migration `20260909141127_add_nav_pref`) + `RoadmapPhase`/`RoadmapDeliverable`/`TimetableRow` (migration `20260909142811_add_roadmap_timetable_config`), đều thuần CREATE TABLE; bounded context mới `server/config`; `app/(app)/layout.tsx` → dynamic, đọc nav/roadmap/timetable config; `AppShell`/`ConfigDrawer` nhận các config; nút bánh răng → drawer 4 tab (Density localStorage · Menu · Roadmap · Lịch tuần DB); `roadmapPhases`/`weekRows` chuyển từ `PlanViews.tsx` ra `lib/*-defaults.ts`, section components nhận props. Trước đó: US-023 plan Ready for task-breakdown — thuần tầng trình bày, KHÔNG đổi schema)
 
 | Mã | Tên | File |
 | --- | --- | --- |
-| US-026 | Tách "Ngân sách & nhập nhanh" thành "Quản lý thu" và "Quản lý chi"; "Items cần mua" vào Drawer | `docs/kb/dev/wiki/US-026-tach-quan-ly-thu-va-chi.md` (Draft — plan Ready for task-breakdown, implement chờ US-025) |
+| US-026 | Tách "Ngân sách & nhập nhanh" thành "Quản lý thu" và "Quản lý chi"; "Items cần mua" vào Drawer | `docs/kb/dev/wiki/US-026-tach-quan-ly-thu-va-chi.md` |
 | US-025 | Bảng điều khiển tuỳ biến app (config panel: density · thứ tự/ẩn hiện menu · sửa roadmap · sửa timetable) | `docs/kb/dev/wiki/US-025-bang-dieu-khien-config.md` |
 | US-023 | Chuẩn hóa layout toàn app bằng Ant Design, responsive mobile/tablet | `docs/kb/dev/wiki/US-023-layout-antd-responsive-toan-app.md` |
 | US-022 | Nguồn thu, sửa insight tiết kiệm, tháng mặc định và bỏ giới hạn tháng cho Item cần mua tại tab Thu chi | `docs/kb/dev/wiki/US-022-nguon-thu-va-insight-tab-thu-chi.md` |

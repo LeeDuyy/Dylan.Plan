@@ -828,6 +828,30 @@ h3 {
   gap: 18px;
 }
 
+/* Màn "Quản lý chi": cột trái nhập nhanh + giao dịch, cột phải nút "Items cần
+   mua" + bảng danh mục + hành động. Mỗi cột co giãn độc lập (min-width: 0) để
+   bảng rộng bên trong tự cuộn ngang (.budget-table-wrap) thay vì đẩy cả trang. */
+.budget-expense-cols {
+  align-items: start;
+}
+
+.budget-expense-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.budget-expense-purchase-trigger .dyl-badge {
+  display: inline-flex;
+}
+
+.budget-purchase-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .month-panels {
   display: flex;
   flex-direction: column;

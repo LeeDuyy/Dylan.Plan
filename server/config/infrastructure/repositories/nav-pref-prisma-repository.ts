@@ -47,6 +47,21 @@ export function createNavPrefPrismaRepository(prisma: PrismaClient = defaultPris
         if (count > 0) return;
         await tx.navPref.createMany({ data: seeds });
       });
+    },
+    async insertMissing(seeds: NavPrefSeedInput[]) {
+      // SQLite (provider hiện dùng) không hỗ trợ `skipDuplicates` trên createMany
+      // — lọc ở tầng ứng dụng: chỉ chèn id chưa có, trong cùng transaction với
+      // lệnh đọc để tránh race giống createDefaultsIfEmpty.
+      await prisma.$transaction(async (tx) => {
+        const existing = await tx.navPref.findMany({ select: { id: true } });
+        const existingIds = new Set(existing.map((row) => row.id));
+        const missing = seeds.filter((seed) => !existingIds.has(seed.id));
+        if (missing.length === 0) return;
+        await tx.navPref.createMany({ data: missing });
+      });
+    },
+    async deleteByIdsNotIn(ids: string[]) {
+      await prisma.navPref.deleteMany({ where: { id: { notIn: ids } } });
     }
   };
 }

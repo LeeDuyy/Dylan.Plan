@@ -1,7 +1,7 @@
 ---
-status: Draft
+status: Active
 feature: US-026
-updated: 2026-09-10
+updated: 2026-09-13
 plan: docs/features/US-026-tach-quan-ly-thu-va-chi/plan.md
 ba_wiki: docs/kb/ba/wiki/knowledge/feature/US-026-tach-quan-ly-thu-va-chi.md
 owner: ssr-plan
@@ -48,7 +48,7 @@ Màn hình:
 | Auth | `middleware.ts` | Gate theo host + email allowlist; không phụ thuộc path con `/budget/*` |
 | Application | `server/config/application/use-cases/get-nav-config.ts` | Thêm gọi reconcile trước `findAll()` |
 | Domain | `server/config/domain/services/default-nav-prefs-service.ts` + `domain/repositories/nav-pref-repository.ts` | `reconcileNavPrefs(seeds)`: chèn seed thiếu, xóa id không thuộc `ALL_NAV_PREF_IDS` |
-| Infrastructure | `server/config/infrastructure/repositories/nav-pref-prisma-repository.ts` | `createMany({ skipDuplicates: true })` + `deleteMany({ where: { id: { notIn } } })` trong `$transaction` |
+| Infrastructure | `server/config/infrastructure/repositories/nav-pref-prisma-repository.ts` | `insertMissing`: đọc id hiện có rồi `createMany` phần thiếu trong `$transaction` (SQLite provider ở đây không hỗ trợ `skipDuplicates` trên `createMany` — lọc ở tầng ứng dụng thay vì để DB bỏ qua trùng khoá); `deleteByIdsNotIn`: `deleteMany({ where: { id: { notIn } } })` |
 | Data | `prisma/schema.prisma` model `NavPref` | Không đổi |
 | UI | `components/BudgetApp.tsx` | Tách nhánh `section`; `Drawer` + `Badge` cho "Items cần mua"; khu "Khoản để dành" chỉ đọc |
 
@@ -103,11 +103,12 @@ Màn hình:
 
 | Lệnh | Kết quả gần nhất | Ngày |
 | --- | --- | --- |
-| `rtk tsc --noEmit` | Chưa chạy (implement dừng chờ US-025) | 2026-09-10 |
-| `rtk lint` | Chưa chạy | 2026-09-10 |
-| `rtk npx prisma validate` | Chưa chạy | 2026-09-10 |
-| `rtk next build` | Chưa chạy | 2026-09-10 |
-| `rtk vitest run` | N/A — dự án chưa cấu hình test runner | 2026-09-10 |
+| `./node_modules/.bin/tsc --noEmit` | 0 lỗi | 2026-09-13 |
+| `npx next lint` | Không kiểm được — repo chưa có `eslint.config.(js\|mjs\|cjs)` ở gốc dự án (ESLint 9 yêu cầu flat config; đây là khoảng trống cấu hình có sẵn từ trước, không phải do US-026/US-025 gây ra). `next lint` không tương tác báo "Errors: 0 \| Warnings: 0" nhưng thực chất không chạy được lint nào — không dùng kết quả này làm bằng chứng | 2026-09-13 |
+| `npx prisma validate` | Không cần — không đổi schema | — |
+| `next build` | Chưa chạy độc lập — tránh ghi đè `.next` đang phục vụ dev server sống (bài học từ US-025, xem `data-model.md` mục "Editor round-trip"). Thay vào đó verify từng route qua dev server thật (xem thủ công bên dưới), dev server compile mỗi route on-demand tương đương build từng trang | 2026-09-13 |
+| Thủ công (Chrome DevTools MCP, `plan.localhost:3000`) | AC-01: menu "Thu chi" đúng 4 mục, không còn "Ngân sách & nhập nhanh". AC-02/AC-08: `/budget/income` hiển thị bảng Nguồn thu + khu "Khoản để dành" (2 danh mục loại Tích lũy + dòng tổng). AC-03: chọn tháng 2026-07 (đã kết thúc) → bảng Nguồn thu và Drawer "Items cần mua" chuyển chỉ xem, trạng thái rỗng đúng chữ. AC-04/05: `/budget/expense` hiển thị "Quy tắc kiểm soát" + 2 cột đúng bố cục, nhập nhanh hoạt động. AC-06: nút "Items cần mua" badge đúng số Pending (1 → 0 theo tháng), Drawer mở/đóng bằng nút ×/Esc, nội dung đúng. AC-07: mở `/budget/control` → redirect `/budget/expense`. Không có lỗi console ở bất kỳ bước nào. Kiểm DB trực tiếp (`better-sqlite3`) xác nhận `leaf:/budget/control` đã xoá, `leaf:/budget/income`/`leaf:/budget/expense` đã chèn đúng order. Tab "Menu" (US-025 `NavConfigEditor`) tự hiển thị đúng 4 mục con mới (thủ công 7, plan.md) | 2026-09-13 |
+| `vitest run` | N/A — dự án chưa cấu hình test runner | — |
 
 ## 8. Rủi Ro Và Rollback
 
