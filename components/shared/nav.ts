@@ -161,8 +161,7 @@ export const navGroups: NavGroup[] = [
       },
       {
         href: "/budget/expense",
-        label: "Quản lý chi",
-        desc: 'Gõ tự nhiên như "cafe 45k", "grab 80k", "ăn trưa 65000"; app tự nhận diện số tiền và danh mục.'
+        label: "Quản lý chi"
       }
     ]
   }

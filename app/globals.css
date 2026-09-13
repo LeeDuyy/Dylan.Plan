@@ -846,11 +846,43 @@ h3 {
   margin-bottom: 0;
 }
 
+/* Nhóm nút "Items cần mua" + 4 hành động (Thêm danh mục / Reset chi tháng này /
+   Xuất JSON / Reset dữ liệu) cạnh nhau bên phải topbar, tự xuống dòng khi hẹp.
+   .actions vốn có margin-top: 22px (dùng khi đứng dưới bảng) — bỏ ở đây để
+   không lệch hàng với nút "Items cần mua"; stretch + chiều cao cố định cho
+   toàn bộ nút (kể cả trong .dyl-badge) để đều nhau tuyệt đối. */
+.budget-expense-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.budget-expense-actions .actions {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+}
+
+.budget-expense-purchase-trigger {
+  display: flex;
+}
+
+.budget-expense-actions button {
+  height: 40px;
+}
+
+/* Chiều cao thật (px) được BudgetApp.tsx tính bằng JS và gán qua inline style
+   — bằng đúng khoảng trống còn lại của viewport dưới "Quy tắc kiểm soát" +
+   topbar, để cả trang KHÔNG cuộn, chỉ 2 cột bên trong cuộn riêng. Trước khi
+   effect chạy (và nếu JS tắt) không đặt max-height fallback ở đây — cố tình,
+   vì fallback sẽ ghim (clamp) chiều cao thấp hơn giá trị JS tính ra trên màn
+   cao, làm 2 cột không lấp hết khoảng trống thật. */
 .budget-expense-cols {
   display: grid;
   grid-template-columns: 3fr 9fr;
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .budget-expense-col {
@@ -858,7 +890,13 @@ h3 {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  max-height: min(640px, 70vh);
+  /* min-height mặc định của grid/flex item là "auto" (co theo nội dung), nên
+     dù đặt height: 100% thì cột vẫn tự nới cao hơn hàng lưới để vừa nội dung
+     — chính là lý do 2 cột từng cao hơn .budget-expense-cols vài chục px và
+     kéo trang cuộn ngoài trở lại. Ép về 0 để height: 100% có tác dụng thật. */
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
 }
 
@@ -875,8 +913,47 @@ h3 {
   grid-template-columns: 1fr;
 }
 
+/* Cột bảng danh mục: cuộn dọc + header/footer "fixed" nằm ngay trên
+   .budget-categories-table-wrap (không phải trên .budget-expense-col) — bắt
+   buộc vì .budget-table-wrap đã có overflow-x:auto, theo spec CSS overflow
+   thì overflow-y cũng tự thành scroll container tại đúng chỗ đó; nếu đặt
+   max-height ở .budget-expense-col (ancestor xa hơn) thì sticky sẽ bị "khóa"
+   vào .budget-table-wrap (không scroll thật) và mất tác dụng. */
+.budget-expense-col--categories {
+  max-height: none;
+  overflow: visible;
+}
+
+.budget-categories-table-wrap {
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.budget-categories-table-wrap thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.budget-categories-table-wrap tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.budget-cat-reorder-mobile {
+  display: none;
+}
+
 .budget-expense-purchase-trigger .dyl-badge {
-  display: inline-flex;
+  display: flex;
 }
 
 .budget-purchase-drawer {
@@ -2100,8 +2177,112 @@ label > .dyl-select {
   }
 
   .budget-expense-col {
+    height: auto;
     max-height: none;
     overflow-y: visible;
+  }
+
+  /* Nhóm nút hành động xuống hàng riêng, full-width, xếp lưới 2 cột cho gọn
+     thay vì 4 nút dài xếp chồng theo cột. */
+  .budget-expense-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .budget-expense-actions .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    margin: 0;
+  }
+
+  .budget-expense-actions .actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Bảng danh mục "Quản lý chi": bỏ khung cuộn cố định + chuyển mỗi dòng thành
+     1 thẻ (card) xếp dọc thay vì hàng ngang — tránh phải cuộn ngang trên màn
+     hẹp. Ẩn <thead>, dùng data-label làm nhãn cho từng ô qua ::before. */
+  .budget-categories-table-wrap {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    overflow-x: visible;
+    border: none;
+  }
+
+  .budget-categories-table-wrap table {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .budget-categories-table-wrap thead {
+    display: none;
+  }
+
+  .budget-categories-table-wrap tbody,
+  .budget-categories-table-wrap tfoot {
+    display: block;
+  }
+
+  .budget-categories-table-wrap tr {
+    display: block;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--dyl-radius-md, 12px);
+  }
+
+  .budget-categories-table-wrap tfoot tr {
+    margin-bottom: 0;
+    background: var(--surface-2);
+  }
+
+  .budget-categories-table-wrap td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: none;
+  }
+
+  .budget-categories-table-wrap td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .budget-categories-table-wrap td:not([data-label]) {
+    justify-content: flex-start;
+  }
+
+  /* Ô "Danh mục" đầu mỗi card — nổi bật hơn, input full width bên dưới nhãn
+     thay vì chen cùng hàng như các ô số liệu khác. */
+  .budget-categories-table-wrap td[data-label="Danh mục"] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .budget-categories-table-wrap .budget-cat-sort-cell,
+  .budget-categories-table-wrap .budget-cat-delete-cell {
+    justify-content: flex-end;
+    padding: 0 0 8px;
+  }
+
+  .budget-categories-table-wrap .budget-cat-drag {
+    display: none;
+  }
+
+  .budget-categories-table-wrap .budget-cat-reorder-mobile {
+    display: flex;
+    gap: 4px;
   }
 
   h1 {

@@ -3,6 +3,8 @@
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Copy,
   Download,
   Eye,
@@ -16,12 +18,13 @@ import {
   ShoppingCart,
   Trash2
 } from "lucide-react";
-import { Badge, Button, Card, Drawer, Input, Progress, Select, Tag } from "@vn-dylan/ui";
+import { Badge, Button, Card, Dialog, Drawer, Input, Progress, Select, Tag } from "@vn-dylan/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { TargetGrid } from "@/components/shared/TargetGrid";
 import { Toast } from "@/components/shared/Toast";
 import { InlineConfirm, opt, selected, type Opt } from "@/components/shared/ui";
+import { arrayMove } from "@/lib/array-move";
 import { CATEGORY_TYPES, DEFAULT_INCOME, defaultCategories, quickRules } from "@/lib/budget-defaults";
 import {
   addPurchaseItem as addPurchaseItemAction,
@@ -650,6 +653,27 @@ export function BudgetApp({
     }
   };
 
+  // Kéo-thả (draggable) không hoạt động trên cảm ứng — nút lên/xuống là cách
+  // sắp xếp thay thế cho mobile, dùng chung logic reorder với dropCategory.
+  const moveCategory = async (id: string, direction: -1 | 1) => {
+    const reorderableCategories = visibleCategories.filter((category) => !category.isFallback);
+    const index = reorderableCategories.findIndex((category) => category.id === id);
+    if (index === -1) return;
+    const moved = arrayMove(reorderableCategories, index, direction);
+    if (!moved) return;
+
+    const orderedCategoryIds = moved.map((category) => category.id);
+    reorderCategoryLocal(orderedCategoryIds);
+
+    try {
+      await reorderCategories({ monthId: selectedMonth.id, orderedCategoryIds });
+      await refreshSnapshot();
+    } catch (error) {
+      setToastMessage(error instanceof Error ? error.message : "Có lỗi xảy ra, vui lòng thử lại.");
+      await refreshSnapshot();
+    }
+  };
+
   const addQuickExpense = async () => {
     const text = quickText.trim();
     const amount = extractAmount(text);
@@ -741,6 +765,7 @@ export function BudgetApp({
           monthPeriods={monthPeriods}
           months={months}
           newMonth={newMonth}
+          onCategoryMove={moveCategory}
           quickAmount={quickAmount}
           quickCategory={quickCategory}
           quickText={quickText}
@@ -801,6 +826,7 @@ type BudgetProps = {
   onCategoryDragOver: (id: string) => void;
   onCategoryDragStart: (id: string) => void;
   onCategoryDrop: (id: string) => Promise<void>;
+  onCategoryMove: (id: string, direction: -1 | 1) => Promise<void>;
   toastMessage: string | null;
   onDismissToast: () => void;
   totals: {
@@ -851,6 +877,7 @@ function BudgetSections({
   onCategoryDragOver,
   onCategoryDragStart,
   onCategoryDrop,
+  onCategoryMove,
   toastMessage,
   onDismissToast,
   totals,
@@ -881,6 +908,8 @@ function BudgetSections({
   const [draggedIncomeId, setDraggedIncomeId] = useState<string | null>(null);
   const [dragOverIncomeId, setDragOverIncomeId] = useState<string | null>(null);
   const [purchaseDrawerOpen, setPurchaseDrawerOpen] = useState(false);
+  const expenseColsRef = useRef<HTMLDivElement | null>(null);
+  const [expenseColsHeight, setExpenseColsHeight] = useState<number | null>(null);
 
   const currentMonthId = formatMonthId(new Date());
   const canEditMonth = selectedMonth.id >= currentMonthId;
@@ -902,6 +931,49 @@ function BudgetSections({
     setDraggedIncomeId(null);
     setDragOverIncomeId(null);
   }, [selectedMonth.id, selectedMonth.incomeSources]);
+
+  // Màn "Quản lý chi" (section === "expense"): 2 cột nhập nhanh/danh mục fix
+  // đúng chiều cao còn lại của viewport (dưới "Quy tắc kiểm soát" + topbar)
+  // để cả trang KHÔNG cuộn — chỉ từng cột cuộn riêng. Dưới breakpoint gộp 1
+  // cột (≤1000px, xem globals.css) bỏ chiều cao tính toán, để trang cuộn tự
+  // nhiên như trước — khớp thẳng gán DOM query thay vì đo lại bằng React.
+  useEffect(() => {
+    if (section !== "expense") return;
+    const el = expenseColsRef.current;
+    if (!el) return;
+
+    const recompute = () => {
+      if (window.innerWidth <= 1000) {
+        setExpenseColsHeight(null);
+        return;
+      }
+      const appContentEl = el.closest(".app-content");
+      if (!appContentEl) return;
+      // .app-content và <section className="section"> đều có padding-bottom
+      // riêng (biến theo mật độ hiển thị / CSS dùng chung toàn app) — cộng
+      // dồn cả hai thay vì đoán một hằng số cố định, nếu không phần đệm dưới
+      // của <section> vẫn tràn quá mép .app-content dù .budget-expense-cols
+      // đã đúng chiều cao đặt ra.
+      const sectionEl = el.closest(".section");
+      const appPadBottom = parseFloat(getComputedStyle(appContentEl).paddingBottom) || 0;
+      const sectionPadBottom = sectionEl ? parseFloat(getComputedStyle(sectionEl).paddingBottom) || 0 : 0;
+      const available =
+        appContentEl.getBoundingClientRect().bottom - el.getBoundingClientRect().top - appPadBottom - sectionPadBottom;
+      setExpenseColsHeight(Math.max(available - 4, 320));
+    };
+
+    recompute();
+    // Đặt chiều cao có thể tự loại bỏ scrollbar ngoài .app-content, làm nó
+    // rộng ra và dịch lại điểm bắt đầu của .budget-expense-cols — đo lại một
+    // lần nữa ở animation frame kế tiếp (sau khi layout đã ổn định) để không
+    // bị lệch vài chục px do chính hiệu ứng của phép đo đầu gây ra.
+    const raf = requestAnimationFrame(recompute);
+    window.addEventListener("resize", recompute);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", recompute);
+    };
+  }, [section]);
 
   const resetTransactionRowState = () => {
     setActiveTransactionId(null);
@@ -1717,15 +1789,31 @@ function BudgetSections({
         <div className="container">
           <div className="budget-expense-topbar">
             {monthViewPicker}
-            <div className="budget-expense-purchase-trigger">
-              <Badge content={pendingPurchaseCount}>
-                <Button variant="solid" onClick={() => setPurchaseDrawerOpen(true)} icon={<ShoppingCart size={18} />}>
-                  Items cần mua
+            <div className="budget-expense-actions">
+              <div className="budget-expense-purchase-trigger">
+                <Badge content={pendingPurchaseCount}>
+                  <Button variant="solid" onClick={() => setPurchaseDrawerOpen(true)} icon={<ShoppingCart size={18} />}>
+                    Items cần mua
+                  </Button>
+                </Badge>
+              </div>
+              <div className="actions">
+                <Button onClick={addCategory} icon={<Plus size={18} />}>
+                  Thêm danh mục
                 </Button>
-              </Badge>
+                <Button onClick={resetActual} icon={<RefreshCcw size={18} />}>
+                  Reset chi tháng này
+                </Button>
+                <Button onClick={exportData} icon={<Download size={18} />}>
+                  Xuất JSON
+                </Button>
+                <Button className="btn-danger" onClick={resetAll} icon={<RefreshCcw size={18} />}>
+                  Reset dữ liệu
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="budget-expense-cols">
+          <div className="budget-expense-cols" ref={expenseColsRef} style={{ height: expenseColsHeight ?? undefined }}>
             <div className="budget-expense-col budget-expense-col--quick">
             <Card className="quick-panel">
               <span className="eyebrow">Quick input</span>
@@ -1773,112 +1861,48 @@ function BudgetSections({
                   Ghi nhận
                 </Button>
               </div>
-              <div className="quick-result">
-                {quickText.trim()
-                  ? quickAmount
-                    ? (
-                        <>
-                          Tự nhận diện: <strong>{formatMoney(quickAmount)}</strong> → <strong>{inferredQuickCategory}</strong>.
-                        </>
-                      )
-                    : "Chưa tìm thấy số tiền. Hãy nhập ví dụ: cafe 45k hoặc grab 80,000."
-                  : "Nhập nội dung để hệ thống gợi ý danh mục và số tiền."}
-              </div>
+              {quickText.trim() && (
+                <div className="quick-result">
+                  {quickAmount ? (
+                    <>
+                      Tự nhận diện: <strong>{formatMoney(quickAmount)}</strong> → <strong>{inferredQuickCategory}</strong>.
+                    </>
+                  ) : (
+                    "Chưa tìm thấy số tiền. Hãy nhập ví dụ: cafe 45k hoặc grab 80,000."
+                  )}
+                </div>
+              )}
               <div className="transaction-list">
                 {selectedMonth.transactions.length ? (
                   selectedMonth.transactions.map((item) => {
                     const categoryName =
                       selectedMonth.categories.find((category) => category.id === item.categoryId)?.name ?? "Không rõ danh mục";
-                    const isEditing = activeTransactionId === item.id && activeTransactionMode === "edit";
                     return (
-                      <div key={item.id} style={{ display: "grid", gap: 8 }}>
-                        <div className="transaction">
-                          <div>
-                            <strong>{item.text}</strong>
-                            <small>
-                              <b>{categoryName}</b> · {new Date(item.createdAt).toLocaleString("vi-VN")}
-                            </small>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span className="money negative">-{formatMoney(item.amount)}</span>
-                            <Button size="sm" onClick={() => startEditTransaction(item)}>
-                              Sửa
-                            </Button>
-                            <InlineConfirm
-                              open={confirmDeleteTxId === item.id}
-                              label="Xóa giao dịch này?"
-                              confirmText="Xác nhận xóa"
-                              onOpen={() => setConfirmDeleteTxId(item.id)}
-                              onCancel={() => setConfirmDeleteTxId(null)}
-                              onConfirm={() => {
-                                setConfirmDeleteTxId(null);
-                                confirmDeleteTransaction(item.id);
-                              }}
-                              trigger={<Button size="sm">Xóa</Button>}
-                            />
-                          </div>
+                      <div key={item.id} className="transaction">
+                        <div>
+                          <strong>{item.text}</strong>
+                          <small>
+                            <b>{categoryName}</b> · {new Date(item.createdAt).toLocaleString("vi-VN")}
+                          </small>
                         </div>
-                        {isEditing && editForm && (
-                          <Card className="panel">
-                            <div className="quick-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr" }}>
-                              <label>
-                                Nội dung chi tiêu
-                                <Input
-                                  type="text"
-                                  value={editForm.text}
-                                  onChange={(event) => setEditForm((current) => (current ? { ...current, text: event.target.value } : current))}
-                                />
-                              </label>
-                              <label>
-                                Số tiền
-                                <Input
-                                  type="number"
-                                  value={editForm.amount}
-                                  onChange={(event) => setEditForm((current) => (current ? { ...current, amount: event.target.value } : current))}
-                                />
-                              </label>
-                              <label>
-                                Danh mục
-                                {(() => {
-                                  const categoryOptions: Opt[] = selectedMonth.categories.map((category) => opt(category.id, category.name));
-                                  return (
-                                    <Select
-                                      isClearable={false}
-                                      options={categoryOptions}
-                                      value={selected(categoryOptions, editForm.categoryId)}
-                                      onChange={(option) =>
-                                        option && setEditForm((current) => (current ? { ...current, categoryId: option.value } : current))
-                                      }
-                                    />
-                                  );
-                                })()}
-                              </label>
-                              <label>
-                                Ngày
-                                <Input
-                                  type="date"
-                                  value={editForm.createdAt}
-                                  onChange={(event) => setEditForm((current) => (current ? { ...current, createdAt: event.target.value } : current))}
-                                />
-                              </label>
-                            </div>
-                            {editError && (
-                              <div className="muted small" style={{ color: "var(--danger)", marginTop: 8 }}>
-                                {editError}
-                              </div>
-                            )}
-                            <div className="actions" style={{ marginTop: 12 }}>
-                              <Button
-                                variant="solid"
-                                disabled={!editForm.text.trim() || !(Number(editForm.amount) > 0)}
-                                onClick={() => saveEditTransaction(item)}
-                              >
-                                Lưu
-                              </Button>
-                              <Button onClick={resetTransactionRowState}>Hủy</Button>
-                            </div>
-                          </Card>
-                        )}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span className="money negative">-{formatMoney(item.amount)}</span>
+                          <Button size="sm" onClick={() => startEditTransaction(item)}>
+                            Sửa
+                          </Button>
+                          <InlineConfirm
+                            open={confirmDeleteTxId === item.id}
+                            label="Xóa giao dịch này?"
+                            confirmText="Xác nhận xóa"
+                            onOpen={() => setConfirmDeleteTxId(item.id)}
+                            onCancel={() => setConfirmDeleteTxId(null)}
+                            onConfirm={() => {
+                              setConfirmDeleteTxId(null);
+                              confirmDeleteTransaction(item.id);
+                            }}
+                            trigger={<Button size="sm">Xóa</Button>}
+                          />
+                        </div>
                       </div>
                     );
                   })
@@ -1887,6 +1911,79 @@ function BudgetSections({
                 )}
               </div>
             </Card>
+
+            <Dialog
+              isOpen={activeTransactionMode === "edit" && editForm != null}
+              onClose={resetTransactionRowState}
+              width={520}
+              aria-label="Sửa giao dịch"
+            >
+              {editForm && (
+                <div className="budget-purchase-drawer">
+                  <h3>Sửa giao dịch</h3>
+                  <div className="quick-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                    <label>
+                      Nội dung chi tiêu
+                      <Input
+                        type="text"
+                        value={editForm.text}
+                        onChange={(event) => setEditForm((current) => (current ? { ...current, text: event.target.value } : current))}
+                      />
+                    </label>
+                    <label>
+                      Số tiền
+                      <Input
+                        type="number"
+                        value={editForm.amount}
+                        onChange={(event) => setEditForm((current) => (current ? { ...current, amount: event.target.value } : current))}
+                      />
+                    </label>
+                    <label>
+                      Danh mục
+                      {(() => {
+                        const categoryOptions: Opt[] = selectedMonth.categories.map((category) => opt(category.id, category.name));
+                        return (
+                          <Select
+                            isClearable={false}
+                            options={categoryOptions}
+                            value={selected(categoryOptions, editForm.categoryId)}
+                            onChange={(option) =>
+                              option && setEditForm((current) => (current ? { ...current, categoryId: option.value } : current))
+                            }
+                          />
+                        );
+                      })()}
+                    </label>
+                    <label>
+                      Ngày
+                      <Input
+                        type="date"
+                        value={editForm.createdAt}
+                        onChange={(event) => setEditForm((current) => (current ? { ...current, createdAt: event.target.value } : current))}
+                      />
+                    </label>
+                  </div>
+                  {editError && (
+                    <div className="muted small" style={{ color: "var(--danger)" }}>
+                      {editError}
+                    </div>
+                  )}
+                  <div className="actions">
+                    <Button
+                      variant="solid"
+                      disabled={!editForm.text.trim() || !(Number(editForm.amount) > 0)}
+                      onClick={() => {
+                        const editingTransaction = selectedMonth.transactions.find((transaction) => transaction.id === activeTransactionId);
+                        if (editingTransaction) saveEditTransaction(editingTransaction);
+                      }}
+                    >
+                      Lưu
+                    </Button>
+                    <Button onClick={resetTransactionRowState}>Hủy</Button>
+                  </div>
+                </div>
+              )}
+            </Dialog>
             </div>
 
             <div className="budget-expense-col budget-expense-col--categories">
@@ -2018,7 +2115,7 @@ function BudgetSections({
             </div>
           </Drawer>
 
-            <div className="budget-table-wrap">
+            <div className="budget-table-wrap budget-categories-table-wrap">
               <table>
                 <thead>
                   <tr>
@@ -2033,7 +2130,9 @@ function BudgetSections({
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleCategories.map((item) => {
+                  {(() => {
+                    const reorderableCategories = visibleCategories.filter((category) => !category.isFallback);
+                    return visibleCategories.map((item) => {
                     const diff = item.budget - item.actual;
                     const ratio = selectedMonth.income ? item.actual / selectedMonth.income : 0;
                     // "Chi tiêu khác" là chỉ đọc hoàn toàn — không ô nhập tên/loại/ngân
@@ -2042,17 +2141,18 @@ function BudgetSections({
                     if (item.isFallback) {
                       return (
                         <tr key={item.id}>
-                          <td></td>
-                          <td>{item.name}</td>
-                          <td>{item.type}</td>
-                          <td className="money">{formatMoney(item.budget)}</td>
-                          <td className="money">{formatMoney(item.actual)}</td>
-                          <td className={`money ${diff >= 0 ? "positive" : "negative"}`}>{formatMoney(diff)}</td>
-                          <td>{(ratio * 100).toFixed(1)}%</td>
-                          <td></td>
+                          <td className="budget-cat-sort-cell"></td>
+                          <td data-label="Danh mục">{item.name}</td>
+                          <td data-label="Loại">{item.type}</td>
+                          <td className="money" data-label="Ngân sách">{formatMoney(item.budget)}</td>
+                          <td className="money" data-label="Chi thực tế">{formatMoney(item.actual)}</td>
+                          <td className={`money ${diff >= 0 ? "positive" : "negative"}`} data-label="Chênh lệch">{formatMoney(diff)}</td>
+                          <td data-label="Tỷ trọng">{(ratio * 100).toFixed(1)}%</td>
+                          <td className="budget-cat-delete-cell"></td>
                         </tr>
                       );
                     }
+                    const reorderIndex = reorderableCategories.findIndex((category) => category.id === item.id);
                     return (
                       <tr
                         key={item.id}
@@ -2069,8 +2169,9 @@ function BudgetSections({
                           opacity: draggedCategoryId === item.id ? 0.55 : 1
                         }}
                       >
-                        <td>
+                        <td className="budget-cat-sort-cell">
                           <Button
+                            className="budget-cat-drag"
                             aria-label="Sắp xếp danh mục"
                             variant="plain"
                             draggable
@@ -2085,15 +2186,31 @@ function BudgetSections({
                             icon={<GripVertical size={16} />}
                           >
                           </Button>
+                          <div className="budget-cat-reorder-mobile">
+                            <Button
+                              aria-label="Đưa danh mục lên"
+                              variant="plain"
+                              disabled={reorderIndex <= 0}
+                              onClick={() => onCategoryMove(item.id, -1)}
+                              icon={<ChevronUp size={16} />}
+                            />
+                            <Button
+                              aria-label="Đưa danh mục xuống"
+                              variant="plain"
+                              disabled={reorderIndex === -1 || reorderIndex >= reorderableCategories.length - 1}
+                              onClick={() => onCategoryMove(item.id, 1)}
+                              icon={<ChevronDown size={16} />}
+                            />
+                          </div>
                         </td>
-                        <td>
+                        <td data-label="Danh mục">
                           <Input
                             value={item.name}
                             onChange={(event) => updateCategoryLocal(item.id, { name: event.target.value })}
                             onBlur={() => commitCategory(item.id)}
                           />
                         </td>
-                        <td>
+                        <td data-label="Loại">
                           <Select
                             isClearable={false}
                             options={CATEGORY_TYPE_OPTIONS}
@@ -2106,7 +2223,7 @@ function BudgetSections({
                             }}
                           />
                         </td>
-                        <td>
+                        <td data-label="Ngân sách">
                           <Input
                             inputMode="numeric"
                             value={item.budget.toLocaleString("en-US")}
@@ -2114,45 +2231,33 @@ function BudgetSections({
                             onBlur={() => commitCategory(item.id)}
                           />
                         </td>
-                        <td className="money">{formatMoney(item.actual)}</td>
-                        <td className={`money ${diff >= 0 ? "positive" : "negative"}`}>{formatMoney(diff)}</td>
-                        <td>{(ratio * 100).toFixed(1)}%</td>
-                        <td>
+                        <td className="money" data-label="Chi thực tế">{formatMoney(item.actual)}</td>
+                        <td className={`money ${diff >= 0 ? "positive" : "negative"}`} data-label="Chênh lệch">{formatMoney(diff)}</td>
+                        <td data-label="Tỷ trọng">{(ratio * 100).toFixed(1)}%</td>
+                        <td className="budget-cat-delete-cell">
                           {!item.locked && (
                             <Button variant="plain" className="btn-danger" onClick={() => removeCategory(item.id)} title="Xóa danh mục" icon={<Trash2 size={16} />} />
                           )}
                         </td>
                       </tr>
                     );
-                  })}
+                    });
+                  })()}
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={3}>Tổng cộng</td>
-                    <td className="money">{formatMoney(totals.totalBudget)}</td>
-                    <td className="money">{formatMoney(totals.totalActual)}</td>
-                    <td className={`money ${totals.totalBudget - totals.totalActual >= 0 ? "positive" : "negative"}`}>
+                    <td className="budget-cat-sort-cell"></td>
+                    <td colSpan={2}>Tổng cộng</td>
+                    <td className="money" data-label="Ngân sách">{formatMoney(totals.totalBudget)}</td>
+                    <td className="money" data-label="Chi thực tế">{formatMoney(totals.totalActual)}</td>
+                    <td className={`money ${totals.totalBudget - totals.totalActual >= 0 ? "positive" : "negative"}`} data-label="Chênh lệch">
                       {formatMoney(totals.totalBudget - totals.totalActual)}
                     </td>
-                    <td>{(totals.ratio * 100).toFixed(1)}%</td>
-                    <td></td>
+                    <td data-label="Tỷ trọng">{(totals.ratio * 100).toFixed(1)}%</td>
+                    <td className="budget-cat-delete-cell"></td>
                   </tr>
                 </tfoot>
               </table>
-            </div>
-            <div className="actions">
-              <Button onClick={addCategory} icon={<Plus size={18} />}>
-                Thêm danh mục
-              </Button>
-              <Button onClick={resetActual} icon={<RefreshCcw size={18} />}>
-                Reset chi tháng này
-              </Button>
-              <Button onClick={exportData} icon={<Download size={18} />}>
-                Xuất JSON
-              </Button>
-              <Button className="btn-danger" onClick={resetAll} icon={<RefreshCcw size={18} />}>
-                Reset dữ liệu
-              </Button>
             </div>
             </div>
           </div>

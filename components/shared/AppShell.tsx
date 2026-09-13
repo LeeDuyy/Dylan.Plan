@@ -38,26 +38,24 @@ export function AppShell({
   // Cây nav sau khi áp thứ tự + ẩn/hiện từ DB (NavPref).
   const groups = useMemo(() => applyNavPrefs(navGroups, navPrefs), [navPrefs]);
 
-  const [expanded, setExpanded] = useState<string[]>(() => {
+  const [expanded, setExpanded] = useState<string | null>(() => {
     const current = activeGroup(pathname, groups);
-    return current ? [current.label] : [];
+    return current ? current.label : null;
   });
 
   useEffect(() => setMounted(true), []);
 
-  // Mục cha chứa route hiện tại luôn được mở sẵn; các mục khác giữ nguyên trạng
-  // thái người dùng đã bấm.
+  // Chọn menu (đổi route) → chỉ mục cha chứa route hiện tại được mở, các mục
+  // khác tự đóng lại (accordion) — kể cả khi người dùng vừa bấm mở mục khác.
   useEffect(() => {
     const current = activeGroup(pathname, groups);
-    if (current) {
-      setExpanded((prev) => (prev.includes(current.label) ? prev : [...prev, current.label]));
-    }
+    setExpanded(current ? current.label : null);
   }, [pathname, groups]);
 
   const meta = currentMeta(pathname);
   const toggleTheme = () => setMode(dark ? "light" : "dark");
-  const toggleGroup = (label: string) =>
-    setExpanded((prev) => (prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]));
+  // Bấm vào mục cha đang đóng → mở nó và đóng mục khác; bấm mục đang mở → đóng lại.
+  const toggleGroup = (label: string) => setExpanded((prev) => (prev === label ? null : label));
 
   // `useDarkMode` chỉ biết giá trị thật (localStorage / prefers-color-scheme) sau khi
   // mount ở client — chờ mounted rồi mới chọn icon để khớp SSR, tránh hydration mismatch.
@@ -85,7 +83,7 @@ export function AppShell({
         );
       }
 
-      const open = expanded.includes(group.label);
+      const open = expanded === group.label;
 
       return (
         <div className="app-nav-group" key={group.label}>
