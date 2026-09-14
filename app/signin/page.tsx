@@ -1,5 +1,3 @@
-import { BriefcaseBusiness, ShieldCheck, WalletCards } from "lucide-react";
-
 import { signIn } from "@/auth";
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -7,12 +5,6 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   Configuration: "Hệ thống đăng nhập đang gặp sự cố cấu hình, thử lại sau.",
   Verification: "Liên kết đăng nhập đã hết hạn hoặc không hợp lệ."
 };
-
-const showcaseFeatures = [
-  [BriefcaseBusiness, "Theo dõi roadmap 40M net", "Pipeline ứng tuyển, phỏng vấn và offer trong một nơi duy nhất."],
-  [WalletCards, "Quản lý thu chi cá nhân", "Nhập nhanh chi tiêu, theo dõi ngân sách 35M/tháng theo danh mục."],
-  [ShieldCheck, "Riêng tư và bảo mật", "Chỉ tài khoản Google được cấp quyền mới truy cập được dữ liệu."]
-] as const;
 
 export default async function SignInPage({
   searchParams
@@ -36,17 +28,6 @@ export default async function SignInPage({
             <br />
             sản phẩm và thu chi
           </h1>
-          <div className="auth-features">
-            {showcaseFeatures.map(([Icon, title, desc]) => (
-              <div className="auth-feature" key={title}>
-                <Icon size={20} />
-                <div>
-                  <strong>{title}</strong>
-                  <p>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </aside>
 
         <div className="auth-panel">
