@@ -202,6 +202,17 @@ jobs:
             exit 1
           fi
 
+          for file in \
+            /CoverLetters/LeDuy_SeniorBackendDeveloper.pdf \
+            /CoverLetters/LeDuy_SeniorBackendEngineer.pdf \
+            /CoverLetters/LeDuy_SeniorFullStackEngineer.pdf \
+            /CoverLetters/LeDuy_SeniorFullstackDeveloper.pdf \
+            /CoverLetters/LeDuy_SeniorSoftwareEngineer.pdf \
+            /CoverLetters/LeDuy_TechnicalLeader.pdf; do
+            curl -k -fsS --retry 5 --retry-delay 3 --resolve dylan.com.vn:443:127.0.0.1 "https://dylan.com.vn${file}" -o /tmp/dylan-plan-cover-letter.pdf
+            test -s /tmp/dylan-plan-cover-letter.pdf
+          done
+
           # dashboard routes must NOT be reachable on the root domain
           for route in budget roadmap; do
             code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --resolve dylan.com.vn:443:127.0.0.1 "https://dylan.com.vn/${route}")
@@ -229,6 +240,17 @@ jobs:
             head -80 /tmp/dylan-plan-public.html
             exit 1
           fi
+
+          for file in \
+            /CoverLetters/LeDuy_SeniorBackendDeveloper.pdf \
+            /CoverLetters/LeDuy_SeniorBackendEngineer.pdf \
+            /CoverLetters/LeDuy_SeniorFullStackEngineer.pdf \
+            /CoverLetters/LeDuy_SeniorFullstackDeveloper.pdf \
+            /CoverLetters/LeDuy_SeniorSoftwareEngineer.pdf \
+            /CoverLetters/LeDuy_TechnicalLeader.pdf; do
+            curl -k -fsS --retry 5 --retry-delay 3 "https://dylan.com.vn${file}" -o /tmp/dylan-plan-cover-letter.pdf
+            test -s /tmp/dylan-plan-cover-letter.pdf
+          done
 
           for route in budget roadmap; do
             code=$(curl -k -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 "https://dylan.com.vn/${route}")
