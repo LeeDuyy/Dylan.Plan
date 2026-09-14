@@ -6,6 +6,7 @@ import {
   type JobApplicationStatus
 } from "../../domain/entities/job-application";
 import type { JobApplicationRepository } from "../../domain/repositories/job-application-repository";
+import { assertJobCompanyNameNotDuplicate, DuplicateJobCompanyNameError } from "../../domain/rules/job-company-name-rule";
 import { assertValidJobLink, InvalidJobLinkError } from "../../domain/rules/job-link-rule";
 import { computeNextSubmittedAt } from "../../domain/rules/job-submitted-at-rule";
 
@@ -62,6 +63,16 @@ export function createUpsertJobApplicationUseCase(repository: JobApplicationRepo
       throw error;
     }
     assertValidStatus(status);
+
+    const siblings = await repository.findAll();
+    try {
+      assertJobCompanyNameNotDuplicate(company, siblings, input.id);
+    } catch (error) {
+      if (error instanceof DuplicateJobCompanyNameError) {
+        throw new UpsertJobApplicationError(error.message);
+      }
+      throw error;
+    }
 
     const data = { company, deadline, platformId, link, status, note };
     if (!input.id) {

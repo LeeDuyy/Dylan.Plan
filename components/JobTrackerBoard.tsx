@@ -156,9 +156,28 @@ function toUpsertInput(form: JobForm, id?: string): UpsertJobApplicationInput {
   };
 }
 
-function validateJobForm(form: JobForm): FieldErrors {
+// Khớp đúng logic chuẩn hoá tên ở server (server/job-tracker/domain/rules/job-company-name-rule.ts)
+// để chặn trùng tên công ty NGAY ở client trước khi gọi Server Action.
+function normalizeJobCompanyNameClient(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function findDuplicateJobCompany(company: string, jobs: ClientJob[], excludeId?: string): boolean {
+  const normalized = normalizeJobCompanyNameClient(company);
+  if (!normalized) return false;
+  return jobs.some((job) => {
+    if (excludeId && job.id === excludeId) return false;
+    return normalizeJobCompanyNameClient(job.company) === normalized;
+  });
+}
+
+function validateJobForm(form: JobForm, jobs: ClientJob[], excludeId?: string): FieldErrors {
   const errors: FieldErrors = {};
-  if (!form.company.trim()) errors.company = "Nhập tên công ty.";
+  if (!form.company.trim()) {
+    errors.company = "Nhập tên công ty.";
+  } else if (findDuplicateJobCompany(form.company, jobs, excludeId)) {
+    errors.company = `Công ty "${form.company.trim()}" đã có trong danh sách theo dõi. Vui lòng đổi tên khác.`;
+  }
   if (!form.platformId.trim()) errors.platformId = "Chọn Platform.";
   if (!form.link.trim()) {
     errors.link = "Nhập link tin tuyển dụng.";
@@ -382,7 +401,7 @@ export function JobTrackerBoard({
     const job = jobsRef.current.find((item) => item.id === id);
     if (!job) return;
     const form = { ...toJobForm(job), ...overridePatch };
-    const errors = validateJobForm(form);
+    const errors = validateJobForm(form, jobsRef.current, id);
     if (hasErrors(errors)) {
       setRowErrors(id, errors);
       return;
@@ -401,7 +420,7 @@ export function JobTrackerBoard({
   };
 
   const saveDraft = async () => {
-    const errors = validateJobForm(draft);
+    const errors = validateJobForm(draft, jobsRef.current);
     if (hasErrors(errors)) {
       setRowErrors("draft", errors);
       return;
