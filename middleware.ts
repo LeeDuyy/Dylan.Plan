@@ -54,7 +54,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (PLAN_HOSTS.has(hostname)) {
-    if (pathname.startsWith("/api/auth") || pathname === "/signin") {
+    if (pathname.startsWith("/api/auth") || pathname === "/signin" || pathname === "/favicon.svg") {
       return NextResponse.next();
     }
 
