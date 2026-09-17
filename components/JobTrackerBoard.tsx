@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Input, Select, Table } from "@vn-dylan/ui";
+import { Button, Card, Input, Pagination, Select, Table, Tabs } from "@vn-dylan/ui";
 import { Check, ExternalLink, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -17,6 +17,7 @@ import {
 } from "@/server/job-tracker/actions";
 import type {
   JobApplicationEntity,
+  JobApplicationOwner,
   JobApplicationStatus,
   JobLinkField,
   JobLinkReadResult,
@@ -57,6 +58,7 @@ type JobForm = {
   link: string;
   status: JobApplicationStatus;
   note: string;
+  owner: JobApplicationOwner;
 };
 type ClientJob = Omit<JobApplicationEntity, "deadline" | "submittedAt" | "createdAt" | "updatedAt"> & {
   deadline: Date | string | null;
@@ -71,6 +73,8 @@ type JobTableRow =
   | { key: "draft"; kind: "draft" }
   | { key: string; kind: "job"; job: ClientJob };
 
+const JOB_PAGE_SIZE = 10;
+
 const LINK_MESSAGE_TTL_MS = 5_000;
 const LINK_READING_TTL_MS = 10_000;
 const LINK_FIELD_MESSAGES: Record<JobLinkField, string> = {
@@ -79,14 +83,22 @@ const LINK_FIELD_MESSAGES: Record<JobLinkField, string> = {
   deadline: "chưa lấy được Ngày hết hạn — mời chọn tay"
 };
 
-const EMPTY_JOB_FORM: JobForm = {
-  company: "",
-  deadline: "",
-  platformId: "",
-  link: "",
-  status: "Interested",
-  note: ""
-};
+function emptyJobForm(owner: JobApplicationOwner): JobForm {
+  return {
+    company: "",
+    deadline: "",
+    platformId: "",
+    link: "",
+    status: "Interested",
+    note: "",
+    owner
+  };
+}
+
+const OWNER_TABS: { value: JobApplicationOwner; label: string }[] = [
+  { value: "me", label: "Tôi" },
+  { value: "olivia", label: "Olivia" }
+];
 
 const STATUS_SELECT_OPTIONS = STATUS_OPTIONS.map((status) => opt(status));
 
@@ -140,7 +152,8 @@ function toJobForm(job: ClientJob): JobForm {
     platformId: job.platformId,
     link: job.link,
     status: job.status,
-    note: job.note ?? ""
+    note: job.note ?? "",
+    owner: job.owner
   };
 }
 
@@ -152,7 +165,8 @@ function toUpsertInput(form: JobForm, id?: string): UpsertJobApplicationInput {
     platformId: form.platformId,
     link: form.link,
     status: form.status,
-    note: form.note
+    note: form.note,
+    owner: form.owner
   };
 }
 
@@ -220,24 +234,87 @@ export function JobTrackerBoard({
 }) {
   const [jobs, setJobs] = useState<ClientJob[]>(initialJobs);
   const [platforms, setPlatforms] = useState<JobPlatformEntity[]>(initialPlatforms);
-  const [draft, setDraft] = useState<JobForm>(EMPTY_JOB_FORM);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const platformNameById = useMemo(() => new Map(platforms.map((platform) => [platform.id, platform.name])), [platforms]);
+
+  const refreshSnapshot = async (): Promise<JobTrackerSnapshot> => {
+    const snapshot = await getJobTrackerSnapshot();
+    setJobs(snapshot.jobs);
+    setPlatforms(snapshot.platforms);
+    return snapshot;
+  };
+
+  return (
+    <>
+      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+      <section className="section" id="job-tracker">
+        <div className="container">
+          <Card className="panel job-tracker-panel">
+            <Tabs className="job-tracker-tabs" defaultValue="me" variant="underline">
+              <Tabs.TabList>
+                {OWNER_TABS.map((tab) => (
+                  <Tabs.TabNav key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </Tabs.TabNav>
+                ))}
+              </Tabs.TabList>
+
+              {OWNER_TABS.map((tab) => (
+                <Tabs.TabContent key={tab.value} value={tab.value}>
+                  <JobOwnerPanel
+                    jobs={jobs}
+                    owner={tab.value}
+                    platformNameById={platformNameById}
+                    platforms={platforms}
+                    refreshSnapshot={refreshSnapshot}
+                    setJobs={setJobs}
+                    setToastMessage={setToastMessage}
+                  />
+                </Tabs.TabContent>
+              ))}
+            </Tabs>
+          </Card>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function JobOwnerPanel({
+  jobs: allJobs,
+  owner,
+  platformNameById,
+  platforms,
+  refreshSnapshot,
+  setJobs,
+  setToastMessage
+}: {
+  jobs: ClientJob[];
+  owner: JobApplicationOwner;
+  platformNameById: Map<string, string>;
+  platforms: JobPlatformEntity[];
+  refreshSnapshot: () => Promise<JobTrackerSnapshot>;
+  setJobs: (updater: (current: ClientJob[]) => ClientJob[]) => void;
+  setToastMessage: (message: string | null) => void;
+}) {
+  const jobs = useMemo(() => allJobs.filter((job) => job.owner === owner), [allJobs, owner]);
+  const [draft, setDraft] = useState<JobForm>(() => emptyJobForm(owner));
   const [adding, setAdding] = useState(false);
   const [sort, setSort] = useState<SortState>(null);
+  const [page, setPage] = useState(1);
   const [fieldErrors, setFieldErrors] = useState<Record<string, FieldErrors>>({});
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [confirmDeleteJobId, setConfirmDeleteJobId] = useState<string | null>(null);
   const [readingLinkByKey, setReadingLinkByKey] = useState<ReadingLinkMap>({});
   const [linkMessages, setLinkMessages] = useState<LinkMessageMap>({});
-  const jobsRef = useRef<ClientJob[]>(initialJobs);
+  const jobsRef = useRef<ClientJob[]>(jobs);
   const draftRef = useRef(draft);
   const lastReadLinkRef = useRef<Record<string, string>>(
-    Object.fromEntries(initialJobs.map((job) => [job.id, job.link]))
+    Object.fromEntries(jobs.map((job) => [job.id, job.link]))
   );
   const readingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const messageTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  const platformNameById = useMemo(() => new Map(platforms.map((platform) => [platform.id, platform.name])), [platforms]);
 
   useEffect(() => {
     jobsRef.current = jobs;
@@ -272,12 +349,16 @@ export function JobTrackerBoard({
     });
   }, [jobs, platformNameById, sort]);
 
-  const refreshSnapshot = async (): Promise<JobTrackerSnapshot> => {
-    const snapshot = await getJobTrackerSnapshot();
-    setJobs(snapshot.jobs);
-    setPlatforms(snapshot.platforms);
-    return snapshot;
-  };
+  const totalPages = Math.max(1, Math.ceil(sortedJobs.length / JOB_PAGE_SIZE));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pagedJobs = useMemo(() => {
+    const start = (page - 1) * JOB_PAGE_SIZE;
+    return sortedJobs.slice(start, start + JOB_PAGE_SIZE);
+  }, [page, sortedJobs]);
 
   const updateJobLocal = (id: string, patch: Partial<JobForm>) => {
     setJobs((current) =>
@@ -431,7 +512,7 @@ export function JobTrackerBoard({
       await createJobApplication(toUpsertInput(draft));
       clearRowErrors("draft");
       resetLinkReadState("draft");
-      setDraft(EMPTY_JOB_FORM);
+      setDraft(emptyJobForm(owner));
       setAdding(false);
       await refreshSnapshot();
     } catch (error) {
@@ -455,14 +536,15 @@ export function JobTrackerBoard({
   };
 
   const tableRows: JobTableRow[] = [
-    ...(adding ? ([{ key: "draft", kind: "draft" }] as JobTableRow[]) : []),
-    ...sortedJobs.map((job) => ({ key: job.id, kind: "job" as const, job }))
+    ...(adding && page === 1 ? ([{ key: "draft", kind: "draft" }] as JobTableRow[]) : []),
+    ...pagedJobs.map((job) => ({ key: job.id, kind: "job" as const, job }))
   ];
 
   const sortDirectionFor = (column: SortColumn): "asc" | "desc" | false =>
     sort?.column === column ? sort.direction : false;
 
   const toggleSort = (column: SortColumn) => {
+    setPage(1);
     setSort((current) => {
       if (current?.column !== column) return { column, direction: "asc" };
       if (current.direction === "asc") return { column, direction: "desc" };
@@ -586,7 +668,7 @@ export function JobTrackerBoard({
             disabled={savingId === "draft"}
             onClick={() => {
               setAdding(false);
-              setDraft(EMPTY_JOB_FORM);
+              setDraft(emptyJobForm(owner));
               clearRowErrors("draft");
               resetLinkReadState("draft");
             }}
@@ -626,54 +708,60 @@ export function JobTrackerBoard({
 
   return (
     <>
-      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-      <section className="section" id="job-tracker">
-        <div className="container">
-          <Card className="panel job-tracker-panel">
-            <div className="section-head job-tracker-head">
-              <Button variant="solid" onClick={() => setAdding(true)} icon={<Plus size={18} />}>
-                Thêm job
-              </Button>
-            </div>
+      <div className="section-head job-tracker-head">
+        <Button
+          variant="solid"
+          onClick={() => {
+            setPage(1);
+            setAdding(true);
+          }}
+          icon={<Plus size={18} />}
+        >
+          Thêm job
+        </Button>
+      </div>
 
-            <div className="job-tracker-table-wrap">
-              <Table className="job-tracker-table" hoverable>
-                <Table.THead>
-                  <Table.Tr>
-                    {COLUMNS.map((column) => (
-                      <Table.Th
-                        key={column.key}
-                        sortable={column.sortable}
-                        sortDirection={column.sortable ? sortDirectionFor(column.key as SortColumn) : undefined}
-                        onSort={column.sortable ? () => toggleSort(column.key as SortColumn) : undefined}
-                      >
-                        {column.title}
-                      </Table.Th>
-                    ))}
-                  </Table.Tr>
-                </Table.THead>
-                <Table.TBody>
-                  {tableRows.length === 0 ? (
-                    <Table.Tr>
-                      <Table.Td colSpan={COLUMNS.length} className="job-empty">
-                        Chưa có job nào.
-                      </Table.Td>
-                    </Table.Tr>
-                  ) : (
-                    tableRows.map((row) => (
-                      <Table.Tr key={row.key}>
-                        {COLUMNS.map((column) => (
-                          <Table.Td key={column.key}>{renderCell(column, row)}</Table.Td>
-                        ))}
-                      </Table.Tr>
-                    ))
-                  )}
-                </Table.TBody>
-              </Table>
-            </div>
-          </Card>
+      <div className="job-tracker-table-wrap">
+        <Table className="job-tracker-table" hoverable>
+          <Table.THead>
+            <Table.Tr>
+              {COLUMNS.map((column) => (
+                <Table.Th
+                  key={column.key}
+                  sortable={column.sortable}
+                  sortDirection={column.sortable ? sortDirectionFor(column.key as SortColumn) : undefined}
+                  onSort={column.sortable ? () => toggleSort(column.key as SortColumn) : undefined}
+                >
+                  {column.title}
+                </Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.THead>
+          <Table.TBody>
+            {tableRows.length === 0 ? (
+              <Table.Tr>
+                <Table.Td colSpan={COLUMNS.length} className="job-empty">
+                  Chưa có job nào.
+                </Table.Td>
+              </Table.Tr>
+            ) : (
+              tableRows.map((row) => (
+                <Table.Tr key={row.key}>
+                  {COLUMNS.map((column) => (
+                    <Table.Td key={column.key}>{renderCell(column, row)}</Table.Td>
+                  ))}
+                </Table.Tr>
+              ))
+            )}
+          </Table.TBody>
+        </Table>
+      </div>
+
+      {sortedJobs.length > 0 && (
+        <div className="job-tracker-pagination">
+          <Pagination currentPage={page} displayTotal onChange={setPage} pageSize={JOB_PAGE_SIZE} total={sortedJobs.length} />
         </div>
-      </section>
+      )}
     </>
   );
 }

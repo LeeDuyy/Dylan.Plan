@@ -47,7 +47,7 @@
 /* Density / cỡ hiển thị. `data-density` đặt trên <html> bởi init script trong
    app/layout.tsx (đọc localStorage "dylan-plan-density"); mặc định = comfortable. */
 :root {
-  --app-section-y: 22px;
+  --app-section-y: 16px;
   --app-content-pad-y: 16px;
   --app-card-pad: 18px;
   --app-card-pad-sm: 16px;
@@ -135,7 +135,9 @@ a {
   width: 100%;
   max-width: 2000px;
   margin: 0 auto;
-  padding: var(--app-content-pad-y) clamp(12px, 4vw, 32px);
+  /* Lề 2 bên khớp cùng nhịp 16px với khoảng cách banner → nội dung (--app-section-y) —
+     tránh viền trắng/xám rộng bất đối xứng quanh nội dung trên mọi trang. */
+  padding: var(--app-content-pad-y) clamp(12px, 4vw, 16px);
   min-width: 0;
 }
 
@@ -213,7 +215,7 @@ a {
   align-items: center;
   gap: 12px;
   min-height: 60px;
-  padding: 8px clamp(12px, 4vw, 32px);
+  padding: 8px clamp(12px, 4vw, 16px);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
@@ -677,8 +679,12 @@ h3 {
   color: var(--muted);
 }
 
+/* Chỉ padding-bottom (không padding-top): khoảng cách banner → section đầu đã do
+   `.app-content` lo, bỏ padding-top tránh cộng dồn khi nhiều section xếp chồng.
+   Giữ nguyên là padding (không đổi sang margin) vì BudgetApp.tsx đọc trực tiếp
+   `getComputedStyle(sectionEl).paddingBottom` để tính chiều cao 2 cột màn "Quản lý chi". */
 .section {
-  padding: var(--app-section-y) 0;
+  padding: 0 0 var(--app-section-y);
 }
 
 .section-head {
@@ -1800,13 +1806,27 @@ label > .dyl-select {
   font-weight: 700;
 }
 
-.job-tracker-panel {
-  display: grid;
-  gap: 16px;
+.job-tracker-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0;
 }
 
-.job-tracker-head {
-  margin-bottom: 0;
+/* Tabs "Tôi"/"Olivia" nằm trong CÙNG khung Card với bảng (không còn khối riêng
+   nổi trên nền xám của trang) — bỏ padding ngang mặc định của tab content vì
+   Card đã tự đệm, chỉ giữ khoảng cách dọc dưới đường viền tab. `:not([hidden])`
+   bắt buộc phải có — Tabs ẩn panel không active bằng attribute `hidden`
+   (display:none của UA stylesheet), tự đặt `display` ở đây đè mất nó thì cả
+   2 tab hiện chồng lên nhau cùng lúc. */
+.job-tracker-tabs .dyl-tabs__content:not([hidden]) {
+  display: grid;
+  gap: 16px;
+  padding: 16px 0 0;
+}
+
+.job-tracker-pagination {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Bảng "Theo dõi CV ứng tuyển": bảng rộng cuộn ngang BÊN TRONG khung `.job-tracker-table-wrap`,
@@ -1830,6 +1850,17 @@ label > .dyl-select {
 .job-tracker-table .dyl-table__td,
 .job-tracker-table .dyl-table__th {
   vertical-align: top;
+}
+
+/* Header bảng job vốn quá to (padding rộng + chữ hoa đậm) so với nội dung bên dưới. */
+.job-tracker-table .dyl-table__th {
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.job-tracker-table .job-sort-button {
+  font-weight: 700;
 }
 
 .job-tracker-table .platform-trigger span {
@@ -2104,7 +2135,7 @@ label > .dyl-select {
 .footer {
   flex: 0 0 auto;
   z-index: 25;
-  padding: 12px clamp(12px, 4vw, 32px);
+  padding: 12px clamp(12px, 4vw, 16px);
   color: var(--muted);
   font-size: 13px;
   text-align: center;

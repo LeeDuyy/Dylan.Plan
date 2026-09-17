@@ -1,4 +1,4 @@
-import type { JobApplicationEntity, JobApplicationStatus } from "../entities/job-application";
+import type { JobApplicationEntity, JobApplicationOwner, JobApplicationStatus } from "../entities/job-application";
 
 export type CreateJobApplicationInput = {
   company: string;
@@ -7,10 +7,11 @@ export type CreateJobApplicationInput = {
   link: string;
   status: JobApplicationStatus;
   note: string | null;
+  owner: JobApplicationOwner;
 };
 
 export type UpdateJobApplicationInput = Partial<
-  Pick<JobApplicationEntity, "company" | "deadline" | "platformId" | "link" | "status" | "note" | "submittedAt">
+  Pick<JobApplicationEntity, "company" | "deadline" | "platformId" | "link" | "status" | "note" | "submittedAt" | "owner">
 >;
 
 export interface JobApplicationRepository {

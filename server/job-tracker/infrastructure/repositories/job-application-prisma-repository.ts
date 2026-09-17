@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma as defaultPrisma } from "@/lib/prisma";
 
-import type { JobApplicationEntity, JobApplicationStatus } from "../../domain/entities/job-application";
+import type { JobApplicationEntity, JobApplicationOwner, JobApplicationStatus } from "../../domain/entities/job-application";
 import type {
   CreateJobApplicationInput,
   JobApplicationRepository,
@@ -17,6 +17,7 @@ type JobApplicationRow = {
   status: string;
   note: string | null;
   submittedAt: Date | null;
+  owner: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -31,6 +32,7 @@ function toEntity(row: JobApplicationRow): JobApplicationEntity {
     status: row.status as JobApplicationStatus,
     note: row.note,
     submittedAt: row.submittedAt,
+    owner: row.owner as JobApplicationOwner,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt
   };

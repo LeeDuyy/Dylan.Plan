@@ -197,6 +197,7 @@ Table JobApplication {
   status text [not null, default: 'Interested', note: 'Chỉ 1 trong 8 giá trị: Interested | Waiting | No Response | Response | Appointment | Cancel | Fail | Expired — ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (DEC-084, DEC-087, DEC-101, DEC-102)']
   note text
   submittedAt timestamp [note: '"Ngày nộp hồ sơ" — ghi khi chuyển Interested → Waiting, xoá khi chuyển ngược Waiting → Interested (BR-027, DEC-099, DEC-103); mốc để tính luật "quá 7 ngày → No Response" (BR-026)']
+  owner text [not null, default: 'me', note: 'Chỉ 1 trong 2 giá trị: me | olivia — tách job theo người dùng ở tab Job Tracker, ràng buộc ở tầng ứng dụng, không phải CHECK constraint của DB (theo mẫu status)']
   createdAt timestamp [not null]
   updatedAt timestamp [not null]
 
@@ -204,5 +205,6 @@ Table JobApplication {
 
   indexes {
     platformId
+    owner
   }
 }

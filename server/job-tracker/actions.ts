@@ -87,5 +87,5 @@ export async function readJobLink(url: string): Promise<JobLinkReadResult> {
 export type { JobTrackerSnapshot } from "./application/use-cases/get-job-tracker-snapshot";
 export type { JobLinkField, JobLinkReadResult } from "./application/use-cases/read-job-link";
 export type { UpsertJobApplicationInput } from "./application/use-cases/upsert-job-application";
-export type { JobApplicationEntity, JobApplicationStatus } from "./domain/entities/job-application";
+export type { JobApplicationEntity, JobApplicationOwner, JobApplicationStatus } from "./domain/entities/job-application";
 export type { JobPlatformEntity } from "./domain/entities/job-platform";

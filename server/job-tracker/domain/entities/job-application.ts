@@ -19,6 +19,10 @@ export const JOB_APPLICATION_STATUSES: JobApplicationStatus[] = [
   "Expired"
 ];
 
+export type JobApplicationOwner = "me" | "olivia";
+
+export const JOB_APPLICATION_OWNERS: JobApplicationOwner[] = ["me", "olivia"];
+
 export type JobApplicationEntity = {
   id: string;
   company: string;
@@ -28,6 +32,7 @@ export type JobApplicationEntity = {
   status: JobApplicationStatus;
   note: string | null;
   submittedAt: Date | null;
+  owner: JobApplicationOwner;
   createdAt: Date;
   updatedAt: Date;
 };

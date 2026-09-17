@@ -1,8 +1,10 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  JOB_APPLICATION_OWNERS,
   JOB_APPLICATION_STATUSES,
   type JobApplicationEntity,
+  type JobApplicationOwner,
   type JobApplicationStatus
 } from "../../domain/entities/job-application";
 import type { JobApplicationRepository } from "../../domain/repositories/job-application-repository";
@@ -19,6 +21,8 @@ export type UpsertJobApplicationInput = {
   link: string;
   status?: string;
   note?: string | null;
+  /** Chỉ dùng khi tạo mới — job thuộc tab nào ("me" | "olivia"). Mặc định "me". */
+  owner?: string;
 };
 
 export class UpsertJobApplicationError extends Error {}
@@ -26,6 +30,12 @@ export class UpsertJobApplicationError extends Error {}
 function assertValidStatus(status: string): asserts status is JobApplicationStatus {
   if (!JOB_APPLICATION_STATUSES.includes(status as JobApplicationStatus)) {
     throw new UpsertJobApplicationError("Trạng thái job không hợp lệ.");
+  }
+}
+
+function assertValidOwner(owner: string): asserts owner is JobApplicationOwner {
+  if (!JOB_APPLICATION_OWNERS.includes(owner as JobApplicationOwner)) {
+    throw new UpsertJobApplicationError("Người sở hữu job không hợp lệ.");
   }
 }
 
@@ -64,9 +74,14 @@ export function createUpsertJobApplicationUseCase(repository: JobApplicationRepo
     }
     assertValidStatus(status);
 
+    const currentJob = input.id ? await repository.findById(input.id) : null;
+    const owner = (input.owner?.trim() || currentJob?.owner || "me") as string;
+    assertValidOwner(owner);
+
     const siblings = await repository.findAll();
+    const ownerSiblings = siblings.filter((sibling) => sibling.owner === owner);
     try {
-      assertJobCompanyNameNotDuplicate(company, siblings, input.id);
+      assertJobCompanyNameNotDuplicate(company, ownerSiblings, input.id);
     } catch (error) {
       if (error instanceof DuplicateJobCompanyNameError) {
         throw new UpsertJobApplicationError(error.message);
@@ -76,12 +91,11 @@ export function createUpsertJobApplicationUseCase(repository: JobApplicationRepo
 
     const data = { company, deadline, platformId, link, status, note };
     if (!input.id) {
-      const result = await repository.create(data);
+      const result = await repository.create({ ...data, owner });
       revalidatePath("/");
       return result;
     }
 
-    const currentJob = await repository.findById(input.id);
     const submittedAt = computeNextSubmittedAt(currentJob?.status, status, currentJob?.submittedAt ?? null, new Date());
     const result = await repository.update(input.id, { ...data, submittedAt });
 

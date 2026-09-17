@@ -222,6 +222,7 @@ model JobApplication {
   status      String    @default("Interested")
   note        String?
   submittedAt DateTime?
+  owner       String    @default("me")
 
   platform JobPlatform @relation(fields: [platformId], references: [id], onDelete: Restrict)
 
@@ -229,4 +230,5 @@ model JobApplication {
   updatedAt DateTime @updatedAt
 
   @@index([platformId])
+  @@index([owner])
 }
