@@ -1859,7 +1859,11 @@ label > .dyl-select {
   letter-spacing: 0.02em;
 }
 
-.job-tracker-table .job-sort-button {
+/* Cột có thể sort render qua nút `.dyl-table__sorter` với padding riêng (.75rem 1rem) —
+   không zero padding này thì chữ ở các cột sort bị đẩy thấp hơn hẳn so với cột
+   "Ngày nộp hồ sơ" (không sort, chỉ là text thường trong <th>), nhìn lệch hàng. */
+.job-tracker-table .dyl-table__sorter {
+  padding: 0;
   font-weight: 700;
 }
 
