@@ -261,7 +261,7 @@ export function JobTrackerBoard({
   return (
     <>
       <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-      <section className="section" id="job-tracker">
+      <section className="section job-tracker-fill" id="job-tracker">
         <div className="container">
           <Card className="panel job-tracker-panel">
             <Tabs className="job-tracker-tabs" defaultValue="me" variant="underline">

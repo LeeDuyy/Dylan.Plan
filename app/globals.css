@@ -1846,20 +1846,92 @@ label > .dyl-select {
    Card đã tự đệm, chỉ giữ khoảng cách dọc dưới đường viền tab. `:not([hidden])`
    bắt buộc phải có — Tabs ẩn panel không active bằng attribute `hidden`
    (display:none của UA stylesheet), tự đặt `display` ở đây đè mất nó thì cả
-   2 tab hiện chồng lên nhau cùng lúc. */
+   2 tab hiện chồng lên nhau cùng lúc.
+   Dùng flex column (thay vì grid) vì layout "khoá chiều cao" bên dưới cần
+   `.job-tracker-table-wrap` co giãn (`flex: 1; min-height: 0`) để chỉ riêng
+   phần thân bảng cuộn dọc, còn tiêu đề cột + thanh phân trang đứng yên. */
 .job-tracker-tabs .dyl-tabs__content:not([hidden]) {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   padding: 16px 0 0;
 }
 
-/* Cố định (sticky) footer phân trang ở đáy vùng cuộn `.app-content` — bảng
-   có nhiều dòng/ghi chú nhiều dòng nên khá cao, không cố định thì phải cuộn
-   hết bảng mới thấy nút chuyển trang. */
+/* Trang "Theo dõi CV ứng tuyển" KHÔNG được cuộn cả trang (`.app-content`) —
+   chỉ phần thân bảng (`.job-tracker-table-wrap`) cuộn trong khung chiều cao
+   cố định, mọi thứ khác (ô tìm kiếm, nút "Thêm job", tiêu đề cột, thanh phân
+   trang) luôn hiện sẵn trên màn hình. Muốn vậy toàn bộ chuỗi cha — container →
+   Card → Tabs → nội dung tab — phải là flex column chiếm hết chiều cao còn lại
+   của `.app-content`, và mỗi tầng đều cần `min-height: 0` (mặc định flex item
+   không co xuống dưới kích thước nội dung, thiếu dòng này thì toàn bộ chuỗi
+   vẫn giãn theo nội dung con y như cũ). `:has()` chỉ bật hiệu ứng này khi
+   trình duyệt hỗ trợ; trình duyệt cũ rơi về hành vi cuộn cả trang như trước
+   (không hỏng gì, chỉ mất tính năng khoá chiều cao). */
+.app-content:has(.job-tracker-fill) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.job-tracker-fill {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.job-tracker-fill > .container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.job-tracker-fill .job-tracker-panel {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.job-tracker-fill .job-tracker-panel > .dyl-card__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.job-tracker-fill .job-tracker-tabs {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.job-tracker-fill .job-tracker-tabs > .dyl-tabs__list {
+  flex: 0 0 auto;
+}
+
+.job-tracker-fill .job-tracker-tabs .dyl-tabs__content:not([hidden]) {
+  flex: 1;
+  min-height: 0;
+}
+
+.job-tracker-fill .job-tracker-head {
+  flex: 0 0 auto;
+}
+
+.job-tracker-fill .job-tracker-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.job-tracker-fill .job-tracker-pagination {
+  flex: 0 0 auto;
+}
+
 .job-tracker-pagination {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
   display: flex;
   justify-content: flex-end;
   padding-top: 12px;
@@ -1878,6 +1950,27 @@ label > .dyl-select {
   width: 100%;
   min-width: 0;
   overflow-x: auto;
+}
+
+/* `<Table>` của @vn-dylan/ui tự bọc thêm 1 lớp `.dyl-table-wrap` có sẵn
+   `overflow-x: auto` riêng — theo spec CSS Overflow, đặt overflow-x khác
+   `visible` buộc overflow-y tính ra `auto` luôn (dù không set), nên lớp này
+   vô tình trở thành "scroll container" gần nhất của `<th>`. Nó không bao giờ
+   thật sự cuộn (cao bằng đúng bảng bên trong) nên sticky `top: 0` bám vào nó
+   coi như vô tác dụng. Trả `overflow: visible` để scroll (cả ngang lẫn dọc)
+   chỉ diễn ra đúng một nơi — ở `.job-tracker-table-wrap` bên ngoài. */
+.job-tracker-table-wrap .dyl-table-wrap {
+  overflow: visible;
+}
+
+/* Tiêu đề cột dính lại (sticky) khi `.job-tracker-table-wrap` cuộn dọc, để
+   luôn thấy tên cột dù đang xem hàng nào. Vô hại khi wrap không cuộn dọc
+   (trình duyệt cũ, xem phần khoá chiều cao ở trên). */
+.job-tracker-table .dyl-table__th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
 }
 
 .job-tracker-table {
