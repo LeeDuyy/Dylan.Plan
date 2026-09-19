@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card, Input, Pagination, Select, Table, Tabs } from "@vn-dylan/ui";
-import { Check, ExternalLink, Plus, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Plus, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Toast } from "@/components/shared/Toast";
@@ -176,6 +176,19 @@ function normalizeJobCompanyNameClient(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Tìm kiếm không phân biệt hoa/thường và không phân biệt dấu tiếng Việt
+// (vd. gõ "cong ty" vẫn khớp "Công Ty"). `normalize("NFD")` không tách được
+// "đ"/"Đ" thành d + dấu (đây là ký tự Unicode riêng, không phải d có dấu),
+// nên phải thay thủ công trước khi bỏ dấu các ký tự còn lại.
+function normalizeSearchText(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/đ/g, "d")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
 function findDuplicateJobCompany(company: string, jobs: ClientJob[], excludeId?: string): boolean {
   const normalized = normalizeJobCompanyNameClient(company);
   if (!normalized) return false;
@@ -302,6 +315,7 @@ function JobOwnerPanel({
   const [draft, setDraft] = useState<JobForm>(() => emptyJobForm(owner));
   const [adding, setAdding] = useState(false);
   const [sort, setSort] = useState<SortState>(null);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [fieldErrors, setFieldErrors] = useState<Record<string, FieldErrors>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -336,24 +350,34 @@ function JobOwnerPanel({
     };
   }, []);
 
+  const searchedJobs = useMemo(() => {
+    const needle = normalizeSearchText(search);
+    if (!needle) return jobs;
+    return jobs.filter((job) => normalizeSearchText(job.company).includes(needle));
+  }, [jobs, search]);
+
   const sortedJobs = useMemo(() => {
-    if (!sort) return jobs;
+    if (!sort) return searchedJobs;
     const getValue = (job: ClientJob) => {
       if (sort.column === "deadline") return toDateInputValue(job.deadline);
       if (sort.column === "platformId") return platformNameById.get(job.platformId) ?? "";
       return String(job[sort.column] ?? "");
     };
-    return [...jobs].sort((a, b) => {
+    return [...searchedJobs].sort((a, b) => {
       const result = getValue(a).localeCompare(getValue(b), "vi", { numeric: true, sensitivity: "base" });
       return sort.direction === "asc" ? result : -result;
     });
-  }, [jobs, platformNameById, sort]);
+  }, [searchedJobs, platformNameById, sort]);
 
   const totalPages = Math.max(1, Math.ceil(sortedJobs.length / JOB_PAGE_SIZE));
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const pagedJobs = useMemo(() => {
     const start = (page - 1) * JOB_PAGE_SIZE;
@@ -709,6 +733,16 @@ function JobOwnerPanel({
   return (
     <>
       <div className="section-head job-tracker-head">
+        <div className="job-tracker-search">
+          <Search size={15} />
+          <input
+            aria-label="Tìm công ty"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Tìm công ty..."
+            type="search"
+            value={search}
+          />
+        </div>
         <Button
           variant="solid"
           onClick={() => {
@@ -741,7 +775,7 @@ function JobOwnerPanel({
             {tableRows.length === 0 ? (
               <Table.Tr>
                 <Table.Td colSpan={COLUMNS.length} className="job-empty">
-                  Chưa có job nào.
+                  {search.trim() ? "Không tìm thấy công ty phù hợp." : "Chưa có job nào."}
                 </Table.Td>
               </Table.Tr>
             ) : (

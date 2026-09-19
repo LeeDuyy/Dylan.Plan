@@ -1808,8 +1808,37 @@ label > .dyl-select {
 
 .job-tracker-head {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 0;
+}
+
+.job-tracker-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(280px, 100%);
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--dyl-radius-md, 8px);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.job-tracker-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 8px 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.job-tracker-search input::-webkit-search-cancel-button {
+  cursor: pointer;
 }
 
 /* Tabs "Tôi"/"Olivia" nằm trong CÙNG khung Card với bảng (không còn khối riêng
@@ -1824,9 +1853,18 @@ label > .dyl-select {
   padding: 16px 0 0;
 }
 
+/* Cố định (sticky) footer phân trang ở đáy vùng cuộn `.app-content` — bảng
+   có nhiều dòng/ghi chú nhiều dòng nên khá cao, không cố định thì phải cuộn
+   hết bảng mới thấy nút chuyển trang. */
 .job-tracker-pagination {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
+  padding-top: 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 
 /* Bảng "Theo dõi CV ứng tuyển": bảng rộng cuộn ngang BÊN TRONG khung `.job-tracker-table-wrap`,
