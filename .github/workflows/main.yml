@@ -174,6 +174,16 @@ jobs:
             SUDO="sudo"
           fi
 
+          # nginx nạp cert kiettran.info khi start; thiếu cert là nginx chết và kéo sập cả dylan.com.vn.
+          # Dừng sớm, trước khi recreate container.
+          if ! $SUDO test -f /etc/letsencrypt/live/kiettran.info/fullchain.pem; then
+            echo "::error::Thiếu cert /etc/letsencrypt/live/kiettran.info. Chạy: certbot certonly --webroot -w /var/www/certbot -d kiettran.info -d www.kiettran.info"
+            exit 1
+          fi
+
+          # Network dùng chung với stack KietTranDesign (compose khai báo external).
+          $SUDO docker network inspect edge >/dev/null 2>&1 || $SUDO docker network create edge
+
           $SUDO mkdir -p /var/www/certbot
           if $SUDO test -d /etc/nginx; then
             $SUDO systemctl stop nginx || true

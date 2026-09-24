@@ -21,6 +21,9 @@ services:
     image: nginx:1.27-alpine
     depends_on:
       - app
+    networks:
+      - default
+      - edge
     ports:
       - "80:80"
       - "443:443"
@@ -29,3 +32,10 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot:ro
     restart: unless-stopped
+
+# Network dùng chung với các site khác trên VPS (kiettran-app từ repo KietTranDesign.Frontend).
+# Workflow deploy tạo sẵn bằng `docker network create edge` nếu chưa có.
+networks:
+  edge:
+    external: true
+    name: edge
