@@ -1,10 +1,13 @@
 "use client";
 
-import { Button, Card, Input, Pagination, Select, Table, Tabs } from "@vn-dylan/ui";
-import { Check, ExternalLink, Plus, Search, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Card, ConfirmDialog, DataTable, DatePicker, Input, Select, Tabs, type ColumnDef, type DataTableSort } from "@vn-dylan/ui";
+import { Check, ExternalLink, Plus, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { EmptyHint } from "@/components/shared/blocks";
+import { PageFrame } from "@/components/shared/PageFrame";
 import { Toast } from "@/components/shared/Toast";
+import { parseDateInput, toDateInput } from "@/lib/date-input";
 import { opt, selected } from "@/components/shared/ui";
 import {
   createJobApplication,
@@ -73,7 +76,7 @@ type JobTableRow =
   | { key: "draft"; kind: "draft" }
   | { key: string; kind: "job"; job: ClientJob };
 
-const JOB_PAGE_SIZE = 10;
+const JOB_PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 const LINK_MESSAGE_TTL_MS = 5_000;
 const LINK_READING_TTL_MS = 10_000;
@@ -102,8 +105,8 @@ const OWNER_TABS: { value: JobApplicationOwner; label: string }[] = [
 
 const STATUS_SELECT_OPTIONS = STATUS_OPTIONS.map((status) => opt(status));
 
-type ColumnDef = { key: SortColumn | "submittedAt" | "actions"; title: string; sortable: boolean };
-const COLUMNS: ColumnDef[] = [
+type JobColumn = { key: SortColumn | "submittedAt" | "actions"; title: string; sortable: boolean };
+const COLUMNS: JobColumn[] = [
   { key: "company", title: "Công ty", sortable: true },
   { key: "deadline", title: "Ngày hết hạn", sortable: true },
   { key: "platformId", title: "Platform", sortable: true },
@@ -111,7 +114,7 @@ const COLUMNS: ColumnDef[] = [
   { key: "status", title: "Trạng thái", sortable: true },
   { key: "submittedAt", title: "Ngày nộp hồ sơ", sortable: false },
   { key: "note", title: "Ghi chú", sortable: true },
-  { key: "actions", title: "", sortable: false }
+  { key: "actions", title: "Thao tác", sortable: false }
 ];
 
 function toDate(value: Date | string) {
@@ -259,11 +262,10 @@ export function JobTrackerBoard({
   };
 
   return (
-    <>
+    <PageFrame>
       <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-      <section className="section job-tracker-fill" id="job-tracker">
-        <div className="container">
-          <Card className="panel job-tracker-panel">
+      <section className="job-tracker-fill" id="job-tracker">
+        <Card className="job-tracker-panel">
             <Tabs className="job-tracker-tabs" defaultValue="me" variant="underline">
               <Tabs.TabList>
                 {OWNER_TABS.map((tab) => (
@@ -287,10 +289,9 @@ export function JobTrackerBoard({
                 </Tabs.TabContent>
               ))}
             </Tabs>
-          </Card>
-        </div>
+        </Card>
       </section>
-    </>
+    </PageFrame>
   );
 }
 
@@ -317,6 +318,7 @@ function JobOwnerPanel({
   const [sort, setSort] = useState<SortState>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(JOB_PAGE_SIZE_OPTIONS[0]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, FieldErrors>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [confirmDeleteJobId, setConfirmDeleteJobId] = useState<string | null>(null);
@@ -369,7 +371,7 @@ function JobOwnerPanel({
     });
   }, [searchedJobs, platformNameById, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedJobs.length / JOB_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(sortedJobs.length / pageSize));
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -380,9 +382,9 @@ function JobOwnerPanel({
   }, [search]);
 
   const pagedJobs = useMemo(() => {
-    const start = (page - 1) * JOB_PAGE_SIZE;
-    return sortedJobs.slice(start, start + JOB_PAGE_SIZE);
-  }, [page, sortedJobs]);
+    const start = (page - 1) * pageSize;
+    return sortedJobs.slice(start, start + pageSize);
+  }, [page, pageSize, sortedJobs]);
 
   const updateJobLocal = (id: string, patch: Partial<JobForm>) => {
     setJobs((current) =>
@@ -559,24 +561,26 @@ function JobOwnerPanel({
     }
   };
 
+  const confirmJob = confirmDeleteJobId ? jobs.find((job) => job.id === confirmDeleteJobId) ?? null : null;
+
   const tableRows: JobTableRow[] = [
     ...(adding && page === 1 ? ([{ key: "draft", kind: "draft" }] as JobTableRow[]) : []),
     ...pagedJobs.map((job) => ({ key: job.id, kind: "job" as const, job }))
   ];
 
-  const sortDirectionFor = (column: SortColumn): "asc" | "desc" | false =>
-    sort?.column === column ? sort.direction : false;
-
-  const toggleSort = (column: SortColumn) => {
+  // DataTable chạy chế độ "server" (onSort / onSearchChange / pagingData): bảng chỉ
+  // giữ trạng thái giao diện (ô tìm kiếm, cột, ghim), còn lọc không dấu, sắp xếp theo
+  // tên Platform, phân trang và hàng nháp "Thêm job" vẫn do component này tính.
+  // `onSort` phải ổn định — DataTable gọi nó trong effect phụ thuộc vào chính hàm này.
+  const handleSort = useCallback(({ key, order }: DataTableSort) => {
+    const next: SortState = key && order ? { column: key as SortColumn, direction: order } : null;
+    setSort((current) =>
+      current?.column === next?.column && current?.direction === next?.direction ? current : next
+    );
     setPage(1);
-    setSort((current) => {
-      if (current?.column !== column) return { column, direction: "asc" };
-      if (current.direction === "asc") return { column, direction: "desc" };
-      return null;
-    });
-  };
+  }, []);
 
-  const renderCell = (column: ColumnDef, row: JobTableRow) => {
+  const renderCell = (column: JobColumn, row: JobTableRow) => {
     if (column.key === "company") {
       return row.kind === "draft" ? (
         <JobTextInput error={fieldErrors.draft?.company} onChange={(company) => setDraft((current) => ({ ...current, company }))} value={draft.company} />
@@ -595,9 +599,11 @@ function JobOwnerPanel({
       ) : (
         <JobDateInput
           error={fieldErrors[row.job.id]?.deadline}
-          onBlur={() => commitJob(row.job.id)}
-          onChange={(deadline) => updateJobLocal(row.job.id, { deadline })}
-          title={formatDate(row.job.deadline)}
+          onChange={(deadline) => {
+            // Chọn ngày từ lịch là một thao tác hoàn chỉnh → lưu ngay (như đổi Trạng thái).
+            updateJobLocal(row.job.id, { deadline });
+            commitJob(row.job.id, { deadline });
+          }}
           value={toDateInputValue(row.job.deadline)}
         />
       );
@@ -702,27 +708,13 @@ function JobOwnerPanel({
         </div>
       );
     }
-    return confirmDeleteJobId === row.job.id ? (
-      <div className="job-confirm-delete">
-        <span>Xóa?</span>
-        <Button
-          size="sm"
-          className="btn-danger btn-danger-strong"
-          disabled={savingId === row.job.id}
-          onClick={() => confirmDeleteJob(row.job.id)}
-        >
-          Xác nhận xóa
-        </Button>
-        <Button size="sm" variant="plain" disabled={savingId === row.job.id} onClick={() => setConfirmDeleteJobId(null)}>
-          Hủy xóa
-        </Button>
-      </div>
-    ) : (
+    return (
       <Button
         variant="plain"
         size="sm"
-        className="btn-danger"
+        tone="danger"
         disabled={savingId === row.job.id}
+        aria-label="Xóa job"
         title="Xóa job"
         icon={<Trash2 size={16} />}
         onClick={() => setConfirmDeleteJobId(row.job.id)}
@@ -730,72 +722,76 @@ function JobOwnerPanel({
     );
   };
 
+  // Cột của DataTable phải giữ nguyên tham chiếu giữa các lần render: TanStack render
+  // `cell` như một React component, đổi hàm là remount ô → input mất focus mỗi lần gõ.
+  // Ô đọc `renderCell` mới nhất qua ref nên vẫn thấy state hiện tại.
+  const renderCellRef = useRef(renderCell);
+  renderCellRef.current = renderCell;
+  const columns = useMemo<ColumnDef<JobTableRow, unknown>[]>(
+    () =>
+      COLUMNS.map((column) => ({
+        id: column.key,
+        header: column.title,
+        // TanStack chỉ cho sắp xếp cột có accessor — giá trị không dùng tới vì sắp xếp
+        // chạy ở `sortedJobs` (onSort).
+        accessorFn: (row) => row.key,
+        enableSorting: column.sortable,
+        enableHiding: column.key !== "company" && column.key !== "actions",
+        cell: ({ row }) => (
+          <div className={`job-cell job-cell--${column.key}`}>{renderCellRef.current(column, row.original)}</div>
+        )
+      })),
+    []
+  );
+
   return (
     <>
-      <div className="section-head job-tracker-head">
-        <div className="job-tracker-search">
-          <Search size={15} />
-          <input
-            aria-label="Tìm công ty"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm công ty..."
-            type="search"
-            value={search}
-          />
-        </div>
-        <Button
-          variant="solid"
-          onClick={() => {
+      <div className="job-tracker-table">
+        <DataTable<JobTableRow>
+          columns={columns}
+          data={tableRows}
+          getRowId={(row) => row.key}
+          emptyMessage={<EmptyHint>{search.trim() ? "Không tìm thấy công ty phù hợp." : "Chưa có job nào. Bấm “Thêm job” để bắt đầu."}</EmptyHint>}
+          searchable
+          searchPlaceholder="Tìm công ty..."
+          onSearchChange={setSearch}
+          onSort={handleSort}
+          toolbarEnd={
+            <Button
+              variant="solid"
+              onClick={() => {
+                setPage(1);
+                setAdding(true);
+              }}
+              icon={<Plus size={18} />}
+            >
+              Thêm job
+            </Button>
+          }
+          initialState={{ columnPinning: { left: ["company"], right: ["actions"] } }}
+          pagingData={{ pageIndex: page, pageSize, total: sortedJobs.length }}
+          pageSizeOptions={JOB_PAGE_SIZE_OPTIONS}
+          onPaginationChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
             setPage(1);
-            setAdding(true);
           }}
-          icon={<Plus size={18} />}
-        >
-          Thêm job
-        </Button>
+        />
       </div>
 
-      <div className="job-tracker-table-wrap">
-        <Table className="job-tracker-table" hoverable>
-          <Table.THead>
-            <Table.Tr>
-              {COLUMNS.map((column) => (
-                <Table.Th
-                  key={column.key}
-                  sortable={column.sortable}
-                  sortDirection={column.sortable ? sortDirectionFor(column.key as SortColumn) : undefined}
-                  onSort={column.sortable ? () => toggleSort(column.key as SortColumn) : undefined}
-                >
-                  {column.title}
-                </Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.THead>
-          <Table.TBody>
-            {tableRows.length === 0 ? (
-              <Table.Tr>
-                <Table.Td colSpan={COLUMNS.length} className="job-empty">
-                  {search.trim() ? "Không tìm thấy công ty phù hợp." : "Chưa có job nào."}
-                </Table.Td>
-              </Table.Tr>
-            ) : (
-              tableRows.map((row) => (
-                <Table.Tr key={row.key}>
-                  {COLUMNS.map((column) => (
-                    <Table.Td key={column.key}>{renderCell(column, row)}</Table.Td>
-                  ))}
-                </Table.Tr>
-              ))
-            )}
-          </Table.TBody>
-        </Table>
-      </div>
-
-      {sortedJobs.length > 0 && (
-        <div className="job-tracker-pagination">
-          <Pagination currentPage={page} displayTotal onChange={setPage} pageSize={JOB_PAGE_SIZE} total={sortedJobs.length} />
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={confirmJob != null}
+        type="danger"
+        title={confirmJob ? `Xóa job "${confirmJob.company || "chưa đặt tên"}"?` : undefined}
+        confirmText="Xóa job"
+        cancelText="Hủy"
+        confirmButtonProps={{ disabled: confirmJob != null && savingId === confirmJob.id }}
+        onCancel={() => setConfirmDeleteJobId(null)}
+        onClose={() => setConfirmDeleteJobId(null)}
+        onConfirm={() => confirmJob && confirmDeleteJob(confirmJob.id)}
+      >
+        Job sẽ bị xóa khỏi danh sách theo dõi và không thể khôi phục.
+      </ConfirmDialog>
     </>
   );
 }
@@ -840,26 +836,22 @@ function JobNoteInput({
 
 function JobDateInput({
   error,
-  onBlur,
   onChange,
-  title,
   value
 }: {
   error?: string;
-  onBlur?: () => void;
   onChange: (value: string) => void;
-  title?: string;
   value: string;
 }) {
   return (
     <div className="job-field">
-      <Input
-        invalid={Boolean(error)}
-        onBlur={onBlur}
-        onChange={(event) => onChange(event.target.value)}
-        title={title}
-        type="date"
-        value={value}
+      <DatePicker
+        aria-label="Ngày hết hạn"
+        placeholder="Chọn ngày"
+        locale="vi"
+        inputFormat="DD/MM/YYYY"
+        value={parseDateInput(value)}
+        onChange={(date) => onChange(toDateInput(date))}
       />
       {error && <span className="job-field-error">{error}</span>}
     </div>

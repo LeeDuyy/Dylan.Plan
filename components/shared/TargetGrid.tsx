@@ -1,40 +1,36 @@
-import { Card } from "@vn-dylan/ui";
+"use client";
 
+import { Grid, Stack } from "@vn-dylan/ui";
+
+import { SectionHeading, StatCard } from "@/components/shared/blocks";
+
+// Lưới thẻ chỉ tiêu [giá trị, mô tả] — dùng cho KPI, tuần đầu, scorecard, rủi ro...
+// Tiêu đề nhóm chỉ hiện khi có eyebrow/title/desc.
 export function TargetGrid({
   eyebrow,
   title,
   desc,
-  items,
-  headless = false
+  items
 }: {
   eyebrow?: string;
   title?: string;
   desc?: string;
   items: string[][];
-  // `headless`: bỏ phần tiêu đề section (dùng khi header cố định đã hiển thị tiêu đề).
-  headless?: boolean;
 }) {
+  const grid = (
+    <Grid columns={{ base: 1, sm: 2, lg: 4 }} gap="loose">
+      {items.map(([value, label]) => (
+        <StatCard key={`${value}-${label}`} label={null} value={value} hint={label} className="target-card" />
+      ))}
+    </Grid>
+  );
+
+  if (!eyebrow && !title && !desc) return grid;
+
   return (
-    <section className="section">
-      <div className="container">
-        {!headless && (
-          <div className="section-head">
-            <div>
-              {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-              {title && <h2>{title}</h2>}
-            </div>
-            {desc && <p>{desc}</p>}
-          </div>
-        )}
-        <div className="targets">
-          {items.map(([value, label]) => (
-            <Card key={`${value}-${label}`} className="target-card">
-              <strong>{value}</strong>
-              <span>{label}</span>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </section>
+    <Stack gap="base">
+      <SectionHeading eyebrow={eyebrow} title={title} desc={desc} />
+      {grid}
+    </Stack>
   );
 }

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
-import { AppShell } from "@/components/shared/AppShell";
+import { AppFrame } from "@/components/shared/AppFrame";
 import { getNavConfig, getRoadmapConfig, getTimetableConfig } from "@/server/config/actions";
 
 // `force-dynamic`: layout đọc cấu hình (menu / roadmap / timetable) từ DB mỗi request
-// nên không được cache tĩnh. AppShell vẫn mount một lần và giữ trạng thái khi điều hướng.
+// nên không được cache tĩnh. AppFrame vẫn mount một lần và giữ trạng thái khi điều hướng.
 export const dynamic = "force-dynamic";
 
 export default async function AppGroupLayout({ children }: { children: ReactNode }) {
@@ -14,8 +14,8 @@ export default async function AppGroupLayout({ children }: { children: ReactNode
     getTimetableConfig()
   ]);
   return (
-    <AppShell navPrefs={navPrefs} roadmapPhases={roadmapPhases} timetableRows={timetableRows}>
+    <AppFrame navPrefs={navPrefs} roadmapPhases={roadmapPhases} timetableRows={timetableRows}>
       {children}
-    </AppShell>
+    </AppFrame>
   );
 }

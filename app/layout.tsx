@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "@vn-dylan/ui/styles.css";
 import "./globals.css";
 
-import { RootClient } from "@/components/shared/RootClient";
+import { RootClient, ToasterMount } from "@/components/shared/RootClient";
 import { UserSessionProvider } from "@/components/shared/UserSessionContext";
 import { auth } from "@/auth";
 
@@ -38,6 +38,7 @@ export default async function RootLayout({
         <UserSessionProvider email={session?.user?.email ?? null}>
           <RootClient>{children}</RootClient>
         </UserSessionProvider>
+        <ToasterMount />
       </body>
     </html>
   );

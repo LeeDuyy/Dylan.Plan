@@ -47,14 +47,6 @@
 /* Density / cỡ hiển thị. `data-density` đặt trên <html> bởi init script trong
    app/layout.tsx (đọc localStorage "dylan-plan-density"); mặc định = comfortable. */
 :root {
-  --app-section-y: 16px;
-  --app-content-pad-y: 16px;
-  --app-card-pad: 18px;
-  --app-card-pad-sm: 16px;
-  --app-gap: 15px;
-  --app-gap-sm: 12px;
-  --app-nav-link-pad-y: 9px;
-  --app-nav-link-font: 14px;
   --app-cell-min-h: 66px;
   --app-cell-pad: 8px;
   --app-h1: 38px;
@@ -62,14 +54,27 @@
   --app-line: 1.55;
 }
 
+/* Layout primitives của design system (Stack/Grid/Card/AppShell) lấy khoảng cách từ các
+   token nhịp `--dyl-gap-*`, `--dyl-inset-card`, `--dyl-gutter` — đổi chúng theo mật độ để
+   tuỳ chọn Gọn / Thoáng áp lên toàn bộ layout mới. "Vừa" giữ giá trị gốc của DS. */
 :root[data-density="compact"] {
-  --app-section-y: 12px;
-  --app-content-pad-y: 10px;
-  --app-card-pad: 12px;
-  --app-card-pad-sm: 11px;
-  --app-gap: 10px;
-  --app-gap-sm: 8px;
-  --app-nav-link-pad-y: 6px;
+  --dyl-gap-tight: 0.375rem;
+  --dyl-gap-base: 0.75rem;
+  --dyl-gap-loose: 1rem;
+  --dyl-gap-group: 1.5rem;
+  --dyl-inset-card: 1rem;
+  --dyl-gutter: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+}
+
+:root[data-density="spacious"] {
+  --dyl-gap-base: 1.25rem;
+  --dyl-gap-loose: 2rem;
+  --dyl-gap-group: 2.5rem;
+  --dyl-inset-card: 2rem;
+  --dyl-gutter: clamp(1.25rem, 0.75rem + 2vw, 2.5rem);
+}
+
+:root[data-density="compact"] {
   --app-cell-min-h: 52px;
   --app-cell-pad: 6px;
   --app-h1: 30px;
@@ -78,13 +83,6 @@
 }
 
 :root[data-density="spacious"] {
-  --app-section-y: 34px;
-  --app-content-pad-y: 24px;
-  --app-card-pad: 24px;
-  --app-card-pad-sm: 20px;
-  --app-gap: 20px;
-  --app-gap-sm: 16px;
-  --app-nav-link-pad-y: 11px;
   --app-cell-min-h: 78px;
   --app-cell-pad: 11px;
   --app-h1: 44px;
@@ -124,230 +122,122 @@ a {
   text-decoration: none;
 }
 
-.container {
-  width: min(2000px, calc(100% - 48px));
-  margin: 0 auto;
-}
-
-.app-content {
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
-  max-width: 2000px;
-  margin: 0 auto;
-  /* Lề 2 bên khớp cùng nhịp 16px với khoảng cách banner → nội dung (--app-section-y) —
-     tránh viền trắng/xám rộng bất đối xứng quanh nội dung trên mọi trang. */
-  padding: var(--app-content-pad-y) clamp(12px, 4vw, 16px);
-  min-width: 0;
-}
-
-.app-content .container {
-  width: 100%;
-}
-
-/* Layout chuẩn: sidebar điều hướng cố định bên trái + vùng nội dung cuộn riêng.
-   Điện thoại (≤1024px): ẩn sidebar, hiện thanh trên cùng gọn + nút ba gạch → Drawer trái. */
-.app-shell {
-  display: flex;
+/* Khung app (AppFrame → AppShell của design system). Cả trang cao đúng viewport: header
+   + footer đứng yên, chỉ vùng nội dung `.dyl-app-shell__main` cuộn. Màn "Quản lý chi"
+   và "Theo dõi CV" dựa vào main là vùng cuộn để tự khoá chiều cao (xem bên dưới). */
+.app-frame,
+.app-frame .dyl-app-shell__content {
   height: 100vh;
   height: 100dvh;
+  min-height: 0;
+}
+
+.app-frame .dyl-app-shell__content {
   overflow: hidden;
 }
 
-.app-sidebar {
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 248px;
-  width: 248px;
-  height: 100%;
-  padding: 18px 14px;
-  background: var(--surface);
-  border-right: 1px solid var(--line);
-}
-
-.app-sidebar-brand {
-  padding: 6px 8px 16px;
-  font-size: 16px;
-}
-
-.app-sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.app-frame .dyl-app-shell__main {
   overflow-y: auto;
-  flex: 1;
 }
 
-.app-sidebar-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 12px;
-  margin-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.app-sidebar-user {
-  padding: 2px 12px 6px;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* app-main không cuộn; chỉ .app-content ở giữa cuộn, header + footer đứng yên. */
-.app-main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  overflow: hidden;
-}
-
-.app-topbar {
-  flex: 0 0 auto;
-  z-index: 25;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 60px;
-  padding: 8px clamp(12px, 4vw, 16px);
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
-
-.app-topbar .app-topbar-menu {
+/* Sidebar tĩnh render trước khi AppShell biết viewport (SSR) — chỉ hiện từ `lg`. */
+.app-frame-ssr-sidebar {
   display: none;
 }
 
-.app-topbar-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
+@media (min-width: 1024px) {
+  .app-frame-ssr-sidebar {
+    display: block;
+  }
 
-.app-topbar-title {
-  overflow: hidden;
-  font-size: 15px;
-  font-weight: 750;
-  line-height: 1.35;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.app-topbar-desc {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.app-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: var(--app-nav-link-pad-y) 12px;
-  border: 0;
-  border-radius: var(--dyl-radius-md);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: var(--app-nav-link-font);
-  font-weight: 650;
-  white-space: nowrap;
-  text-align: left;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.app-nav-link:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-
-.app-nav-link.active {
-  color: var(--primary);
-  background: var(--primary-soft);
-}
-
-.app-nav-link--drawer {
-  padding: 12px;
-}
-
-/* Accordion điều hướng: mục cha + danh sách section con thụt vào. */
-.app-nav-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.app-nav-group-toggle {
-  width: 100%;
-  cursor: pointer;
-}
-
-.app-nav-group-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-nav-chevron {
-  flex: 0 0 auto;
-  color: var(--muted);
-  transition: transform 0.15s ease;
-}
-
-.app-nav-chevron.open {
-  transform: rotate(180deg);
-}
-
-.app-nav-sublist {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 2px 0 6px;
-  padding-left: 27px;
-}
-
-.app-nav-sublink {
-  padding: 7px 10px;
-  border-radius: var(--dyl-radius-md);
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.app-nav-sublink:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-
-.app-nav-sublink.active {
-  color: var(--primary);
-  background: var(--primary-soft);
-}
-
-@media (max-width: 1024px) {
-  .app-sidebar {
+  /* SSR cũng render sẵn nút mở menu mobile — ẩn ở desktop để không nháy trước hydrate. */
+  .app-frame .dyl-app-shell__trigger {
     display: none;
   }
+}
 
-  .app-topbar .app-topbar-menu {
-    display: inline-flex;
-  }
+.app-frame-crumb {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dyl-gap-tight);
+  min-width: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.app-frame-crumb span,
+.app-frame-crumb strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-frame-crumb strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.app-frame-actions {
+  flex: 0 0 auto;
+}
+
+.app-frame-footer {
+  text-align: center;
+}
+
+/* Sidebar: thương hiệu trên cùng, menu cuộn ở giữa, người dùng + đăng xuất dưới cùng. */
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-nav-brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--dyl-gap-base);
+  height: var(--dyl-header-height);
+  padding: 0 var(--dyl-gap-base);
+  font-weight: 800;
+}
+
+.app-nav-menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--dyl-gap-base) var(--dyl-gap-base);
+}
+
+.app-nav-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dyl-gap-tight);
+  min-width: 0;
+}
+
+.app-nav-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--dyl-gap-base);
+  border-top: 1px solid var(--line);
+}
+
+.app-nav-user {
+  overflow: hidden;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-nav-signout {
+  justify-content: flex-start;
 }
 
 .icon-button {
@@ -368,17 +258,6 @@ a {
   background: var(--surface-2);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 850;
-}
-
-.brand span:last-child {
-  white-space: nowrap;
-}
-
 .logo {
   display: grid;
   width: 40px;
@@ -389,25 +268,6 @@ a {
   color: #c8ff00;
   font-weight: 800;
   font-size: 20px;
-}
-
-
-.user-menu {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-left: 10px;
-  border-left: 1px solid var(--line);
-}
-
-.user-menu-email {
-  max-width: 160px;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .auth-shell {
@@ -469,8 +329,7 @@ a {
 
 .auth-brand,
 .auth-eyebrow,
-.auth-showcase h1,
-.auth-features {
+.auth-showcase h1 {
   position: relative;
   z-index: 1;
 }
@@ -508,33 +367,6 @@ a {
   font-size: 32px;
   line-height: 1.2;
   letter-spacing: 0;
-}
-
-.auth-features {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.auth-feature {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  font-size: 14px;
-  opacity: 0.95;
-}
-
-.auth-feature strong {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 14px;
-}
-
-.auth-feature p {
-  margin: 0;
-  font-size: 13px;
-  opacity: 0.85;
 }
 
 .auth-panel {
@@ -589,36 +421,9 @@ a {
   text-align: center;
 }
 
-.hero {
-  padding: 12px 0 4px;
-}
-
-/* Card của design system: gốc `.dyl-card`, thân `.dyl-card__body`. Các class app
-   (`.panel`, `.summary`, `.spotlight`...) đặt trên gốc; padding thân do rule dưới. */
+/* Padding thân Card do design system quyết định (`--dyl-inset-card`, đổi theo mật độ). */
 .dyl-card {
   color: var(--text);
-}
-
-.overview-phase .dyl-card__body {
-  display: grid;
-  gap: 12px;
-}
-
-.hero-main {
-  max-width: 860px;
-}
-
-/* Padding thân card của app đặt trên `.dyl-card__body` (class app nằm trên gốc card). */
-.panel > .dyl-card__body,
-.summary > .dyl-card__body,
-.priority > .dyl-card__body,
-.insight > .dyl-card__body,
-.rule > .dyl-card__body,
-.month-card > .dyl-card__body,
-.metric-card > .dyl-card__body,
-.focus-card > .dyl-card__body,
-.quick-panel > .dyl-card__body {
-  padding: var(--app-card-pad);
 }
 
 .eyebrow {
@@ -636,123 +441,112 @@ p {
   overflow-wrap: anywhere;
 }
 
+/* Khoảng cách giữa các khối do Stack / Grid / Inline (design system) quyết định —
+   heading và đoạn văn không tự đẩy nhau bằng margin. */
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+}
+
 h1 {
-  max-width: 860px;
-  margin: 10px 0 14px;
   font-size: var(--app-h1);
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
 
 h2 {
-  margin: 4px 0 0;
   font-size: var(--app-h2);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
 h3 {
-  margin: 8px 0 8px;
   font-size: 16px;
+  line-height: 1.35;
   letter-spacing: 0;
+}
+
+/* Tiêu đề trang (PageHeader) theo cỡ chữ của mật độ hiển thị. */
+.dyl-page-header__title {
+  font-size: var(--app-h1);
+}
+
+.dyl-page-header__description {
+  font-size: 14px;
+}
+
+/* Thẻ nội dung có tiêu đề (Panel) và thẻ số liệu (StatCard → StatisticCard). */
+.panel-heading {
+  min-width: 0;
+}
+
+.stat-card {
+  height: 100%;
+}
+
+.stat-card .dyl-statistic-card__body {
+  height: 100%;
+  padding: var(--dyl-inset-card);
+}
+
+.stat-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.stat-card[data-tone="positive"] .stat-card-value {
+  color: var(--success);
+}
+
+.stat-card[data-tone="negative"] .stat-card-value {
+  color: var(--danger);
+}
+
+.stat-card-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.info-card {
+  height: 100%;
+}
+
+.info-card p,
+.bullet-list {
+  font-size: 14px;
+}
+
+.bullet-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.service-meta-item {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 13px;
 }
 
 .gradient {
   color: var(--primary);
 }
 
-.lead {
-  max-width: 640px;
-  color: var(--muted);
-  font-size: 15px;
-}
-
-.hero-actions,
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 22px;
-}
-
 .muted {
   color: var(--muted);
 }
 
-/* Chỉ padding-bottom (không padding-top): khoảng cách banner → section đầu đã do
-   `.app-content` lo, bỏ padding-top tránh cộng dồn khi nhiều section xếp chồng.
-   Giữ nguyên là padding (không đổi sang margin) vì BudgetApp.tsx đọc trực tiếp
-   `getComputedStyle(sectionEl).paddingBottom` để tính chiều cao 2 cột màn "Quản lý chi". */
-.section {
-  padding: 0 0 var(--app-section-y);
-}
-
-.section-head {
-  margin-bottom: var(--app-gap);
-}
-
-.section-head p {
-  max-width: 640px;
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--app-gap);
-}
-
-.overview-phase {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 15px;
-}
-
-.overview-phase h3 {
-  margin: 0;
-}
-
-.targets,
-.service-grid,
-.module-grid,
-.product-roadmap {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--app-gap);
-}
-
-.service-grid {
-  grid-template-columns: repeat(3, 1fr);
-  margin-top: 18px;
-}
-
-.product-roadmap {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.summary .value,
-.metric-card strong,
-.insight strong {
-  display: block;
-  margin: 6px 0 4px;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.summary p,
-.priority p,
-.insight span,
-.rule p,
-.metric-card span,
-.focus-card p,
-.month-card p,
-.target-card span,
-.service-card p,
-.module-card p,
-.product-week li,
 .scenario-card p,
 .round span {
   margin: 0;
@@ -760,15 +554,6 @@ h3 {
   font-size: 14px;
 }
 
-.target-card > .dyl-card__body,
-.service-card > .dyl-card__body,
-.module-card > .dyl-card__body,
-.product-week > .dyl-card__body,
-.summary > .dyl-card__body {
-  padding: var(--app-card-pad-sm);
-}
-
-.target-card strong,
 .scenario-card strong {
   display: block;
   margin-bottom: 4px;
@@ -777,9 +562,6 @@ h3 {
   line-height: 1.15;
 }
 
-.service-card small,
-.module-card small,
-.product-week small,
 .round small {
   color: var(--muted);
   font-size: 11px;
@@ -787,21 +569,6 @@ h3 {
   letter-spacing: 0.03em;
 }
 
-.service-meta,
-.topic-list,
-.stack-list,
-.decision-list,
-.scenario-list,
-.income-breakdown {
-  display: grid;
-  gap: 10px;
-}
-
-.service-meta {
-  margin-top: 14px;
-}
-
-.service-meta span,
 .stack-row,
 .decision-item,
 .scenario-card,
@@ -811,71 +578,6 @@ h3 {
   border-radius: 10px;
   background: var(--surface-2);
   font-size: 13px;
-}
-
-.product-week ul {
-  margin: 10px 0 0;
-  padding-left: 18px;
-}
-
-.priority-bar {
-  display: block;
-  margin-top: 16px;
-}
-
-.hybrid-ratio.dyl-progress,
-.income-track.dyl-progress {
-  display: block;
-}
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
-  gap: 18px;
-}
-
-/* Màn "Quản lý chi": hàng trên cùng — bộ chọn tháng + nút "Items cần mua" trên
-   cùng một hàng. Bên dưới 2 cột theo tỉ lệ 3/12 - 9/12: trái "Nhập nhanh chi
-   tiêu", phải bảng danh mục + hành động. Mỗi cột cuộn dọc độc lập trong khung
-   cao cố định (thay vì đẩy cả trang dài ra); bảng rộng bên trong tự cuộn ngang
-   qua .budget-table-wrap. */
-.budget-expense-topbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.budget-expense-topbar .month-view-picker {
-  margin-bottom: 0;
-}
-
-/* Nhóm nút "Items cần mua" + 4 hành động (Thêm danh mục / Reset chi tháng này /
-   Xuất JSON / Reset dữ liệu) cạnh nhau bên phải topbar, tự xuống dòng khi hẹp.
-   .actions vốn có margin-top: 22px (dùng khi đứng dưới bảng) — bỏ ở đây để
-   không lệch hàng với nút "Items cần mua"; stretch + chiều cao cố định cho
-   toàn bộ nút (kể cả trong .dyl-badge) để đều nhau tuyệt đối. */
-.budget-expense-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.budget-expense-actions .actions {
-  display: flex;
-  align-items: stretch;
-  margin: 0;
-}
-
-.budget-expense-purchase-trigger {
-  display: flex;
-}
-
-.budget-expense-actions button {
-  height: 40px;
 }
 
 /* Chiều cao thật (px) được BudgetApp.tsx tính bằng JS và gán qua inline style
@@ -911,12 +613,6 @@ h3 {
    cuộn dọc như mong đợi. */
 .budget-expense-col > * {
   flex-shrink: 0;
-}
-
-/* Cột "Nhập nhanh chi tiêu" chỉ rộng 3/12 — .quick-grid mặc định 3 cột ngang
-   (label+input, label+select, nút) không đủ chỗ, xếp lại thành 1 cột dọc. */
-.budget-expense-col--quick .quick-grid {
-  grid-template-columns: 1fr;
 }
 
 /* Cột bảng danh mục: cuộn dọc + header/footer "fixed" nằm ngay trên
@@ -958,106 +654,28 @@ h3 {
   display: none;
 }
 
-.budget-expense-purchase-trigger .dyl-badge {
-  display: flex;
-}
-
-.budget-purchase-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.month-panels {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 /* Bộ chọn tháng đang xem ở đầu tab Insight / Ngân sách. */
 .month-view-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   max-width: 280px;
-  margin-bottom: 16px;
 }
 
 /* Trang "Lịch sử thu chi": tóm tắt thu/chi của tháng đang chọn, gọn trong 1 màn. */
-.month-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-}
-
 .month-toolbar-field {
-  display: flex;
   flex: 0 1 260px;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .month-toolbar-create {
-  display: flex;
-  flex: 1 1 280px;
-  flex-direction: column;
-  gap: 4px;
+  flex: 1 1 420px;
 }
 
-.month-toolbar-create-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.month-toolbar-create-row > label,
 .month-toolbar-create-row > .dyl-select {
-  flex: 1;
+  flex: 1 1 200px;
   min-width: 0;
-}
-
-.month-summary {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--app-gap);
-  margin-top: 16px;
-}
-
-.month-stat > .dyl-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.month-stat strong {
-  font-size: 21px;
-  font-weight: 850;
-  letter-spacing: -0.01em;
-}
-
-.month-stat.is-income strong,
-.month-stat.is-positive strong {
-  color: var(--success);
-}
-
-.month-stat.is-negative strong {
-  color: var(--danger);
-}
-
-.month-stat > .dyl-card__body > span:last-child {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.month-detail {
-  margin-top: 16px;
 }
 
 .detail-list {
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
 }
 
 .detail-list--scroll {
@@ -1101,12 +719,6 @@ h3 {
   font-weight: 750;
 }
 
-.spotlight {
-  border: 1.5px solid var(--primary);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 75%, var(--surface)), var(--surface) 70%);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent), var(--shadow);
-}
-
 .spotlight-label {
   display: inline-flex;
   align-items: center;
@@ -1116,38 +728,7 @@ h3 {
   font-weight: 800;
 }
 
-.spotlight .dyl-select__trigger {
-  min-height: 48px;
-  border-color: var(--primary);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.freelance-strategy,
-.decision-grid {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 18px;
-}
-
-.priority-grid,
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.priority .percent {
-  margin-top: 6px;
-  font-size: 22px;
-  font-weight: 700;
-}
-
 /* Lộ trình roadmap: Timeline của design system, mỗi mốc là một Timeline.Item (EL-18) */
-.roadmap-timeline {
-  margin-top: 4px;
-}
-
 .roadmap-phase-head {
   display: flex;
   flex-wrap: wrap;
@@ -1159,56 +740,15 @@ h3 {
   font-size: 15px;
 }
 
-.roadmap-phase h3 {
-  margin-top: 6px;
-}
-
-.roadmap-phase .deliverables {
-  margin-top: 12px;
-}
-
-.tag,
 .small {
   color: var(--muted);
   font-size: 13px;
-}
-
-.deliverables,
-.focus-grid,
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--app-gap-sm);
-}
-
-/* Insight: 8 thẻ số gọn xếp 2 hàng × 4 (co xuống 2 cột ở màn hẹp). */
-.insight-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--app-gap-sm);
-}
-
-.insight-grid .insight > .dyl-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: var(--app-card-pad-sm);
-}
-
-.insight-grid .insight strong {
-  margin: 2px 0;
-  font-size: 16px;
-}
-
-.insight-grid .insight span:not(.eyebrow) {
-  font-size: 12px;
 }
 
 /* Line chart xu hướng thu / chi. */
 .line-chart {
   width: 100%;
   height: auto;
-  margin-top: 12px;
 }
 
 .line-chart-grid {
@@ -1246,32 +786,8 @@ h3 {
   font-size: 9px;
 }
 
-.insight-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.insight-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.insight-toggle:hover {
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
 .deliverable,
-.topic,
-.budget-row-card {
+.topic {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1310,14 +826,6 @@ h3 {
   color: var(--primary);
 }
 
-.hybrid-ratio {
-  margin: 18px 0 12px;
-}
-
-.success-stick {
-  background: var(--success);
-}
-
 .ratio-labels {
   display: flex;
   justify-content: space-between;
@@ -1329,12 +837,6 @@ h3 {
 .ratio-labels strong {
   display: block;
   color: var(--text);
-}
-
-.flow-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
 }
 
 .flow-step {
@@ -1381,7 +883,6 @@ h3 {
 }
 
 .income-total {
-  margin: 6px 0;
   font-size: 28px;
   font-weight: 700;
   line-height: 1.1;
@@ -1392,17 +893,6 @@ h3 {
   grid-template-columns: 120px 1fr auto;
   align-items: center;
   gap: 12px;
-}
-
-.income-track {
-  min-width: 0;
-}
-
-.round-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 18px;
 }
 
 .round strong {
@@ -1463,7 +953,6 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 15px;
   color: var(--muted);
   font-size: 13px;
 }
@@ -1478,13 +967,8 @@ h3 {
   content: "";
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-label {
+/* Nhãn tự viết của các editor cấu hình (không áp lên nhãn `Form.Item` của design system). */
+label:not([class*="dyl-"]) {
   display: grid;
   gap: 7px;
   color: var(--muted);
@@ -1497,6 +981,27 @@ label {
 label > .dyl-input,
 label > .dyl-select {
   width: 100%;
+}
+
+/* Form nhập nhanh một hàng (nguồn thu, item mua sắm): các ô co giãn, nút giữ cỡ. */
+.quick-form-grow {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.form-alert {
+  margin-bottom: var(--dyl-gap-base);
+}
+
+.dyl-dropdown__item.dropdown-item-danger,
+.dropdown-item-danger {
+  color: var(--danger);
+}
+
+.insight-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .budget-table-wrap {
@@ -1544,62 +1049,7 @@ label > .dyl-select {
   color: var(--danger);
 }
 
-.progress {
-  height: 28px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: var(--line);
-}
-
-.progress span {
-  display: block;
-  height: 100%;
-  border-radius: 99px;
-  background: linear-gradient(90deg, var(--success), var(--primary));
-  transition: width 0.2s ease;
-}
-
-.progress span.warning-progress {
-  background: linear-gradient(90deg, var(--warning), var(--accent));
-}
-
-.progress span.danger-progress {
-  background: linear-gradient(90deg, var(--danger), var(--accent));
-}
-
-.result {
-  margin-top: 12px;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.result small {
-  display: block;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.quick-panel {
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-2);
-}
-
-.quick-panel h3 {
-  margin: 6px 0 10px;
-}
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr auto;
-  gap: 12px;
-  align-items: end;
-}
-
 .quick-result {
-  margin-top: 12px;
   padding: 12px;
   border-radius: 14px;
   background: var(--primary-soft);
@@ -1615,7 +1065,6 @@ label > .dyl-select {
   display: grid;
   max-height: 210px;
   gap: 8px;
-  margin-top: 12px;
   overflow: auto;
 }
 
@@ -1639,42 +1088,6 @@ label > .dyl-select {
 
 .transaction b {
   color: var(--primary);
-}
-
-.chart {
-  display: flex;
-  height: 220px;
-  align-items: flex-end;
-  gap: 10px;
-  overflow: hidden;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface-2);
-}
-
-.col {
-  display: flex;
-  min-width: 42px;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.stick {
-  width: 100%;
-  max-width: 44px;
-  min-height: 4px;
-  border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, var(--primary), var(--accent));
-}
-
-.col small {
-  color: var(--muted);
-  font-size: 11px;
-  text-align: center;
 }
 
 .pie-wrap {
@@ -1786,13 +1199,6 @@ label > .dyl-select {
   background: var(--primary-soft);
 }
 
-.pill-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-
 .pill {
   display: inline-flex;
   align-items: center;
@@ -1806,221 +1212,102 @@ label > .dyl-select {
   font-weight: 700;
 }
 
-.job-tracker-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 0;
-}
-
-.job-tracker-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: min(280px, 100%);
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--dyl-radius-md, 8px);
-  background: var(--surface);
-  color: var(--muted);
-}
-
-.job-tracker-search input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  padding: 8px 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  outline: none;
-}
-
-.job-tracker-search input::-webkit-search-cancel-button {
-  cursor: pointer;
-}
-
-/* Tabs "Tôi"/"Olivia" nằm trong CÙNG khung Card với bảng (không còn khối riêng
-   nổi trên nền xám của trang) — bỏ padding ngang mặc định của tab content vì
-   Card đã tự đệm, chỉ giữ khoảng cách dọc dưới đường viền tab. `:not([hidden])`
-   bắt buộc phải có — Tabs ẩn panel không active bằng attribute `hidden`
-   (display:none của UA stylesheet), tự đặt `display` ở đây đè mất nó thì cả
-   2 tab hiện chồng lên nhau cùng lúc.
-   Dùng flex column (thay vì grid) vì layout "khoá chiều cao" bên dưới cần
-   `.job-tracker-table-wrap` co giãn (`flex: 1; min-height: 0`) để chỉ riêng
-   phần thân bảng cuộn dọc, còn tiêu đề cột + thanh phân trang đứng yên. */
+/* Tabs "Tôi"/"Olivia" nằm trong CÙNG khung Card với bảng — bỏ padding ngang mặc định
+   của tab content vì Card đã tự đệm. `:not([hidden])` bắt buộc: Tabs ẩn panel không
+   active bằng attribute `hidden`, tự đặt `display` mà thiếu nó thì 2 tab hiện chồng nhau. */
 .job-tracker-tabs .dyl-tabs__content:not([hidden]) {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px 0 0;
+  padding: var(--dyl-gap-base) 0 0;
 }
 
-/* Trang "Theo dõi CV ứng tuyển" KHÔNG được cuộn cả trang (`.app-content`) —
-   chỉ phần thân bảng (`.job-tracker-table-wrap`) cuộn trong khung chiều cao
-   cố định, mọi thứ khác (ô tìm kiếm, nút "Thêm job", tiêu đề cột, thanh phân
-   trang) luôn hiện sẵn trên màn hình. Muốn vậy toàn bộ chuỗi cha — container →
-   Card → Tabs → nội dung tab — phải là flex column chiếm hết chiều cao còn lại
-   của `.app-content`, và mỗi tầng đều cần `min-height: 0` (mặc định flex item
-   không co xuống dưới kích thước nội dung, thiếu dòng này thì toàn bộ chuỗi
-   vẫn giãn theo nội dung con y như cũ). `:has()` chỉ bật hiệu ứng này khi
-   trình duyệt hỗ trợ; trình duyệt cũ rơi về hành vi cuộn cả trang như trước
-   (không hỏng gì, chỉ mất tính năng khoá chiều cao). */
-.app-content:has(.job-tracker-fill) {
+/* Trang "Theo dõi CV ứng tuyển" KHÔNG cuộn cả trang (`AppShell.Main`) — chỉ thân bảng
+   (vùng `.dyl-table-wrap` của DataTable) cuộn trong khung chiều cao cố định; PageHeader,
+   thanh công cụ (tìm kiếm, Cột, "Thêm job"), tiêu đề cột và thanh phân trang luôn hiện.
+   Muốn vậy toàn bộ chuỗi cha — main → trang (transition) → PageFrame → Card → Tabs →
+   nội dung tab → DataTable — phải là flex column chiếm hết chiều cao còn lại, mỗi tầng
+   đều cần `min-height: 0`. `:has()` chỉ bật hiệu ứng này khi trình duyệt hỗ trợ; trình
+   duyệt cũ rơi về hành vi cuộn cả trang (không hỏng gì, chỉ mất khoá chiều cao). */
+.dyl-app-shell__main:has(.job-tracker-fill),
+.dyl-app-shell__main:has(.job-tracker-fill) > .dyl-app-shell__page,
+.dyl-app-shell__main:has(.job-tracker-fill) .page-frame,
+.dyl-app-shell__main:has(.job-tracker-fill) .page-frame > .dyl-stack,
+.job-tracker-fill,
+.job-tracker-fill .job-tracker-panel,
+.job-tracker-fill .job-tracker-panel > .dyl-card__body,
+.job-tracker-fill .job-tracker-tabs,
+.job-tracker-fill .job-tracker-tabs .dyl-tabs__content:not([hidden]),
+.job-tracker-fill .job-tracker-table,
+.job-tracker-fill .job-tracker-table .dyl-data-table {
   display: flex;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
+}
+
+.dyl-app-shell__main:has(.job-tracker-fill) {
   overflow: hidden;
 }
 
-.job-tracker-fill {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.job-tracker-fill > .container {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.job-tracker-fill .job-tracker-panel {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.job-tracker-fill .job-tracker-panel > .dyl-card__body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.job-tracker-fill .job-tracker-tabs {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.job-tracker-fill .job-tracker-tabs > .dyl-tabs__list {
+.job-tracker-fill .job-tracker-tabs > .dyl-tabs__list,
+.job-tracker-fill .dyl-data-table__toolbar,
+.job-tracker-fill .dyl-data-table__footer {
   flex: 0 0 auto;
 }
 
-.job-tracker-fill .job-tracker-tabs .dyl-tabs__content:not([hidden]) {
+/* Vùng cuộn duy nhất của bảng: cả ngang (bảng rộng) lẫn dọc (khi khoá chiều cao). */
+.job-tracker-fill .job-tracker-table .dyl-table-wrap {
   flex: 1;
   min-height: 0;
+  overflow: auto;
 }
 
-.job-tracker-fill .job-tracker-head {
-  flex: 0 0 auto;
-}
-
-.job-tracker-fill .job-tracker-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.job-tracker-fill .job-tracker-pagination {
-  flex: 0 0 auto;
-}
-
-.job-tracker-pagination {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 12px;
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-}
-
-/* Bảng "Theo dõi CV ứng tuyển": bảng rộng cuộn ngang BÊN TRONG khung `.job-tracker-table-wrap`,
-   không đẩy trang. Cần `min-width: 0` xuyên chuỗi flex để khung bảng bị kẹp đúng bề ngang cha. */
-.app-content .container,
-.job-tracker-panel .dyl-card__body {
-  min-width: 0;
-}
-
-.job-tracker-table-wrap {
-  width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-}
-
-/* `<Table>` của @vn-dylan/ui tự bọc thêm 1 lớp `.dyl-table-wrap` có sẵn
-   `overflow-x: auto` riêng — theo spec CSS Overflow, đặt overflow-x khác
-   `visible` buộc overflow-y tính ra `auto` luôn (dù không set), nên lớp này
-   vô tình trở thành "scroll container" gần nhất của `<th>`. Nó không bao giờ
-   thật sự cuộn (cao bằng đúng bảng bên trong) nên sticky `top: 0` bám vào nó
-   coi như vô tác dụng. Trả `overflow: visible` để scroll (cả ngang lẫn dọc)
-   chỉ diễn ra đúng một nơi — ở `.job-tracker-table-wrap` bên ngoài. */
-.job-tracker-table-wrap .dyl-table-wrap {
-  overflow: visible;
-}
-
-/* Tiêu đề cột dính lại (sticky) khi `.job-tracker-table-wrap` cuộn dọc, để
-   luôn thấy tên cột dù đang xem hàng nào. Vô hại khi wrap không cuộn dọc
-   (trình duyệt cũ, xem phần khoá chiều cao ở trên). */
-.job-tracker-table .dyl-table__th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--surface);
-}
-
+/* Cần `min-width: 0` xuyên chuỗi flex để khung bảng bị kẹp đúng bề ngang cha. */
+.job-tracker-panel .dyl-card__body,
 .job-tracker-table {
+  min-width: 0;
+}
+
+.job-tracker-table .dyl-table {
   width: 100%;
   min-width: 1180px;
 }
 
-.job-tracker-table .dyl-table__td,
+/* Tiêu đề cột dính trên cùng khi thân bảng cuộn dọc; cột đã ghim (data-pinned) vẫn
+   dính theo chiều ngang và nằm trên các ô khác. */
 .job-tracker-table .dyl-table__th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+}
+
+.job-tracker-table .dyl-table__th[data-pinned] {
+  z-index: 3;
+}
+
+/* Padding của tiêu đề cột nằm ở nút sắp xếp bên trong (`__sorter` / `__label`). DataTable
+   muốn `th` có padding 0 nhưng rule `.dyl-table__th` (px-4 py-3) đứng sau trong styles.css
+   nên thắng → tiêu đề cao gấp đôi (64px). Trả về 0 để hàng tiêu đề còn 40px. */
+.job-tracker-table .dyl-data-table__th {
+  padding: 0;
+}
+
+.job-tracker-table .dyl-table__td {
   vertical-align: top;
 }
 
-/* Header bảng job vốn quá to (padding rộng + chữ hoa đậm) so với nội dung bên dưới. */
-.job-tracker-table .dyl-table__th {
-  padding: 8px 12px;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-}
-
-/* Cột có thể sort render qua nút `.dyl-table__sorter` với padding riêng (.75rem 1rem) —
-   không zero padding này thì chữ ở các cột sort bị đẩy thấp hơn hẳn so với cột
-   "Ngày nộp hồ sơ" (không sort, chỉ là text thường trong <th>), nhìn lệch hàng. */
-.job-tracker-table .dyl-table__sorter {
-  padding: 0;
-  font-weight: 700;
-}
+/* Bề rộng tối thiểu theo cột (gắn trên nội dung ô nên vẫn đúng khi người dùng đổi thứ
+   tự / ghim / ẩn cột trong DataTable). */
+.job-cell--company { min-width: 200px; }
+.job-cell--deadline { min-width: 160px; }
+.job-cell--platformId { min-width: 160px; }
+.job-cell--link { min-width: 280px; }
+.job-cell--status { min-width: 150px; }
+.job-cell--submittedAt { min-width: 130px; }
+.job-cell--note { min-width: 240px; }
 
 .job-tracker-table .platform-trigger span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.job-sort-button {
-  display: inline-flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 850;
-  padding: 0;
-  text-align: left;
-}
-
-.job-sort-button span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2149,12 +1436,6 @@ label > .dyl-select {
   font-weight: 800;
 }
 
-.danger-inline {
-  border-color: color-mix(in srgb, var(--danger) 28%, var(--line));
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
 .job-empty {
   color: var(--muted);
   text-align: center;
@@ -2248,13 +1529,6 @@ label > .dyl-select {
   background: var(--surface-2);
 }
 
-/* Nút "Chỉnh sửa trang" (US-027) — nổi bên phải, ngay trên nội dung trang. */
-.page-edit-bar {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 16px;
-}
-
 .page-content-field {
   display: flex;
   flex-direction: column;
@@ -2267,25 +1541,11 @@ label > .dyl-select {
   font-weight: 700;
 }
 
-.footer {
-  flex: 0 0 auto;
-  z-index: 25;
-  padding: 12px clamp(12px, 4vw, 16px);
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-  background: var(--surface);
-  border-top: 1px solid var(--line);
-}
-
 @media (max-width: 1000px) {
   .budget-expense-cols {
     grid-template-columns: 1fr;
   }
 
-  .two-col,
-  .freelance-strategy,
-  .decision-grid,
   .auth-grid {
     grid-template-columns: 1fr;
   }
@@ -2298,92 +1558,13 @@ label > .dyl-select {
     font-size: 26px;
   }
 
-  .summary-grid,
-  .priority-grid,
-  .metric-grid,
-  .targets,
-  .module-grid,
-  .product-roadmap,
-  .deliverables,
-  .focus-grid,
-  .month-grid,
-  .month-summary,
-  .insight-grid,
-  .flow-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .service-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .user-menu-email {
-    display: none;
-  }
 }
 
 @media (max-width: 650px) {
-  .panel > .dyl-card__body {
-    padding: 16px;
-  }
-
-  .month-summary {
-    grid-template-columns: 1fr;
-  }
-
-  /* Mobile: topbar "Quản lý chi" xếp thành cột, nút full-width; bỏ cuộn nội bộ
-     mỗi cột (khó thao tác trên cảm ứng) — để cả trang cuộn tự nhiên. */
-  .budget-expense-topbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .budget-expense-topbar .month-view-picker {
-    max-width: none;
-  }
-
-  /* Badge bọc nút bằng 2 lớp inline-flex co theo nội dung (.dyl-badge,
-     .dyl-badge__child) — chỉ đổi lớp ngoài sang block/flex thì chấm đỏ
-     (position: absolute; inset-inline-end: 0) bị lệch ra mép container thay vì
-     mép nút. Phải cho cả lớp trong `flex-grow` theo thì nút mới thật sự full
-     width và chấm đỏ vẫn đúng góc nút. */
-  .budget-expense-purchase-trigger .dyl-badge {
-    display: flex;
-  }
-
-  .budget-expense-purchase-trigger .dyl-badge__child {
-    display: flex;
-    flex: 1;
-  }
-
-  .budget-expense-purchase-trigger button {
-    width: 100%;
-    justify-content: center;
-  }
-
   .budget-expense-col {
     height: auto;
     max-height: none;
     overflow-y: visible;
-  }
-
-  /* Nhóm nút hành động xuống hàng riêng, full-width, xếp lưới 2 cột cho gọn
-     thay vì 4 nút dài xếp chồng theo cột. */
-  .budget-expense-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .budget-expense-actions .actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-    margin: 0;
-  }
-
-  .budget-expense-actions .actions button {
-    width: 100%;
-    justify-content: center;
   }
 
   /* Bảng danh mục "Quản lý chi": bỏ khung cuộn cố định + chuyển mỗi dòng thành
@@ -2478,60 +1659,17 @@ label > .dyl-select {
     font-size: 20px;
   }
 
-  .summary-grid,
-  .priority-grid,
-  .metric-grid,
-  .targets,
-  .service-grid,
-  .module-grid,
-  .product-roadmap,
-  .flow-grid,
-  .round-grid,
-  .deliverables,
-  .focus-grid,
-  .month-grid,
-  .quick-grid,
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* Thẻ insight đã gọn — giữ 2 cột cả trên điện thoại. */
-  .insight-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .stack-row,
   .income-row {
     grid-template-columns: 1fr;
   }
 
-  .section-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 /* ------------------------------------------------------------------ */
-/* Cầu nối với component @vn-dylan/ui: thay các prop inline đã mất khi */
-/* rời antd (nút nguy hiểm, màu progress theo ngưỡng, tag trạng thái). */
+/* Cầu nối với component @vn-dylan/ui: màu progress theo ngưỡng, tag   */
+/* trạng thái (nút nguy hiểm dùng `tone="danger"` của Button).         */
 /* ------------------------------------------------------------------ */
-
-.dyl-btn.btn-danger {
-  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.dyl-btn.btn-danger:hover {
-  border-color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 16%, transparent);
-}
-
-.dyl-btn.btn-danger.btn-danger-strong {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: #fff;
-}
 
 /* Progress: màu vạch fill theo ngưỡng dùng khi truyền `strokeClass`. */
 .dyl-progress__line-value.progress-warn {
@@ -2558,12 +1696,7 @@ label > .dyl-select {
   color: var(--warning);
 }
 
-/* Bảng job: căn header sắp xếp + ô nhập gọn trong ô. */
-.job-tracker-table .dyl-table__th--sortable {
-  cursor: pointer;
-  white-space: nowrap;
-}
-
+/* Bảng job: ô nhập gọn trong ô. */
 .job-tracker-table .job-field .dyl-input,
 .job-tracker-table .job-field .dyl-select {
   width: 100%;
@@ -2574,12 +1707,6 @@ label > .dyl-select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Danh sách điều hướng trong Drawer điện thoại. */
-.app-nav-drawer {
-  display: grid;
-  gap: 2px;
 }
 
 /* Drawer tuỳ chỉnh (nút bánh răng trên header). */
@@ -2616,41 +1743,9 @@ label > .dyl-select {
   font-size: 13px;
 }
 
-.nav-config-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .nav-config-list[aria-busy="true"] {
   opacity: 0.6;
   pointer-events: none;
-}
-
-.nav-config-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-bottom: 6px;
-}
-
-.nav-config-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: var(--dyl-radius-md);
-  background: var(--surface-2);
-}
-
-.nav-config-row.is-child {
-  margin-left: 18px;
-  background: transparent;
-}
-
-.nav-config-row.is-hidden .nav-config-label {
-  color: var(--muted);
-  text-decoration: line-through;
 }
 
 .nav-config-move {
@@ -2659,14 +1754,9 @@ label > .dyl-select {
   gap: 2px;
 }
 
-.nav-config-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.nav-config-label.is-hidden {
+  color: var(--muted);
+  text-decoration: line-through;
 }
 
 /* Editor Roadmap / Timetable trong drawer config. */

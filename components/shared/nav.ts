@@ -46,7 +46,7 @@ export const navGroups: NavGroup[] = [
       {
         href: "/roadmap/priorities",
         label: "Ưu tiên hiện tại",
-        desc: "Trong giai đoạn 22/06-15/09, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio."
+        desc: "Trong giai đoạn hiện tại, chuyển việc là ưu tiên tuyệt đối; freelance và sản phẩm chỉ hỗ trợ portfolio."
       },
       {
         href: "/roadmap/jobs",
@@ -171,13 +171,14 @@ export function activeGroup(pathname: string, groups: NavGroup[] = navGroups): N
   return groups.find((group) => group.match(pathname));
 }
 
-// Tiêu đề + mô tả hiển thị trên thanh header cố định. Luôn tra trên `navGroups` đầy đủ
-// để mục cha đang bị ẩn khỏi menu vẫn cho ra tiêu đề đúng khi truy cập route trực tiếp.
-export function currentMeta(pathname: string): { title: string; desc?: string } {
+// Tiêu đề + mô tả của trang (PageHeader) và tên nhóm cha (breadcrumb trên header). Luôn
+// tra trên `navGroups` đầy đủ để mục cha đang bị ẩn khỏi menu vẫn cho ra tiêu đề đúng
+// khi truy cập route trực tiếp.
+export function currentMeta(pathname: string): { group?: string; title: string; desc?: string } {
   const group = activeGroup(pathname, navGroups);
   if (!group) return { title: "Dylan Plan" };
   const child = group.children.find((leaf) => leaf.href === pathname);
-  if (child) return { title: `${group.label} · ${child.label}`, desc: child.desc };
+  if (child) return { group: group.label, title: child.label, desc: child.desc };
   return { title: group.label, desc: group.desc };
 }
 

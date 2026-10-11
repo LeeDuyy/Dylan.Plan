@@ -1,22 +1,18 @@
 "use client";
 
-import { Button, Switcher } from "@vn-dylan/ui";
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { Button, List, Stack, Switcher } from "@vn-dylan/ui";
+import { RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { navGroups } from "@/components/shared/nav";
+import { navGroups, type NavGroup, type NavLeaf } from "@/components/shared/nav";
 import { groupPrefId, leafPrefId, type NavPref } from "@/lib/nav-registry";
 import { reorderNav, resetNavConfig, setNavVisibility } from "@/server/config/actions";
 
-function move(ids: string[], index: number, direction: -1 | 1): string[] | null {
-  const target = index + direction;
-  if (target < 0 || target >= ids.length) return null;
-  const next = [...ids];
-  [next[index], next[target]] = [next[target], next[index]];
-  return next;
-}
-
+// Trình sửa menu: kéo-thả (hoặc Alt + ↑/↓ khi đang focus) để đổi thứ tự, công tắc để
+// ẩn/hiện. Dùng `List sortable` của design system. Các `List` sortable KHÔNG lồng nhau
+// (sự kiện kéo-thả của list con sẽ nổi bọt lên list cha) nên nhóm và mục con nằm ở các
+// danh sách riêng: một danh sách nhóm, rồi mỗi nhóm có một danh sách mục con.
 export function NavConfigEditor({ navPrefs }: { navPrefs: NavPref[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -29,7 +25,14 @@ export function NavConfigEditor({ navPrefs }: { navPrefs: NavPref[] }) {
   // Danh sách đầy đủ (kể cả mục đang ẩn) để chỉnh, đã sắp theo thứ tự hiện tại.
   const groupRows = navGroups
     .map((group, index) => ({ group, index }))
-    .sort((a, b) => orderOf(groupPrefId(a.group.id), a.index) - orderOf(groupPrefId(b.group.id), b.index));
+    .sort((a, b) => orderOf(groupPrefId(a.group.id), a.index) - orderOf(groupPrefId(b.group.id), b.index))
+    .map(({ group }) => group);
+
+  const childRowsOf = (group: NavGroup) =>
+    group.children
+      .map((child, index) => ({ child, index }))
+      .sort((a, b) => orderOf(leafPrefId(a.child.href), a.index) - orderOf(leafPrefId(b.child.href), b.index))
+      .map(({ child }) => child);
 
   const run = (fn: () => Promise<void>) => {
     setError(null);
@@ -44,101 +47,63 @@ export function NavConfigEditor({ navPrefs }: { navPrefs: NavPref[] }) {
     });
   };
 
-  const moveGroup = (index: number, direction: -1 | 1) => {
-    const next = move(
-      groupRows.map((row) => groupPrefId(row.group.id)),
-      index,
-      direction
-    );
-    if (next) run(() => reorderNav({ orderedIds: next }));
-  };
-
-  const moveChild = (childHrefs: string[], index: number, direction: -1 | 1) => {
-    const next = move(childHrefs.map(leafPrefId), index, direction);
-    if (next) run(() => reorderNav({ orderedIds: next }));
-  };
-
   const toggle = (id: string, visible: boolean) => run(() => setNavVisibility({ id, hidden: !visible }));
+
+  const row = (label: string, id: string) => {
+    const visible = !isHidden(id);
+    return (
+      <List.Item
+        title={<span className={visible ? undefined : "nav-config-label is-hidden"}>{label}</span>}
+        actions={
+          <Switcher
+            checked={visible}
+            disabled={pending}
+            onChange={(checked) => toggle(id, checked)}
+            aria-label={`${visible ? "Ẩn" : "Hiện"} ${label}`}
+          />
+        }
+      />
+    );
+  };
 
   return (
     <div className="config-drawer">
       <div className="config-section">
         <h3>Menu điều hướng</h3>
-        <p className="config-hint">Kéo thứ tự bằng mũi tên, tắt công tắc để ẩn một mục khỏi sidebar (route vẫn vào được).</p>
+        <p className="config-hint">
+          Kéo từng hàng (hoặc chọn hàng rồi nhấn Alt + ↑/↓) để đổi thứ tự. Tắt công tắc để ẩn một mục khỏi sidebar
+          (route vẫn vào được).
+        </p>
         {error && <p className="config-error">{error}</p>}
 
-        <div className="nav-config-list" aria-busy={pending}>
-          {groupRows.map(({ group }, groupIndex) => {
-            const gid = groupPrefId(group.id);
-            const groupVisible = !isHidden(gid);
-            const childRows = group.children
-              .map((child, index) => ({ child, index }))
-              .sort(
-                (a, b) => orderOf(leafPrefId(a.child.href), a.index) - orderOf(leafPrefId(b.child.href), b.index)
-              );
-            const childHrefs = childRows.map((row) => row.child.href);
+        <Stack gap="base" className="nav-config-list" aria-busy={pending}>
+          <List<NavGroup>
+            bordered
+            sortable
+            aria-label="Thứ tự các nhóm menu"
+            items={groupRows}
+            getKey={(group) => group.id}
+            onReorder={(next) => run(() => reorderNav({ orderedIds: next.map((group) => groupPrefId(group.id)) }))}
+            renderItem={(group) => row(group.label, groupPrefId(group.id))}
+          />
 
-            return (
-              <div className="nav-config-group" key={group.id}>
-                <div className={`nav-config-row${groupVisible ? "" : " is-hidden"}`}>
-                  <div className="nav-config-move">
-                    <Button
-                      size="xs"
-                      icon={<ChevronUp size={14} />}
-                      disabled={pending || groupIndex === 0}
-                      onClick={() => moveGroup(groupIndex, -1)}
-                      aria-label={`Đưa ${group.label} lên`}
-                    />
-                    <Button
-                      size="xs"
-                      icon={<ChevronDown size={14} />}
-                      disabled={pending || groupIndex === groupRows.length - 1}
-                      onClick={() => moveGroup(groupIndex, 1)}
-                      aria-label={`Đưa ${group.label} xuống`}
-                    />
-                  </div>
-                  <span className="nav-config-label">{group.label}</span>
-                  <Switcher
-                    checked={groupVisible}
-                    disabled={pending}
-                    onChange={(checked) => toggle(gid, checked)}
-                  />
-                </div>
-
-                {childRows.map(({ child }, childIndex) => {
-                  const lid = leafPrefId(child.href);
-                  const childVisible = !isHidden(lid);
-                  return (
-                    <div className={`nav-config-row is-child${childVisible ? "" : " is-hidden"}`} key={child.href}>
-                      <div className="nav-config-move">
-                        <Button
-                          size="xs"
-                          icon={<ChevronUp size={14} />}
-                          disabled={pending || childIndex === 0}
-                          onClick={() => moveChild(childHrefs, childIndex, -1)}
-                          aria-label={`Đưa ${child.label} lên`}
-                        />
-                        <Button
-                          size="xs"
-                          icon={<ChevronDown size={14} />}
-                          disabled={pending || childIndex === childRows.length - 1}
-                          onClick={() => moveChild(childHrefs, childIndex, 1)}
-                          aria-label={`Đưa ${child.label} xuống`}
-                        />
-                      </div>
-                      <span className="nav-config-label">{child.label}</span>
-                      <Switcher
-                        checked={childVisible}
-                        disabled={pending}
-                        onChange={(checked) => toggle(lid, checked)}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
+          {groupRows
+            .filter((group) => group.children.length > 0)
+            .map((group) => (
+              <Stack gap="tight" key={group.id}>
+                <span className="eyebrow">{group.label}</span>
+                <List<NavLeaf>
+                  bordered
+                  sortable
+                  aria-label={`Thứ tự mục con của ${group.label}`}
+                  items={childRowsOf(group)}
+                  getKey={(child) => child.href}
+                  onReorder={(next) => run(() => reorderNav({ orderedIds: next.map((child) => leafPrefId(child.href)) }))}
+                  renderItem={(child) => row(child.label, leafPrefId(child.href))}
+                />
+              </Stack>
+            ))}
+        </Stack>
 
         <Button
           size="sm"
